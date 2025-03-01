@@ -2,6 +2,7 @@
 
 import reflex as rx
 from Calendario.state.user_state import UserState
+from Calendario.state.register_state import RegisterState
 class Login_state(rx.State):
     """
     Manejador de estado para la tarjeta de inicio de sesión en Reflex.
@@ -16,6 +17,8 @@ class Login_state(rx.State):
         self.is_open = True
         self.mode = mode
         UserState.set_password("")
+        RegisterState.set_password("")
+        RegisterState.set_confirm_password("")
         self.show_pasw = False  # Reinicia la visibilidad de la contraseña
 
 
@@ -23,6 +26,9 @@ class Login_state(rx.State):
     def register(self, mode="register"):
         self.is_open = True
         self.mode = mode
+        UserState.set_password("")
+        RegisterState.set_password("")
+        RegisterState.set_confirm_password("")
         self.show_pasw = False  # Reinicia la visibilidad de la contraseña
 
 
