@@ -45,4 +45,8 @@ class RegisterState(rx.State):
         """Controla la visibilidad de la contraseña."""
         self.show_pasw = value
 
-    rx.event()
+    @rx.event
+    def reset_switch(self):
+        """Reinicia el estado del switch a False."""
+        self.show_pasw = False
+        return None  # Devuelve None para indicar que no hay más acciones

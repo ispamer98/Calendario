@@ -30,6 +30,7 @@ class Login_state(rx.State):
         RegisterState.set_password("")
         RegisterState.set_confirm_password("")
         self.show_pasw = False  # Reinicia la visibilidad de la contraseña
+        return RegisterState.reset_switch()  # Reinicia el switch en el formulario de registro
 
 
     @rx.event
