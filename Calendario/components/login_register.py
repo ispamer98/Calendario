@@ -202,6 +202,10 @@ def login_card() -> rx.Component:
                                 spacing="4",
                                 width="100%",
                             ),
+                            rx.vstack(
+                                rx.text("asDASDDASD")
+
+                            ),
 
                             rx.center(
                                 rx.vstack(
