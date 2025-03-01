@@ -31,7 +31,12 @@ class Login_state(rx.State):
         self.is_open = False
 
     @rx.event
-    def swith_on(self, value: bool):
+    def swith_on(self, value: bool = True):
+        """Controla la visibilidad de la contraseña."""
+        self.show_pasw = value
+
+    @rx.event
+    def swith_off(self, value: bool = False):
         """Controla la visibilidad de la contraseña."""
         self.show_pasw = value
 

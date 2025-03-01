@@ -1,11 +1,14 @@
 #login_register.py
 
 
+from pydoc import text
+from turtle import width
 import reflex as rx
 from Calendario.state.calendar_state import CalendarState
+from Calendario.state.register_state import RegisterState
 from Calendario.state.user_state import UserState
 from Calendario.state.login_state import Login_state
-from Calendario.components.show_pasw_switch import show_pasw_switch
+from Calendario.components.show_pasw_switch import show_pasw_switch_login, show_pasw_switch_register
 def login_card() -> rx.Component:
     return rx.cond(Login_state.mode == "login",
                     rx.flex(
@@ -77,7 +80,7 @@ def login_card() -> rx.Component:
                                     on_key_down=UserState.press_enter,
                                     
                                 ),
-                                show_pasw_switch(),
+                                show_pasw_switch_login(),
                                 spacing="2",
                                 width="100%",
                             ),
@@ -123,7 +126,7 @@ def login_card() -> rx.Component:
                                 ),
                                 rx.heading(
                                     "Registrate",
-                                    size="6",
+                                    size="7",
                                     as_="h2",
                                     text_align="center",
                                     width="100%",
@@ -132,10 +135,72 @@ def login_card() -> rx.Component:
                                 spacing="5",
                                 width="100%",
                             ),
-                            rx.form(
-                                rx.input(
+                            rx.vstack(
+                                rx.hstack(
+                                    rx.text(
+                                        "Usuario",
+                                        size="4",
+                                        weight="medium",
+                                    ),
                                     
-                                )
+                                    justify="between",
+                                    width="100%",
+                                ),
+                                rx.input(
+                                    rx.input.slot(rx.icon("user")),
+                                    placeholder="Usuario",
+                                    name="user",
+                                    type="text",
+                                    size="3",
+                                    width="100%",
+                                    justify="center",
+                                    required=True,
+                                    autofocus=True,
+                                    value=rx.cond(RegisterState.username,RegisterState.username,""),
+                                    on_change=RegisterState.set_username,
+                                    
+                                ),
+                                rx.hstack(
+                                    rx.text(
+                                        "Contraseña",
+                                        size="4",
+                                        weight="medium",
+                                    ),
+                                    
+                                    justify="between",
+                                    width="100%",
+                                ),
+                                rx.input(
+                                    rx.input.slot(rx.icon("lock")),
+                                    placeholder="Contraseña",
+                                    name="pasw",
+                                    type=rx.cond(RegisterState.show_pasw, "text", "password"),
+                                    size="3",
+                                    width="100%",
+                                    justify="center",
+                                    required=True,
+                                    autofocus=True,
+                                    value=rx.cond(RegisterState.password,RegisterState.password,""),
+                                    on_change=RegisterState.set_password,
+                                    
+                                ),
+                                show_pasw_switch_register(),
+                                rx.input(
+                                    rx.input.slot(rx.icon("lock")),
+                                    placeholder="Confirmar Contraseña",
+                                    name="confirm_pasw",
+                                    type="password",
+                                    size="3",
+                                    width="100%",
+                                    justify="center",
+                                    required=True,
+                                    value=rx.cond(RegisterState.confirm_password,RegisterState.confirm_password,""),
+                                    on_change=RegisterState.set_confirm_password,
+
+                                ),
+                                
+                                spacing="4",
+                                width="100%",
                             ),
 
                             rx.center(

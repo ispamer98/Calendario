@@ -9,7 +9,7 @@ from Calendario.components.login_register import login_card
 from Calendario.state.calendar_state import CalendarState
 from Calendario.state.user_state import UserState
 from Calendario.database.database import SupabaseAPI
-@rx.page(route="/", title="Calendario | Python", 
+@rx.page(route="/", title="Calendario | Python",
          )
 def index() -> rx.Component:
     return rx.container(

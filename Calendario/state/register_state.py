@@ -9,6 +9,7 @@ class RegisterState(rx.State):
     confirm_password : str = ""
     email : str = ""
     confirm_email : str = ""
+    show_pasw : bool = False
     
 
     @rx.event
@@ -33,3 +34,13 @@ class RegisterState(rx.State):
     def set_confirm_email(self, confirm_email: str):
         self.confirm_email = confirm_email
         print(f"Confirmar correo electrónico para registro actualizado: {self.confirm_email}")
+
+    @rx.event
+    def swith_on(self, value: bool = True):
+        """Controla la visibilidad de la contraseña."""
+        self.show_pasw = value
+
+    @rx.event
+    def swith_off(self, value: bool = False):
+        """Controla la visibilidad de la contraseña."""
+        self.show_pasw = value
