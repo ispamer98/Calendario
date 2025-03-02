@@ -44,6 +44,20 @@ class SupabaseAPI:
             logging.error(f"Error autenticando al usuario: {e}")
         return None
     
+
+    def register_user(self, username: str, password: str, email: str, birth_date: str):
+        try:
+            birth_date = datetime.strptime(birth_date, '%Y-%m-%d').isoformat()
+            response = self.supabase.from_("user").insert({
+                "username": username,
+                "pasw": password,
+                "email": email,
+                "birth_date": birth_date
+            }).execute()
+
+        except Exception as e:
+            print(e)
+
     def get_calendars(self, user_id: int) -> Union[List[Calendar], None]:
         try:
             response = (

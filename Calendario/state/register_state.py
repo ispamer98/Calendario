@@ -1,6 +1,7 @@
 
 # register_state.py
 
+from Calendario.utils.send_email import send_welcome_email
 import reflex as rx 
 
 class RegisterState(rx.State):
@@ -9,8 +10,66 @@ class RegisterState(rx.State):
     confirm_password : str = ""
     email : str = ""
     confirm_email : str = ""
+    birthday : str = ""
     show_pasw : bool = False
-    
+    errors: dict = {
+        "username": "",
+        "password": "",
+        "confirm_password": "",
+        "email": "",
+        "confirm_email": "",
+        "birthday": ""
+    }
+
+    @rx.event
+    def register(self):
+        # Resetear errores
+        self.errors = {k: "" for k in self.errors}
+        
+        # Validaciones
+        if not self.username:
+            self.errors["username"] = "Usuario requerido"
+        
+        if not self.password:
+            self.errors["password"] = "Contraseña requerida"
+        elif len(self.password) < 8:
+            self.errors["password"] = "Mínimo 8 caracteres"
+        
+        if self.password != self.confirm_password:
+            self.errors["confirm_password"] = "Las contraseñas no coinciden"
+        
+        if not self.validate_email(self.email):
+            self.errors["email"] = "Email inválido"
+        elif self.email != self.confirm_email:
+            self.errors["confirm_email"] = "Los emails no coinciden"
+        
+        if not self.birthday:
+            self.errors["birthday"] = "Fecha requerida"
+
+        # Si no hay errores
+        if all(value == "" for value in self.errors.values()):
+            print("Registro exitoso!")
+            # Aquí tu lógica de registro
+
+    def validate_email(self, email: str) -> bool:
+        import re
+        pattern = r"""
+        ^                           # Inicio de la cadena
+        (?!.*\.\.)                  # No permite dos puntos consecutivos
+        [\w.%+-]+                   # Parte local (caracteres permitidos)
+        (?<!\.)                     # No termina con un punto
+        @                           # Separador
+        (?:                         # Dominio:
+            [a-zA-Z0-9]             #   - Inicia con alfanumérico
+            (?:[a-zA-Z0-9-]{0,61}  #   - Permite hasta 61 caracteres (incluyendo guiones)
+            [a-zA-Z0-9])?           #   - Termina con alfanumérico (no guión)
+            \.                      #   - Separador por punto
+        )+                          # Múltiples subdominios
+        [a-zA-Z]{2,63}              # TLD (2-63 caracteres alfabéticos)
+        $                           # Fin de la cadena
+        """
+        return bool(re.fullmatch(pattern, email, re.VERBOSE))
+
 
     @rx.event
     def set_username(self, username: str):

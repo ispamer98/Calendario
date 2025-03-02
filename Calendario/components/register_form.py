@@ -9,7 +9,6 @@ def register_form() -> rx.Component:
     """Componente del formulario de registro con dos columnas."""
     return rx.container(
         rx.vstack(
-            # Título "Registrate" centrado
             rx.center(
                 rx.heading(
                     "Registra tu Usuario",
@@ -20,9 +19,7 @@ def register_form() -> rx.Component:
                 ),
                 width="100%",
             ),
-            # Contenedor principal con dos columnas (hstack)
             rx.hstack(
-                # Columna izquierda: Usuario y contraseñas
                 rx.vstack(
                     rx.vstack(
                         rx.text("Usuario", size="3", weight="medium"),
@@ -36,8 +33,33 @@ def register_form() -> rx.Component:
                             justify="center",
                             required=True,
                             autofocus=True,
-                            value=rx.cond(RegisterState.username, RegisterState.username, ""),
+                            value=RegisterState.username,
                             on_change=RegisterState.set_username,
+                            border_color=rx.cond(
+                                RegisterState.errors["username"] != "", 
+                                "#EF4444", 
+                                "#666666"
+                            ),
+                            _focus={
+                                "border_color": rx.cond(
+                                    RegisterState.errors["username"] != "", 
+                                    "#EF4444", 
+                                    "#3182CE"
+                                ),
+                                "box_shadow": rx.cond(
+                                    RegisterState.errors["username"] != "", 
+                                    "0 0 0 1px #EF4444", 
+                                    "0 0 0 1px #3182CE"
+                                )
+                            }
+                        ),
+                        rx.cond(
+                            RegisterState.errors["username"] != "",
+                            rx.text(
+                                RegisterState.errors["username"],
+                                size="2",
+                                style={"color": "#EF4444"}
+                            )
                         ),
                         spacing="2",
                         width="100%",
@@ -53,8 +75,33 @@ def register_form() -> rx.Component:
                             width="100%",
                             justify="center",
                             required=True,
-                            value=rx.cond(RegisterState.password, RegisterState.password, ""),
+                            value=RegisterState.password,
                             on_change=RegisterState.set_password,
+                            border_color=rx.cond(
+                                RegisterState.errors["password"] != "", 
+                                "#EF4444", 
+                                "#666666"
+                            ),
+                            _focus={
+                                "border_color": rx.cond(
+                                    RegisterState.errors["password"] != "", 
+                                    "#EF4444", 
+                                    "#3182CE"
+                                ),
+                                "box_shadow": rx.cond(
+                                    RegisterState.errors["password"] != "", 
+                                    "0 0 0 1px #EF4444", 
+                                    "0 0 0 1px #3182CE"
+                                )
+                            }
+                        ),
+                        rx.cond(
+                            RegisterState.errors["password"] != "",
+                            rx.text(
+                                RegisterState.errors["password"],
+                                size="2",
+                                style={"color": "#EF4444"}
+                            )
                         ),
                         show_pasw_switch_register(),
                         rx.input(
@@ -66,8 +113,33 @@ def register_form() -> rx.Component:
                             width="100%",
                             justify="center",
                             required=True,
-                            value=rx.cond(RegisterState.confirm_password, RegisterState.confirm_password, ""),
+                            value=RegisterState.confirm_password,
                             on_change=RegisterState.set_confirm_password,
+                            border_color=rx.cond(
+                                RegisterState.errors["confirm_password"] != "", 
+                                "#EF4444", 
+                                "#666666"
+                            ),
+                            _focus={
+                                "border_color": rx.cond(
+                                    RegisterState.errors["confirm_password"] != "", 
+                                    "#EF4444", 
+                                    "#3182CE"
+                                ),
+                                "box_shadow": rx.cond(
+                                    RegisterState.errors["confirm_password"] != "", 
+                                    "0 0 0 1px #EF4444", 
+                                    "0 0 0 1px #3182CE"
+                                )
+                            }
+                        ),
+                        rx.cond(
+                            RegisterState.errors["confirm_password"] != "",
+                            rx.text(
+                                RegisterState.errors["confirm_password"],
+                                size="2",
+                                style={"color": "#EF4444"}
+                            )
                         ),
                         spacing="2",
                         width="100%",
@@ -75,7 +147,6 @@ def register_form() -> rx.Component:
                     spacing="4",
                     width="100%",
                 ),
-                # Columna derecha: Correo electrónico y fecha de nacimiento
                 rx.vstack(
                     rx.vstack(
                         rx.text("Correo electrónico", size="4", weight="medium"),
@@ -88,8 +159,33 @@ def register_form() -> rx.Component:
                             width="100%",
                             justify="center",
                             required=True,
-                            value=rx.cond(RegisterState.email, RegisterState.email, ""),
+                            value=RegisterState.email,
                             on_change=RegisterState.set_email,
+                            border_color=rx.cond(
+                                RegisterState.errors["email"] != "", 
+                                "#EF4444", 
+                                "#666666"
+                            ),
+                            _focus={
+                                "border_color": rx.cond(
+                                    RegisterState.errors["email"] != "", 
+                                    "#EF4444", 
+                                    "#3182CE"
+                                ),
+                                "box_shadow": rx.cond(
+                                    RegisterState.errors["email"] != "", 
+                                    "0 0 0 1px #EF4444", 
+                                    "0 0 0 1px #3182CE"
+                                )
+                            }
+                        ),
+                        rx.cond(
+                            RegisterState.errors["email"] != "",
+                            rx.text(
+                                RegisterState.errors["email"],
+                                size="2",
+                                style={"color": "#EF4444"}
+                            )
                         ),
                         rx.input(
                             rx.input.slot(rx.icon("mail")),
@@ -100,80 +196,131 @@ def register_form() -> rx.Component:
                             width="100%",
                             justify="center",
                             required=True,
-                            value=rx.cond(RegisterState.confirm_email, RegisterState.confirm_email, ""),
+                            value=RegisterState.confirm_email,
                             on_change=RegisterState.set_confirm_email,
+                            border_color=rx.cond(
+                                RegisterState.errors["confirm_email"] != "", 
+                                "#EF4444", 
+                                "#666666"
+                            ),
+                            _focus={
+                                "border_color": rx.cond(
+                                    RegisterState.errors["confirm_email"] != "", 
+                                    "#EF4444", 
+                                    "#3182CE"
+                                ),
+                                "box_shadow": rx.cond(
+                                    RegisterState.errors["confirm_email"] != "", 
+                                    "0 0 0 1px #EF4444", 
+                                    "0 0 0 1px #3182CE"
+                                )
+                            }
+                        ),
+                        rx.cond(
+                            RegisterState.errors["confirm_email"] != "",
+                            rx.text(
+                                RegisterState.errors["confirm_email"],
+                                size="2",
+                                style={"color": "#EF4444"}
+                            )
                         ),
                         spacing="4",
                         width="100%",
                     ),
                     rx.vstack(
-                        rx.center(  # Centra el texto horizontalmente
+                        rx.center(
                             rx.text("Fecha de Nacimiento", size="4", weight="medium"),
-                            width="100%",  # Ocupa todo el ancho disponible
+                            width="100%",
                         ),
-                        rx.center(  # Centra el input horizontalmente
+                        rx.center(
                             rx.input(
                                 type="date",
                                 size="3",
-                                width="100%",  # Ocupa todo el ancho disponible
-                                justify="center",  # Centra el contenido del input
+                                width="100%",
+                                justify="center",
                                 required=True,
-                                border="1px solid #666666",  # Borde sutil
-                                border_radius="8px",  # Bordes redondeados
+                                value=RegisterState.birthday,
+                                on_change=RegisterState.set_birthday,
+                                border=rx.cond(
+                                    RegisterState.errors["birthday"] != "",
+                                    "1px solid #EF4444",
+                                    "1px solid #666666"
+                                ),
+                                border_radius="8px",
                                 _hover={
-                                    "border": "1px solid #3182ce",  # Borde azul al pasar el mouse
+                                    "border": rx.cond(
+                                        RegisterState.errors["birthday"] != "",
+                                        "1px solid #EF4444",
+                                        "1px solid #3182CE"
+                                    )
                                 },
                                 _focus={
-                                    "border": "1px solid #3182ce",  # Borde azul al enfocar
-                                    "box_shadow": "0 0 0 1px #3182ce",  # Sombra al enfocar
-                                },
+                                    "border": rx.cond(
+                                        RegisterState.errors["birthday"] != "",
+                                        "1px solid #EF4444",
+                                        "1px solid #3182CE"
+                                    ),
+                                    "box_shadow": rx.cond(
+                                        RegisterState.errors["birthday"] != "",
+                                        "0 0 0 1px #EF4444",
+                                        "0 0 0 1px #3182CE"
+                                    )
+                                }
                             ),
-                            width="100%",  # Ocupa todo el ancho disponible
+                            width="100%",
                         ),
-                        spacing="4",  # Espacio entre el texto y el input
-                        width="50%",  # Ancho del vstack
-                        align="center",  # Centra los elementos verticalmente dentro del vstack
+                        rx.cond(
+                            RegisterState.errors["birthday"] != "",
+                            rx.text(
+                                RegisterState.errors["birthday"],
+                                size="2",
+                                text_align="center",
+                                width="100%",
+                                style={"color": "#EF4444"}
+                            )
+                        ),
+                        spacing="4",
+                        width="50%",
+                        align="center",
                         margin_left="20%"
                     ),
                     spacing="6",
                     width="100%",
                 ),
-                spacing="6",  # Espacio entre las dos columnas
+                spacing="6",
                 width="100%",
             ),
-            # Botón de Registrarse y enlace "¿Ya estás registrado?"
             rx.center(
                 rx.vstack(
                     rx.button(
                         "Registrarse",
-                        size="3",  # Tamaño más pequeño
-                        width="50%",  # Ancho reducido
-                        justify="center",  # Centrado horizontalmente
+                        size="3",
+                        width="50%",
+                        justify="center",
+                        on_click=RegisterState.register
                     ),
                     rx.hstack(
                         rx.text("¿Ya estás registrado?", size="3"),
                         rx.link(
                             "Inicia Sesión",
-                            on_click=Login_state.login,  # Cambia al modo de inicio de sesión
+                            on_click=Login_state.login,
                             size="3",
                         ),
                         spacing="2",
-                        justify="center",  # Centrado horizontalmente
+                        justify="center",
                         opacity="0.8",
                     ),
-                    spacing="6",  # Espacio reducido entre el botón y el texto
+                    spacing="6",
                     width="100%",
-                    align="center",  # Centrado verticalmente
-
+                    align="center",
                 ),
                 width="100%",
-
             ),
-            spacing="6",  # Espacio entre el título y el contenido
+            spacing="6",
             width="100%",
         ),
-        max_width="60em",  # Ancho máximo del contenedor
-        padding="2em",  # Espaciado interno
-        padding_top="4em",  # Añade este padding para dar espacio arriba
-
+        max_width="60em",
+        padding="2em",
+        padding_top="4em",
+        on_mount=[RegisterState.set_password(""),RegisterState.set_confirm_password("")]
     )

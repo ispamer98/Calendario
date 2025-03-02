@@ -31,6 +31,8 @@ async def authenticate_user(username: str, password: str) -> Union[User, None]:
 
 
 
+
+
 async def fetch_and_transform_calendars(user_id: int) -> List[Calendar]:
     calendars = SUPABASE_API.get_calendars(user_id)
     if calendars is None:
