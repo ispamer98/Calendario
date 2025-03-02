@@ -30,6 +30,12 @@ async def authenticate_user(username: str, password: str) -> Union[User, None]:
     return None
 
 
+async def verify_user(self, username: str, email: str):
+    """
+    Verifica la existencia de un usuario/email en la base de datos.
+    """
+    result = await SUPABASE_API.verify_user(username, email)
+    return result["data"] is not None
 
 
 

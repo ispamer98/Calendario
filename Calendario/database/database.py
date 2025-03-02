@@ -45,6 +45,23 @@ class SupabaseAPI:
         return None
     
 
+    def verify_user(self, username: str, email: str) -> bool:
+        try: 
+            response_user = self.supabase.from_("user").select("*").eq("username",username).execute()
+            response_email = self.supabase.from_("email").select("*").eq("email",email).execute()
+
+            if response_user:
+                return len(response_user) > 0
+            if response_email:
+                return len(response_email) > 0
+        except Exception as e:
+            print("Error verificando user/email")
+            return False
+        
+
+
+
+
     def register_user(self, username: str, password: str, email: str, birth_date: str):
         try:
             birth_date = datetime.strptime(birth_date, '%Y-%m-%d').isoformat()
