@@ -1,7 +1,9 @@
 
 # register_state.py
 
+from Calendario.utils.api import check_existing_user
 from Calendario.utils.send_email import send_welcome_email
+from datetime import datetime
 import reflex as rx 
 
 class RegisterState(rx.State):
@@ -22,34 +24,106 @@ class RegisterState(rx.State):
     }
 
     @rx.event
-    def register(self):
+    async def register(self):
         # Resetear errores
         self.errors = {k: "" for k in self.errors}
-        
-        # Validaciones
+        has_errors = False
+
+        # Verificar si el usuario/email ya existen
+        existing = await check_existing_user(self.username, self.email)
+        if existing["username"]:
+            self.errors["username"] = "El nombre de usuario ya está registrado"
+            has_errors = True
+        if existing["email"]:
+            self.errors["email"] = "El correo electrónico ya está registrado"
+            has_errors = True
+
+
+        # Validación de username
         if not self.username:
             self.errors["username"] = "Usuario requerido"
-        
+            has_errors = True
+        else:
+            # Verificar que la longitud esté entre 6 y 16 caracteres
+            if len(self.username) < 4 or len(self.username) > 16:
+                self.errors["username"] = "El usuario debe tener entre 4 y 16 caracteres"
+                has_errors = True
+
+            # Verificar que contenga al menos un número
+            elif not any(char.isdigit() for char in self.username):
+                self.errors["username"] = "El usuario debe contener al menos un número"
+                has_errors = True
+
+            # Verificar que no contenga caracteres especiales (solo letras y números)
+            elif not self.username.isalnum():
+                self.errors["username"] = "El usuario no puede contener caracteres especiales"
+                has_errors = True
+
+        # Validación de email
+        if not self.validate_email(self.email.lower()):
+            self.errors["email"] = "Email inválido"
+            has_errors = True
+        elif self.email.lower() != self.confirm_email.lower():
+            self.errors["confirm_email"] = "Los emails no coinciden"
+            has_errors = True
+
+        import re
+        # Validación de contraseña
         if not self.password:
             self.errors["password"] = "Contraseña requerida"
-        elif len(self.password) < 8:
-            self.errors["password"] = "Mínimo 8 caracteres"
-        
-        if self.password != self.confirm_password:
-            self.errors["confirm_password"] = "Las contraseñas no coinciden"
-        
-        if not self.validate_email(self.email):
-            self.errors["email"] = "Email inválido"
-        elif self.email != self.confirm_email:
-            self.errors["confirm_email"] = "Los emails no coinciden"
-        
+            has_errors = True
+        else:
+            # Patrón que requiere:
+            # - Al menos 8 caracteres
+            # - Al menos una letra mayúscula
+            # - Al menos un dígito
+            # - Al menos un carácter especial (no alfanumérico)
+            pattern = r'^(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$'
+            if not re.match(pattern, self.password):
+                self.errors["password"] = ("La contraseña debe tener mínimo 8 caracteres, "
+                                            "al menos 1 mayúscula, 1 número y 1 carácter especial")
+                has_errors = True
+            elif self.password != self.confirm_password:
+                self.errors["confirm_password"] = "Las contraseñas no coinciden"
+                has_errors = True
+
+        # Validación de fecha
         if not self.birthday:
             self.errors["birthday"] = "Fecha requerida"
+            has_errors = True
+        else:
+            try:
+                birth_date = datetime.strptime(self.birthday, '%Y-%m-%d')
+                if birth_date > datetime.now():
+                    self.errors["birthday"] = "Fecha inválida"
+                    has_errors = True
+            except ValueError:
+                self.errors["birthday"] = "Formato inválido (AAAA-MM-DD)"
+                has_errors = True
 
-        # Si no hay errores
-        if all(value == "" for value in self.errors.values()):
-            print("Registro exitoso!")
-            # Aquí tu lógica de registro
+        if has_errors:
+            return rx.toast.error("No ha sido posible el registro")
+
+
+        # Si no hay errores, proceder con registro
+        if not has_errors:
+            try:
+                # Aquí iría la lógica de registro en la base de datos
+                # await register_user(...)
+                
+                # Enviar correo de bienvenida
+                send_welcome_email(self.email, self.username)
+                
+                return rx.toast.success(
+                    "¡Registro exitoso! Revisa tu correo electrónico",
+                    position="top-center"
+                )
+                
+            except Exception as e:
+                return rx.toast.error(
+                    f"Error en el registro: {str(e)}",
+                    position="top-center"
+                )
 
     def validate_email(self, email: str) -> bool:
         import re
@@ -108,4 +182,8 @@ class RegisterState(rx.State):
     def reset_switch(self):
         """Reinicia el estado del switch a False."""
         self.show_pasw = False
-        return None  # Devuelve None para indicar que no hay más acciones
+    
+    @rx.event
+    def clean_birthday(self):
+        """Limpia la fecha de nacimiento."""
+        self.birthday = ""

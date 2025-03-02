@@ -9,6 +9,7 @@ class User(rx.Base):
     username: str
     pasw: str
     email: str
+    birthday: str
     created_at: datetime
 
 

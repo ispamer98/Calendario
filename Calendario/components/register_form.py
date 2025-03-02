@@ -4,6 +4,7 @@ import reflex as rx
 from Calendario.state.register_state import RegisterState
 from Calendario.state.login_state import Login_state
 from Calendario.components.show_pasw_switch import show_pasw_switch_register
+from Calendario.utils.api import check_existing_user
 
 def register_form() -> rx.Component:
     """Componente del formulario de registro con dos columnas."""
@@ -34,7 +35,7 @@ def register_form() -> rx.Component:
                             required=True,
                             autofocus=True,
                             value=RegisterState.username,
-                            on_change=RegisterState.set_username,
+                            on_change=[RegisterState.set_username,],
                             border_color=rx.cond(
                                 RegisterState.errors["username"] != "", 
                                 "#EF4444", 
@@ -232,43 +233,59 @@ def register_form() -> rx.Component:
                             rx.text("Fecha de Nacimiento", size="4", weight="medium"),
                             width="100%",
                         ),
-                        rx.center(
-                            rx.input(
-                                type="date",
-                                size="3",
-                                width="100%",
-                                justify="center",
-                                required=True,
-                                value=RegisterState.birthday,
-                                on_change=RegisterState.set_birthday,
-                                border=rx.cond(
-                                    RegisterState.errors["birthday"] != "",
-                                    "1px solid #EF4444",
-                                    "1px solid #666666"
-                                ),
-                                border_radius="8px",
-                                _hover={
-                                    "border": rx.cond(
+                        rx.hstack(
+                            rx.center(
+                                rx.input(
+                                    type="date",
+                                    size="3",
+                                    width="100%",
+                                    justify="center",
+                                    required=True,
+                                    value=RegisterState.birthday,
+                                    on_change=RegisterState.set_birthday,
+                                    border=rx.cond(
                                         RegisterState.errors["birthday"] != "",
                                         "1px solid #EF4444",
-                                        "1px solid #3182CE"
-                                    )
-                                },
-                                _focus={
-                                    "border": rx.cond(
-                                        RegisterState.errors["birthday"] != "",
-                                        "1px solid #EF4444",
-                                        "1px solid #3182CE"
+                                        "1px solid #666666"
                                     ),
-                                    "box_shadow": rx.cond(
-                                        RegisterState.errors["birthday"] != "",
-                                        "0 0 0 1px #EF4444",
-                                        "0 0 0 1px #3182CE"
-                                    )
-                                }
+                                    border_radius="8px",
+                                    _hover={
+                                        "border": rx.cond(
+                                            RegisterState.errors["birthday"] != "",
+                                            "1px solid #EF4444",
+                                            "1px solid #3182CE"
+                                        )
+                                    },
+                                    _focus={
+                                        "border": rx.cond(
+                                            RegisterState.errors["birthday"] != "",
+                                            "1px solid #EF4444",
+                                            "1px solid #3182CE"
+                                        ),
+                                        "box_shadow": rx.cond(
+                                            RegisterState.errors["birthday"] != "",
+                                            "0 0 0 1px #EF4444",
+                                            "0 0 0 1px #3182CE"
+                                        )
+                                    }
+                                ),
+                                width="100%",
                             ),
-                            width="100%",
+                            rx.button(
+                                rx.icon("rotate-ccw"),
+                                on_click=RegisterState.clean_birthday,
+                                background="transparent",
+                                size="1",
+                                margin_top="8px",
+                                _hover={
+                                    "transform": "scale(1.2)",
+                                    "transition": "transform 0.2s ease",
+                                    "cursor": "pointer"
+                                },
+                            ),
                         ),
+                                
+                        
                         rx.cond(
                             RegisterState.errors["birthday"] != "",
                             rx.text(

@@ -45,35 +45,33 @@ class SupabaseAPI:
         return None
     
 
-    def verify_user(self, username: str, email: str) -> bool:
-        try: 
-            response_user = self.supabase.from_("user").select("*").eq("username",username).execute()
-            response_email = self.supabase.from_("email").select("*").eq("email",email).execute()
+    def check_existing_user(self,username: str, email: str) -> dict:
+        """
+        Verifica si el username o email ya existen en la base de datos.
 
-            if response_user:
-                return len(response_user) > 0
-            if response_email:
-                return len(response_email) > 0
-        except Exception as e:
-            print("Error verificando user/email")
-            return False
-        
+        Args:
+            username (str): Nombre de usuario a verificar.
+            email (str): Email a verificar.
 
+        Returns:
+            dict: Indica si existen el usuario o email.
+        """
+        existing_username= False
+        existing_email = False
 
-
-
-    def register_user(self, username: str, password: str, email: str, birth_date: str):
         try:
-            birth_date = datetime.strptime(birth_date, '%Y-%m-%d').isoformat()
-            response = self.supabase.from_("user").insert({
-                "username": username,
-                "pasw": password,
-                "email": email,
-                "birth_date": birth_date
-            }).execute()
 
+            response_user = self.supabase.from_("user").select("username").ilike("username", username).execute()
+            existing_username= len(response_user.data) > 0
+
+            response_email= self.supabase.from_("user").select("email").ilike("email",email).execute()
+            existing_email= len(response_email.data) > 0
+
+            return {'username':existing_username, 'email':existing_email}
         except Exception as e:
-            print(e)
+            logging.error(f"Error verificando existencia de usuario o email: {e}")
+            return {'username': False, 'email': False}
+        
 
     def get_calendars(self, user_id: int) -> Union[List[Calendar], None]:
         try:

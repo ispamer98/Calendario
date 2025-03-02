@@ -29,15 +29,8 @@ async def authenticate_user(username: str, password: str) -> Union[User, None]:
 
     return None
 
-
-async def verify_user(self, username: str, email: str):
-    """
-    Verifica la existencia de un usuario/email en la base de datos.
-    """
-    result = await SUPABASE_API.verify_user(username, email)
-    return result["data"] is not None
-
-
+async def check_existing_user(username: str, email: str,) -> dict:
+    return SUPABASE_API.check_existing_user(username, email)
 
 async def fetch_and_transform_calendars(user_id: int) -> List[Calendar]:
     calendars = SUPABASE_API.get_calendars(user_id)

@@ -16,9 +16,6 @@ class Login_state(rx.State):
     def login(self, mode="login"):
         self.is_open = True
         self.mode = mode
-        UserState.set_password("")
-        RegisterState.set_password("")
-        RegisterState.set_confirm_password("")
         self.show_pasw = False  # Reinicia la visibilidad de la contraseña
 
 
@@ -26,9 +23,6 @@ class Login_state(rx.State):
     def register(self, mode="register"):
         self.is_open = True
         self.mode = mode
-        UserState.set_password("")
-        RegisterState.set_password("")
-        RegisterState.set_confirm_password("")
         self.show_pasw = False  # Reinicia la visibilidad de la contraseña
         return RegisterState.reset_switch()  # Reinicia el switch en el formulario de registro
 
