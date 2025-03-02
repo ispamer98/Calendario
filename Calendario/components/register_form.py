@@ -236,6 +236,7 @@ def register_form() -> rx.Component:
                         rx.hstack(
                             rx.center(
                                 rx.input(
+                                    id="birthday",
                                     type="date",
                                     size="3",
                                     width="100%",
@@ -273,7 +274,7 @@ def register_form() -> rx.Component:
                             ),
                             rx.button(
                                 rx.icon("rotate-ccw"),
-                                on_click=RegisterState.clean_birthday,
+                                on_click=rx.set_value("birthday",""),
                                 background="transparent",
                                 size="1",
                                 margin_top="8px",
@@ -339,5 +340,7 @@ def register_form() -> rx.Component:
         max_width="60em",
         padding="2em",
         padding_top="4em",
-        on_mount=[RegisterState.set_password(""),RegisterState.set_confirm_password("")]
+        on_mount=[RegisterState.set_password(""),
+                  RegisterState.set_confirm_password(""),
+                  RegisterState.reset_errors()]
     )

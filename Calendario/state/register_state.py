@@ -1,7 +1,8 @@
 
 # register_state.py
 
-from Calendario.utils.api import check_existing_user
+
+from Calendario.utils.api import check_existing_user, register_user
 from Calendario.utils.send_email import send_welcome_email
 from datetime import datetime
 import reflex as rx 
@@ -23,6 +24,10 @@ class RegisterState(rx.State):
         "birthday": ""
     }
 
+
+    @rx.event
+    def reset_errors(self):
+        self.errors = {k: "" for k in self.errors}
     @rx.event
     async def register(self):
         # Resetear errores
@@ -98,27 +103,43 @@ class RegisterState(rx.State):
                     self.errors["birthday"] = "Fecha inválida"
                     has_errors = True
             except ValueError:
-                self.errors["birthday"] = "Formato inválido (AAAA-MM-DD)"
+                self.errors["birthday"] = "Formato inválido\n (DD-MM-AAAA)"
                 has_errors = True
 
         if has_errors:
-            return rx.toast.error("No ha sido posible el registro")
+            return rx.toast.error("No ha sido posible el registro",
+                                  position="top-center")
 
 
         # Si no hay errores, proceder con registro
         if not has_errors:
             try:
                 # Aquí iría la lógica de registro en la base de datos
-                # await register_user(...)
-                
-                # Enviar correo de bienvenida
-                send_welcome_email(self.email, self.username)
-                
-                return rx.toast.success(
-                    "¡Registro exitoso! Revisa tu correo electrónico",
-                    position="top-center"
+                new_user = await register_user(
+                    self.username,
+                    self.password,
+                    self.email,
+                    self.birthday,
                 )
                 
+                if new_user:
+                # Enviar correo de bienvenida
+                    send_welcome_email(self.email, self.username)
+                
+                    from Calendario.state.login_state import LoginState
+
+                    LoginState.login()
+                    return rx.toast.success(
+                        "¡Registro exitoso! Revisa tu correo electrónico",
+                        position="top-center"
+                    )
+                else:
+                    self.password="",
+                    self.confirm_password="",
+                    return rx.toast.error(
+                        "No se ha podido registrar el usuario",
+                        position="top-center",
+                    )
             except Exception as e:
                 return rx.toast.error(
                     f"Error en el registro: {str(e)}",
@@ -183,7 +204,3 @@ class RegisterState(rx.State):
         """Reinicia el estado del switch a False."""
         self.show_pasw = False
     
-    @rx.event
-    def clean_birthday(self):
-        """Limpia la fecha de nacimiento."""
-        self.birthday = ""

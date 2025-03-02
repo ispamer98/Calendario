@@ -32,6 +32,22 @@ async def authenticate_user(username: str, password: str) -> Union[User, None]:
 async def check_existing_user(username: str, email: str,) -> dict:
     return SUPABASE_API.check_existing_user(username, email)
 
+async def register_user(username: str, password: str, email: str, birthday: str) -> Union[User, None]:
+
+    try: 
+        user_data = {
+            'username': username,
+            'pasw': password,
+            'email': email,
+            'birthday': birthday
+        }
+
+        SUPABASE_API.supabase.table("user").insert(user_data).execute()
+
+    except Exception as e:
+        print(f"Error al registrar el usuario: {e}")
+        return None
+    
 async def fetch_and_transform_calendars(user_id: int) -> List[Calendar]:
     calendars = SUPABASE_API.get_calendars(user_id)
     if calendars is None:
