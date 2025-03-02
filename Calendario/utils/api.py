@@ -33,17 +33,22 @@ async def check_existing_user(username: str, email: str,) -> dict:
     return SUPABASE_API.check_existing_user(username, email)
 
 async def register_user(username: str, password: str, email: str, birthday: str) -> Union[User, None]:
-
     try: 
         user_data = {
-            'username': username,
-            'pasw': password,
-            'email': email,
-            'birthday': birthday
+            "username": username,
+            "pasw": password,
+            "email": email,
+            "birthday": birthday
         }
-
-        SUPABASE_API.supabase.table("user").insert(user_data).execute()
-
+        
+        # Inserta el usuario en la base de datos
+        response = SUPABASE_API.supabase.table("user").insert(user_data).execute()
+        
+        if response.data:
+            # Convierte los datos de Supabase a un objeto User
+            return True
+        return None
+        
     except Exception as e:
         print(f"Error al registrar el usuario: {e}")
         return None

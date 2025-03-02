@@ -122,20 +122,20 @@ class RegisterState(rx.State):
                     self.birthday,
                 )
                 
-                if new_user:
+                if new_user == True:
                 # Enviar correo de bienvenida
                     send_welcome_email(self.email, self.username)
                 
-                    from Calendario.state.login_state import LoginState
+                    from Calendario.state.login_state import Login_state
 
-                    LoginState.login()
-                    return rx.toast.success(
+                    
+                    return [rx.toast.success(
                         "¡Registro exitoso! Revisa tu correo electrónico",
                         position="top-center"
-                    )
+                    ),Login_state.login()]
                 else:
-                    self.password="",
-                    self.confirm_password="",
+                    self.password=""
+                    self.confirm_password=""
                     return rx.toast.error(
                         "No se ha podido registrar el usuario",
                         position="top-center",
