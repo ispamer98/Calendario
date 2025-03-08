@@ -32,6 +32,9 @@ async def authenticate_user(username: str, password: str) -> Union[User, None]:
 async def check_existing_user(username: str, email: str,) -> dict:
     return SUPABASE_API.check_existing_user(username, email)
 
+async def check_existing_username(username: str,)  -> bool:
+    return SUPABASE_API.check_existing_username(username)
+
 async def register_user(username: str, password: str, email: str, birthday: str) -> Union[User, None]:
     try: 
         user_data = {

@@ -72,6 +72,14 @@ class SupabaseAPI:
             logging.error(f"Error verificando existencia de usuario o email: {e}")
             return {'username': False, 'email': False}
         
+    def check_existing_username(self, username):
+        try:
+            response = self.supabase.from_("user").select("username").ilike("username", username).execute()
+            if response:
+                return True
+        except Exception as e:
+            logging.error(f"Error verificando existencia de usuario: {e}")
+            return False
 
     def get_calendars(self, user_id: int) -> Union[List[Calendar], None]:
         try:

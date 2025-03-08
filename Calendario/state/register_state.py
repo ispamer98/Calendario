@@ -2,7 +2,7 @@
 # register_state.py
 
 
-from Calendario.utils.api import check_existing_user, register_user
+from Calendario.utils.api import check_existing_user, register_user, check_existing_username
 from Calendario.utils.send_email import send_welcome_email
 from datetime import datetime
 import reflex as rx 
@@ -23,6 +23,7 @@ class RegisterState(rx.State):
         "confirm_email": "",
         "birthday": ""
     }
+    username_valid : bool = None
 
 
     @rx.event
@@ -167,6 +168,25 @@ class RegisterState(rx.State):
 
 
     @rx.event
+    async def check_aviable_username(self):
+        if not self.username:
+            return
+        
+        try:
+            existing = await check_existing_username(self.username)
+            if existing["username"]:
+                self.username_valid = False
+                self.errors["username"] = "El nombre de usuario ya está registrado"
+            else:
+                self.username_valid = True
+                self.errors["username"] = ""
+
+        except Exception as e:
+            print(f"Error al verificar el nombre de usuario: {str(e)}")
+            self.username_valid = None
+
+
+    @rx.event
     def set_username(self, username: str):
         self.username = username
         print(f"Usuario para registro actualizado: {self.username}")
@@ -214,3 +234,10 @@ class RegisterState(rx.State):
         self.confirm_email = ""
         self.birthday = ""
         self.errors = {k: "" for k in self.errors}
+
+    @rx.event
+    def load_page(self):
+        self.password = ""
+        self.confirm_password = ""
+        self.confirm_email = ""
+        self.birthday = ""

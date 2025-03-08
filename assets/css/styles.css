@@ -1,0 +1,10 @@
+/* assets/css/styles.css */
+@media (max-width: 768px) {
+    .register-container {
+        padding: 1em !important;
+    }
+    
+    .register-input {
+        font-size: 16px; /* Mejor para inputs móviles */
+    }
+}

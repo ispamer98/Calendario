@@ -17,7 +17,7 @@ class Login_state(rx.State):
         self.is_open = True
         self.mode = mode
         self.show_pasw = False  # Reinicia la visibilidad de la contraseña
-
+        return UserState.restart_pasw()
 
     @rx.event
     def register(self, mode="register"):

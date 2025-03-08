@@ -100,3 +100,8 @@ class UserState(rx.State):
         return [
             rx.redirect("/")
         ]
+    
+
+    @rx.event
+    def restart_pasw(self):
+        self.password=""
