@@ -204,3 +204,13 @@ class RegisterState(rx.State):
         """Reinicia el estado del switch a False."""
         self.show_pasw = False
     
+    @rx.event
+    def reset_inputs(self):
+        """Reinicia todos los inputs."""
+        self.username = ""
+        self.password = ""
+        self.confirm_password = ""
+        self.email = ""
+        self.confirm_email = ""
+        self.birthday = ""
+        self.errors = {k: "" for k in self.errors}

@@ -32,7 +32,7 @@ class SupabaseAPI:
             dict | None: Datos del usuario si la autenticación es exitosa, o None si falla.
         """
         try:
-            response = self.supabase.from_("user").select("*").eq("username", username).execute()
+            response = self.supabase.from_("user").select("*").ilike("username", username).execute()
             print(response.data)
 
             if response.data:

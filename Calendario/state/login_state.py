@@ -24,8 +24,8 @@ class Login_state(rx.State):
         self.is_open = True
         self.mode = mode
         self.show_pasw = False  # Reinicia la visibilidad de la contraseña
-        return [RegisterState.reset_errors(),
-                RegisterState.reset_switch(),
+        return [RegisterState.reset_switch(),
+                RegisterState.reset_inputs(),
                 ]  # Reinicia el switch en el formulario de registro
 
 
