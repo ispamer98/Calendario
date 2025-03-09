@@ -3,9 +3,13 @@
 import reflex as rx
 from datetime import datetime, timedelta
 from typing import Optional, List
+from Calendario.database.database import SupabaseAPI
 from Calendario.model.model import Day, Meal, Comment,Calendar
 from Calendario.state.user_state import UserState
-from Calendario.utils.api import fetch_and_transform_calendars
+from Calendario.utils.api import SUPABASE_API, fetch_and_transform_calendars
+from datetime import datetime
+from dateutil.relativedelta import relativedelta
+
 
 
 class CalendarState(rx.State):
@@ -20,6 +24,47 @@ class CalendarState(rx.State):
     current_calendar: Optional[Calendar] = None
     calendars: List[Calendar] = []  # Almacena todos los calendarios del usuario
     toast_info : str = None
+    new_calendar_name : str = ""
+    new_calendar_month: str = datetime.today().strftime("%Y-%m")
+    loading : bool = False
+
+    def show_date_picker(self):
+        return datetime.strptime(self.new_calendar_month, "%Y-%m").strftime("%B %Y")
+    
+    @rx.event
+    async def create_calendar(self):
+        try:
+            self.loading = True  # Activamos carga
+            
+            if not UserState.current_user:
+                raise Exception("Usuario no autenticado")
+
+            # Convertir mes seleccionado a fechas
+            start_date = datetime.strptime(self.new_calendar_month, "%Y-%m")
+            end_date = (start_date + relativedelta(months=1)) - timedelta(days=1)
+
+            # Crear calendario en Supabase
+            db = SupabaseAPI()
+            new_calendar = db.create_calendar_with_days(
+                user_id=UserState.current_user.id,
+                calendar_name=self.new_calendar_name,
+                start_date=start_date,
+                end_date=end_date
+            )
+
+            if new_calendar:
+                self.calendars.append(new_calendar)
+                return rx.window_alert(f"Calendario '{self.new_calendar_name}' creado con éxito!")
+            
+        except Exception as e:
+            return rx.window_alert(f"Error: {str(e)}")
+        finally:
+            self.loading = False
+            self.new_calendar_name = ""
+            self.new_calendar_month = datetime.today().strftime("%Y-%m")
+
+    def update_month(self, value: str):
+        self.new_calendar_month = value
 
 
     @rx.event

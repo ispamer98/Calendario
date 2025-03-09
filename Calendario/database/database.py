@@ -7,7 +7,8 @@ from typing import Union,List
 from supabase import create_client, Client
 import logging
 from Calendario.model.model import Calendar
-from datetime import datetime
+from datetime import datetime, timedelta
+from dateutil.relativedelta import relativedelta
 
 logging.basicConfig(level=logging.INFO)
 
@@ -97,10 +98,13 @@ class SupabaseAPI:
                         id=cal['id'],
                         name=cal['name'],
                         owner_id=cal['owner_id'],
+                        start_date=cal['start_date'],
+                        end_date=cal['end_date'],
                         shared_with=cal.get('shared_with', []),
                         created_at=datetime.fromisoformat(
                             cal['created_at'].replace('Z', '+00:00')
-                        ) if cal.get('created_at') else datetime.now()
+                        ) if cal.get('created_at') else datetime.now(),
+                        
                     )
                     for cal in response.data
                 ]
@@ -108,4 +112,49 @@ class SupabaseAPI:
                 
         except Exception as e:
             logging.error(f"Error obteniendo calendarios del usuario: {e}")
+        return None
+
+
+    def create_calendar_with_days(self, user_id: int, calendar_name: str):
+        try:
+            # Calcular fechas de inicio y fin del mes actual
+            today = datetime.today()
+            start_date = today.replace(day=1)
+            end_date = start_date + relativedelta(months=1) - timedelta(days=1)
+            
+            # Insertar calendario con las fechas calculadas
+            calendar_data = {
+                "name": calendar_name,
+                "owner_id": user_id,
+                "start_date": start_date.isoformat(),
+                "end_date": end_date.isoformat(),
+                "created_at": datetime.now().isoformat()
+            }
+            
+            response = self.supabase.table("calendars").insert(calendar_data).execute()
+            
+            if response.data:
+                # Crear días del mes
+                days = []
+                current_day = start_date
+                while current_day <= end_date:
+                    days.append({
+                        "calendar_id": response.data[0]["id"],
+                        "date": current_day.isoformat()
+                    })
+                    current_day += timedelta(days=1)
+                
+                # Insertar días en lote
+                self.supabase.table("days").insert(days).execute()
+                
+                return Calendar(
+                    id=response.data[0]["id"],
+                    name=calendar_name,
+                    owner_id=user_id,
+                    start_date=start_date,
+                    end_date=end_date,
+                    created_at=datetime.fromisoformat(response.data[0]["created_at"])
+                )
+        except Exception as e:
+            print(f"Error creating calendar: {str(e)}")
         return None

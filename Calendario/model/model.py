@@ -22,6 +22,8 @@ class Calendar(rx.Base):
     owner_id: int  # Relación con el usuario propietario
     shared_with: list[int] = []  # Lista de IDs de usuarios compartidos
     created_at: datetime
+    start_date : datetime
+    end_date : datetime
 
 
 class Meal(rx.Base):

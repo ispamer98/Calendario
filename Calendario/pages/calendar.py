@@ -1,4 +1,5 @@
 import reflex as rx
+from Calendario.components.calendar_creator import calendar_creator
 from Calendario.components.calendar_view import calendar_view
 from Calendario.components.current_user_button import current_user_button
 from Calendario.state import user_state
@@ -29,7 +30,8 @@ def calendar() -> rx.Component:
                             rx.foreach(
                                 CalendarState.calendars,
                                 lambda calendar: rx.text(calendar.name)
-                            )
+                            ),
+                            calendar_creator(),
                         ),
                         rx.text("NO HAY CALENDARIOS EN CALENDAR.PY")
                     ),
