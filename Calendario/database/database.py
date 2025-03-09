@@ -75,8 +75,8 @@ class SupabaseAPI:
     def check_existing_username(self, username):
         try:
             response = self.supabase.from_("user").select("username").ilike("username", username).execute()
-            if response:
-                return True
+            return len(response.data) > 0  # Devuelve directamente el booleano
+        
         except Exception as e:
             logging.error(f"Error verificando existencia de usuario: {e}")
             return False
