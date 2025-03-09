@@ -107,5 +107,5 @@ class SupabaseAPI:
                 return calendars
                 
         except Exception as e:
-            logging.error(f"Error obteniendo calendarios del usuario: {e}")
+            logging.error(f"Error obteniendo los calendarios del usuario: {e}")
         return None
