@@ -1,4 +1,3 @@
-
 # Calendario/components/register_form.py
 
 import reflex as rx

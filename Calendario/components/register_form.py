@@ -10,37 +10,27 @@ def register_form() -> rx.Component:
     
     # Campos comunes
     username_field = rx.vstack(
-        rx.hstack(
+    rx.hstack(
             rx.text("Usuario", size="3", weight="medium"),
             rx.button(
-                rx.cond(
-                    RegisterState.username_valid == True,
-                    rx.icon("check", color="green"),
-                    rx.cond(
-                        RegisterState.username_valid == False,
-                        rx.icon("x", color="red"),
-                        rx.icon("search")
-                    )
-                ),
+                rx.icon("user-check", color="white"),
+                background="transparent",
                 on_click=RegisterState.check_aviable_username,
                 size="1",
                 padding="2",
-                background=rx.cond(
-                    RegisterState.username_valid == True,
-                    "green.100",
-                    rx.cond(
-                        RegisterState.username_valid == False,
-                        "red.100",
-                        "gray.100"
-                    )
-                ),
                 _hover={"opacity": 0.8},
                 is_disabled=RegisterState.username == ""
+            ),
+            rx.match(
+                RegisterState.username_valid,
+                (None, rx.text("")),  # Nada cuando es None
+                (True, rx.icon("check", color="green")),  # Check verde independiente
+                (False, rx.icon("x", color="red")),  # X roja independiente
             ),
             spacing="2",
             align="center"
         ),
-        
+            
 
         rx.input(
             rx.input.slot(rx.icon("user")),

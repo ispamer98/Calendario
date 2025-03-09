@@ -31,4 +31,3 @@ def send_welcome_email(email, username):
         print(f"Correo de bienvenida enviado a {email}")
     except Exception as e:
         print(f"Error al enviar el correo: {e}")
-

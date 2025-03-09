@@ -1,4 +1,3 @@
-
 # register_state.py
 
 
@@ -174,12 +173,30 @@ class RegisterState(rx.State):
         
         try:
             existing = await check_existing_username(self.username)
-            if existing["username"]:
+            if existing:
                 self.username_valid = False
                 self.errors["username"] = "El nombre de usuario ya está registrado"
             else:
-                self.username_valid = True
-                self.errors["username"] = ""
+
+                                            # Verificar que la longitud esté entre 6 y 16 caracteres
+                if len(self.username) < 4 or len(self.username) > 16:
+                    self.errors["username"] = "El usuario debe tener entre 4 y 16 caracteres"
+                    self.username_valid = False
+
+
+                # Verificar que contenga al menos un número
+                elif not any(char.isdigit() for char in self.username):
+                    self.errors["username"] = "El usuario debe contener al menos un número"
+                    self.username_valid = False
+
+                # Verificar que no contenga caracteres especiales (solo letras y números)
+                elif not self.username.isalnum():
+                    self.errors["username"] = "El usuario no puede contener caracteres especiales"
+                    self.username_valid = False
+                
+                else:
+                    self.username_valid = True
+                    self.errors["username"] = ""
 
         except Exception as e:
             print(f"Error al verificar el nombre de usuario: {str(e)}")
@@ -234,6 +251,7 @@ class RegisterState(rx.State):
         self.confirm_email = ""
         self.birthday = ""
         self.errors = {k: "" for k in self.errors}
+        self.username_valid = None
 
     @rx.event
     def load_page(self):
@@ -241,3 +259,5 @@ class RegisterState(rx.State):
         self.confirm_password = ""
         self.confirm_email = ""
         self.birthday = ""
+        self.reset_errors()
+        self.username_valid = None

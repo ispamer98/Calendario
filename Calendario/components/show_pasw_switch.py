@@ -23,4 +23,3 @@ def show_pasw_switch_register() -> rx.Component:
         padding_top="0.5em",
     )
 
-
