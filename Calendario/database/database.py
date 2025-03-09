@@ -32,7 +32,7 @@ class SupabaseAPI:
             dict | None: Datos del usuario si la autenticación es exitosa, o None si falla.
         """
         try:
-            response = self.supabase.from_("user").select("*").ilike("username", username).execute()
+            response = self.supabase.from_("users").select("*").ilike("username", username).execute()
             print(response.data)
 
             if response.data:
@@ -61,10 +61,10 @@ class SupabaseAPI:
 
         try:
 
-            response_user = self.supabase.from_("user").select("username").ilike("username", username).execute()
+            response_user = self.supabase.from_("users").select("username").ilike("username", username).execute()
             existing_username= len(response_user.data) > 0
 
-            response_email= self.supabase.from_("user").select("email").ilike("email",email).execute()
+            response_email= self.supabase.from_("users").select("email").ilike("email",email).execute()
             existing_email= len(response_email.data) > 0
 
             return {'username':existing_username, 'email':existing_email}
@@ -74,7 +74,7 @@ class SupabaseAPI:
         
     def check_existing_username(self, username):
         try:
-            response = self.supabase.from_("user").select("username").ilike("username", username).execute()
+            response = self.supabase.from_("users").select("username").ilike("username", username).execute()
             return len(response.data) > 0  # Devuelve directamente el booleano
         
         except Exception as e:

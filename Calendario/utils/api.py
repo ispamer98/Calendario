@@ -45,7 +45,7 @@ async def register_user(username: str, password: str, email: str, birthday: str)
         }
         
         # Inserta el usuario en la base de datos
-        response = SUPABASE_API.supabase.table("user").insert(user_data).execute()
+        response = SUPABASE_API.supabase.table("users").insert(user_data).execute()
         
         if response.data:
             # Convierte los datos de Supabase a un objeto User
