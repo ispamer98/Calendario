@@ -45,8 +45,9 @@ class CalendarState(rx.State):
 
             # Crear calendario en Supabase
             db = SupabaseAPI()
+            user_state = await self.get_state(UserState)
             new_calendar = db.create_calendar_with_days(
-                user_id=UserState.current_user.id,
+                user_id=user_state.current_user.id,
                 calendar_name=self.new_calendar_name,
                 start_date=start_date,
                 end_date=end_date

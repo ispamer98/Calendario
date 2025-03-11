@@ -1,6 +1,5 @@
 #calendar_creator.py
 
-from turtle import width
 import reflex as rx
 from Calendario.state.calendar_state import CalendarState
 

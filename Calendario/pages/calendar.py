@@ -31,7 +31,7 @@ def calendar() -> rx.Component:
                                 CalendarState.calendars,
                                 lambda calendar: rx.text(calendar.name)
                             ),
-                            calendar_creator(),
+                            
                         ),
                         rx.text("NO HAY CALENDARIOS EN CALENDAR.PY")
                     ),
@@ -44,6 +44,7 @@ def calendar() -> rx.Component:
                     )
                 )
             ),
+            calendar_creator(),
 
         )
     ),
