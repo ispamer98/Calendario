@@ -1,3 +1,4 @@
+from typing import Optional
 import reflex as rx
 from datetime import datetime
 
@@ -20,7 +21,7 @@ class Calendar(rx.Base):
     id: int
     name: str
     owner_id: int  # Relación con el usuario propietario
-    shared_with: list[int] = []  # Lista de IDs de usuarios compartidos
+    shared_with: Optional[list[int]] = []  # Permite None pero inicializa como lista vacía
     created_at: datetime
     start_date : datetime
     end_date : datetime

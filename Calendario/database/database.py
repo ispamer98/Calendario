@@ -115,19 +115,16 @@ class SupabaseAPI:
         return None
 
 
-    def create_calendar_with_days(self, user_id: int, calendar_name: str):
+    def create_calendar_with_days(self, user_id: int, calendar_name: str, start_date: datetime, end_date: datetime):
         try:
             # Calcular fechas de inicio y fin del mes actual
-            today = datetime.today()
-            start_date = today.replace(day=1)
-            end_date = start_date + relativedelta(months=1) - timedelta(days=1)
-            
+
             # Insertar calendario con las fechas calculadas
             calendar_data = {
                 "name": calendar_name,
                 "owner_id": user_id,
-                "start_date": start_date.isoformat(),
-                "end_date": end_date.isoformat(),
+                "start_date": start_date.isoformat(),  # Usa el start_date del parámetro
+                "end_date": end_date.isoformat(),      # Usa el end_date del parámetro
                 "created_at": datetime.now().isoformat()
             }
             

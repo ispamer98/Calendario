@@ -36,7 +36,7 @@ class CalendarState(rx.State):
         try:
             self.loading = True  # Activamos carga
             
-            if not UserState.current_user:
+            if UserState.current_user is None:
                 raise Exception("Usuario no autenticado")
 
             # Convertir mes seleccionado a fechas
@@ -55,7 +55,7 @@ class CalendarState(rx.State):
 
             if new_calendar:
                 self.calendars.append(new_calendar)
-                return rx.window_alert(f"Calendario '{self.new_calendar_name}' creado con éxito!")
+                return rx.toast.success(f"Calendario '{self.new_calendar_name}' creado con éxito!")
             
         except Exception as e:
             return rx.window_alert(f"Error: {str(e)}")

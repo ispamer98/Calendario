@@ -1,10 +1,12 @@
 import reflex as rx
+
 from Calendario.components.calendar_creator import calendar_creator
 from Calendario.components.calendar_view import calendar_view
 from Calendario.components.current_user_button import current_user_button
 from Calendario.state import user_state
 from Calendario.state.calendar_state import CalendarState
 from Calendario.state.user_state import UserState
+from Calendario.components.user_navbar import user_navbar
 
 def toast(): 
     return rx.toast(title=CalendarState.toast_info,position="top-center")
@@ -12,6 +14,7 @@ def toast():
 @rx.page(route="/calendar",on_load=CalendarState.load_calendars)
 def calendar() -> rx.Component:
     return rx.container(
+        user_navbar(),
         rx.vstack(
             rx.text(UserState.username),
             rx.cond(
