@@ -1,53 +1,34 @@
 import reflex as rx
-
 from Calendario.components.calendar_creator import calendar_creator
-from Calendario.components.calendar_view import calendar_view
-from Calendario.components.current_user_button import current_user_button
-from Calendario.state import user_state
+from Calendario.components.user_calendar import user_calendar
+from Calendario.components.default_calendar import default_calendar
 from Calendario.state.calendar_state import CalendarState
-from Calendario.state.user_state import UserState
 from Calendario.components.user_navbar import user_navbar
 
 def toast(): 
     return rx.toast(title=CalendarState.toast_info,position="top-center")
 
-@rx.page(route="/calendar",on_load=CalendarState.load_calendars)
+@rx.page(route="/calendar", on_load=CalendarState.load_calendars)
 def calendar() -> rx.Component:
-    return rx.container(
+    return rx.vstack(
         user_navbar(),
-        rx.vstack(
-            rx.text(UserState.username),
-            rx.cond(
-                UserState.current_user,
-                rx.vstack(
-                    rx.button(
-                        "Logout",
-                        on_click=[UserState.logout]
-
-                    ),
-                    rx.text("CALENDARIOS"),
-                    rx.button(on_click=CalendarState.load_calendars),
-                    rx.cond(
-                        CalendarState.calendars.length() > 0,
-                        rx.vstack(
-                            rx.foreach(
-                                CalendarState.calendars,
-                                lambda calendar: rx.text(calendar.name)
-                            ),
-                            
-                        ),
-                        rx.text("NO HAY CALENDARIOS EN CALENDAR.PY")
-                    ),
+        rx.container(
+            rx.vstack(
+                rx.cond(
+                    CalendarState.calendars.length() > 0,
+                    user_calendar(),
+                    default_calendar(),
                 ),
-                rx.container(
-                    rx.text("NO HAY NADIE LOGGEADO EN CALENDAR.PY"),
-                    rx.button(
-                        "Go Home",
-                        on_click=rx.redirect("/")
-                    )
-                )
+                width="100%",
+                padding_x="0",
             ),
             calendar_creator(),
-
-        )
-    ),
+            width="100%",
+            max_width="1200px",
+            padding_x="2em",
+            padding_top="6em",
+        ),
+        width="100%",
+        spacing="0",
+        style={"overflow-x": "hidden"}
+    )

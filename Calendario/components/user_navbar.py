@@ -1,74 +1,78 @@
-#user_navbar.py
-
+from fastapi import background
 import reflex as rx
 from Calendario.state.user_state import UserState
 
 def user_navbar() -> rx.Component:
     return rx.box(
-        rx.hstack(
-            # Logo/Texto con efecto gradiente
-            rx.heading(
-                "DevNav",
-                background_image="linear-gradient(45deg, #4F46E5, #EC4899)",
-                background_clip="text",
-                font_weight="800",
-                font_size="1.5em",
-                _hover={
-                    "transform": "scale(1.05)",
-                    "transition": "transform 0.3s ease",
-                }
-            ),
-            
-            # Links de navegación con animación
+        rx.box(
             rx.hstack(
-                rx.link(
-                    "Proyectos",
-                    href="#projects",
-                    color="gray.700",
-                    _hover={
-                        "text_decoration": "none",
-                        "transform": "translateY(-2px)",
-                    },
-                    transition="all 0.5s ease",
+                # Logo/Texto con efecto gradiente
+                rx.heading(
+                    "CalendApp",
+                    background_image="linear-gradient(45deg, #4F46E5, #EC4899)",
+                    background_clip="text",
+                    font_weight="800",
+                    font_size="1.5em",
+                    _hover={"transform": "scale(1.05)"},
                 ),
-                rx.link(
-                    "Blog",
-                    href="#blog",
-                    color="gray.700",
-                    _hover={
-                        "text_decoration": "none",
-                        "transform": "translateY(-2px)",
-                    },
-                    transition="all 0.3s ease",
+                
+                rx.spacer(),
+                
+                # Menú de usuario
+                rx.menu.root(
+                    rx.menu.trigger(
+                        rx.button(
+                            rx.hstack(
+                                rx.cond(
+                                    UserState.current_user,
+                                    rx.avatar(fallback=UserState.current_user.username[0].upper()),
+                                    rx.avatar(fallback="U")
+                                ),
+                                rx.cond(
+                                    UserState.current_user,
+                                    rx.text(UserState.current_user.username),
+                                    rx.text("Usuario")
+                                ),
+                                rx.icon("chevron-down"),
+                                spacing="2",
+                                align="center"
+                            ),
+                            variant="soft",
+                            radius="full"
+                        )
+                    ),
+                    rx.menu.content(
+                        rx.menu.item("Perfil", rx.icon("user")),
+                        rx.menu.item("Configuración", rx.icon("settings")), 
+                        rx.menu.separator(),
+                        rx.menu.item(
+                            "Cerrar sesión",
+                            rx.icon("log-out"), 
+                            on_click=UserState.logout,
+                            color="#EF4444"
+                        ),
+                        width="200px",
+                    ),
+                    modal=False
                 ),
-                rx.link(
-                    "Contacto",
-                    href="#contact",
-                    color="gray.700",
-                    _hover={
-                        "text_decoration": "none",
-                        "transform": "translateY(-2px)",
-                    },
-                    transition="all 0.3s ease",
-                ),
-                spacing="2",
-                padding_right="2em",
+                justify="between",
+                align="center", 
+                width="100%",
+                padding_y="1em",
+                padding_x="2em",
+                style={"box-sizing": "border-box"}
             ),
-            
-            justify="between",
-            align="center",
             width="100%",
-            padding_x="2em",
-            padding_y="1em",
+            max_width="100vw",
+            style={"overflow-x": "hidden"}
         ),
-        
-        # Estilos generales
         position="fixed",
         top="0",
         width="100%",
         z_index="1000",
-        backdrop_filter="blur(10px)",
         border_bottom="1px solid #eee",
-        box_shadow="sm",
+        box_shadow="md",
+        border_radius="0 0 8px 8px",
         transition="all 0.3s ease",
+        background="grey"
     )

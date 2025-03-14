@@ -3,8 +3,6 @@ import reflex as rx
  
 
 
-from Calendario.components.current_user_button import current_user_button
-from Calendario.components.calendar_view import calendar_view
 from Calendario.components.login_register import login_card
 from Calendario.state.calendar_state import CalendarState
 from Calendario.state.register_state import RegisterState
@@ -21,7 +19,8 @@ def index() -> rx.Component:
                     height="200px"
                 ),
                 rx.text("Redirecting..."),
-                current_user_button()
+                rx.button("Volver al inicio",
+                          on_click=UserState.logout)
 
 
             ),

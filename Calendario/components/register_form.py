@@ -18,7 +18,8 @@ def register_form() -> rx.Component:
                 on_click=RegisterState.check_aviable_username,
                 size="1",
                 padding="2",
-                _hover={"opacity": 0.8},
+                _hover={"opacity": 0.8,
+                        "transform": "scale(1.2)"},
                 is_disabled=RegisterState.username == ""
             ),
             rx.match(
@@ -221,15 +222,37 @@ def register_form() -> rx.Component:
         )
     )
     
+
     return rx.container(
+        # Botón de volver al login (nuevo)
+        rx.box(
+            rx.button(
+                rx.icon("arrow-left", size=18),
+                "Volver",
+                on_click=Login_state.login,
+                variant="soft",
+                color_scheme="blue",
+                size="2",
+                radius="full",
+                _hover={"transform": "scale(1.05)"},
+                style={"position": "fixed", "left": "1.5rem", "top": "1.5rem"}
+            ),
+            z_index="1000"
+        ),
+        
         rx.vstack(
             rx.heading("Registra tu Usuario", size="6", text_align="center"),
             mobile_view,
             desktop_view,
             rx.button(
+                rx.icon("user-plus",size=18),
                 "Registrarse",
                 size="3",
+                variant="surface",
+                color_scheme="blue",
+                radius="full",
                 width=["90%", "50%"],
+                _hover={"transform": "scale(1.05)"},
                 on_click=RegisterState.register
             ),
             rx.hstack(
@@ -238,13 +261,12 @@ def register_form() -> rx.Component:
                 justify="center",
                 opacity="0.8"
             ),
-            
             spacing="6",
             width="100%",
             align="center"
         ),
-
         padding="2em",
-        padding_top="4em",
-        class_name="register-container"
+        padding_top="4em",  # Aumentamos padding superior para no solapar con el botón
+        class_name="register-container",
+        position="relative"
     )

@@ -261,3 +261,5 @@ class RegisterState(rx.State):
         self.birthday = ""
         self.reset_errors()
         self.username_valid = None
+        
+

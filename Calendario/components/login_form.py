@@ -78,10 +78,16 @@ def login_form() -> rx.Component:
                     width="100%",
                 ),
                 rx.button(
+                    rx.icon("user-check",size=18),
                     "Iniciar Sesión",
-                    on_click=[UserState.login],
                     size="3",
+                    variant="surface",
+                    color_scheme="blue",
+                    radius="full",
+                    _hover={"transform": "scale(1.05)"},
+                    on_click=UserState.login,
                     width="100%",
+
                 ),
                 rx.center(
                     rx.vstack(
