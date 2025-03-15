@@ -2,6 +2,7 @@
 
 import reflex as rx
 import time
+from typing import Optional
 from Calendario.model.model import User
 from Calendario.utils.api import authenticate_user
 
@@ -12,7 +13,7 @@ class UserState(rx.State):
 
     username: str = ""  # Guarda el nombre de usuario ingresado
     password: str = ""  # Guarda la contraseña ingresada
-    current_user: User = None  # Mantiene al usuario autenticado
+    current_user: Optional[User] = None  # Mantiene al usuario autenticado
 
 
     @rx.event

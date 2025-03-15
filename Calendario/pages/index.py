@@ -1,29 +1,27 @@
-from calendar import Calendar
+# Calendario/pages/index.py (nueva versión)
 import reflex as rx
- 
-
-
-from Calendario.components.login_register import login_card
-from Calendario.state.calendar_state import CalendarState
-from Calendario.state.register_state import RegisterState
-from Calendario.state.user_state import UserState
-from Calendario.database.database import SupabaseAPI
-@rx.page(route="/", title="Calendario | Python", on_load=RegisterState.load_page()
-         )
+@rx.page(route="/", title="Calendario")
 def index() -> rx.Component:
     return rx.container(
-        rx.cond(
-            UserState.current_user,
-            rx.container(
-                rx.spacer(
-                    height="200px"
+        rx.vstack(
+            rx.heading("¡Bienvenido a Calendario!", size="9"),
+            rx.text("Organiza tus comidas de manera eficiente", size="6"),
+            rx.hstack(
+                rx.link(
+                    rx.button("Iniciar Sesión", size="4"),
+                    href="/login"
                 ),
-                rx.text("Redirecting..."),
-                rx.button("Volver al inicio",
-                          on_click=UserState.logout)
-
-
+                rx.link(
+                    rx.button("Registrarse", size="4", variant="soft"),
+                    href="/register"
+                ),
+                spacing="4",
+                margin_top="2em"
             ),
-            login_card()
-        )
+            align="center",
+            height="100%"
+        ),
+        padding="2em",
+        max_width="1200px",
+        center_content=True
     )

@@ -229,7 +229,7 @@ def register_form() -> rx.Component:
             rx.button(
                 rx.icon("arrow-left", size=18),
                 "Volver",
-                on_click=Login_state.login,
+                on_click=rx.redirect("/login"),
                 variant="soft",
                 color_scheme="blue",
                 size="2",
@@ -257,7 +257,7 @@ def register_form() -> rx.Component:
             ),
             rx.hstack(
                 rx.text("¿Ya estás registrado?"),
-                rx.link("Inicia Sesión", on_click=Login_state.login),
+                rx.link("Inicia Sesión", on_click=rx.redirect("/login")),
                 justify="center",
                 opacity="0.8"
             ),

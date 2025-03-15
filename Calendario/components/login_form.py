@@ -9,6 +9,20 @@ def login_form() -> rx.Component:
     """Componente del formulario de inicio de sesión."""
     return rx.center(  # Centra horizontalmente
         rx.container(
+            rx.box(
+                rx.button(
+                    rx.icon("arrow-left", size=18),
+                    "Volver",
+                    on_click=rx.redirect("/"),
+                    variant="soft",
+                    color_scheme="blue",
+                    size="2",
+                    radius="full",
+                    _hover={"transform": "scale(1.05)"},
+                    style={"position": "fixed", "left": "1.5rem", "top": "1.5rem"}
+                ),
+                z_index="1000"
+            ),
             rx.vstack(
                 rx.center(
                     rx.image(
@@ -95,7 +109,7 @@ def login_form() -> rx.Component:
                             rx.text("¿No tienes cuenta?", size="3"),
                             rx.link(
                                 "Registrate",
-                                on_click=Login_state.register,
+                                on_click=rx.redirect("/register"),
                                 size="3",
                             ),
                         ),
