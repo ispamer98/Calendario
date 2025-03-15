@@ -8,34 +8,23 @@ def user_calendar() -> rx.Component:
     return rx.vstack(
         rx.container(
             rx.vstack(
-                rx.text(UserState.username),
-                rx.cond(
-                    UserState.current_user,
-                    rx.vstack(
-                        rx.button(
-                            "Logout",
-                            on_click=[UserState.logout]
-                        ),
-                        rx.text("CALENDARIOS"),
-                        rx.button(on_click=CalendarState.load_calendars),
-                        rx.cond(
-                            CalendarState.calendars.length() > 0,
-                            rx.vstack(
-                                rx.foreach(
-                                    CalendarState.calendars,
-                                    lambda calendar: rx.text(calendar.name)
-                                ),
-                            ),
-                            rx.text("NO HAY CALENDARIOS EN CALENDAR.PY")
-                        ),
+                rx.vstack(
+                    rx.button(
+                        "Logout",
+                        on_click=[UserState.logout]
                     ),
-                    rx.container(
-                        rx.text("NO HAY NADIE LOGGEADO EN CALENDAR.PY"),
-                        rx.button(
-                            "Go Home",
-                            on_click=rx.redirect("/")
-                        )
-                    )
+                    rx.text("CALENDARIOS"),
+                    rx.button(on_click=CalendarState.load_calendars),
+                    rx.cond(
+                        CalendarState.calendars.length() > 0,
+                        rx.vstack(
+                            rx.foreach(
+                                CalendarState.calendars,
+                                lambda calendar: rx.text(calendar.name)
+                            ),
+                        ),
+                        rx.text("NO HAY CALENDARIOS EN CALENDAR.PY")
+                    ),
                 ),
                 width="100%",
                 padding_x="0",

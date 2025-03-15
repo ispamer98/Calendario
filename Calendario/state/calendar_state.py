@@ -27,6 +27,30 @@ class CalendarState(rx.State):
     new_calendar_name : str = ""
     new_calendar_month: str = datetime.today().strftime("%Y-%m")
     loading : bool = False
+    current_calendar_days: List[Day] = []
+    selected_day_data: Optional[Day] = None
+
+
+    @rx.event
+    async def set_current_calendar(self, calendar: Calendar):
+        self.current_calendar = calendar
+        # Cargar los días del calendario
+        await self.load_calendar_days()
+
+    @rx.event
+    async def load_calendar_days(self):
+        if self.current_calendar:
+            db = SupabaseAPI()
+            self.current_calendar_days = await db.get_days_for_calendar(self.current_calendar.id)
+
+    @rx.event
+    async def select_day(self, day: Day):
+        self.selected_day_data = day
+        # Cargar comidas y comentarios
+        db = SupabaseAPI()
+        self.meals = await db.get_meals_for_day(day.id)
+        self.comments = await db.get_comments_for_day(day.id)
+
 
     def show_date_picker(self):
         return datetime.strptime(self.new_calendar_month, "%Y-%m").strftime("%B %Y")

@@ -1,12 +1,13 @@
 #database.py
 
+import bcrypt
 
 import os
 import dotenv
 from typing import Union,List
 from supabase import create_client, Client
 import logging
-from Calendario.model.model import Calendar
+from Calendario.model.model import Calendar,Day
 from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
 
@@ -38,7 +39,7 @@ class SupabaseAPI:
 
             if response.data:
                 user = response.data[0]
-                if user["pasw"] == password:
+                if bcrypt.checkpw(password.encode('utf-8'), user["pasw"].encode('utf-8')):
                     logging.info(f"Usuario autenticado: {username}")
                     return user
         except Exception as e:
@@ -155,3 +156,28 @@ class SupabaseAPI:
         except Exception as e:
             print(f"Error creating calendar: {str(e)}")
         return None
+    
+
+    def get_days_for_calendar(self, calendar_id: int) -> List[Day]:
+        try:
+            response = (
+                self.supabase
+                .from_("days")
+                .select("*")
+                .eq("calendar_id", calendar_id)
+                .execute()
+            )
+            
+            if response.data:
+                return [
+                    Day(
+                        id=day['id'],
+                        calendar_id=day['calendar_id'],
+                        date=datetime.fromisoformat(day['date']),
+                        # ... otros campos
+                    )
+                    for day in response.data
+                ]
+        except Exception as e:
+            print(f"Error getting days: {e}")
+        return []

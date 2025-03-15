@@ -4,6 +4,7 @@ from Calendario.components.user_calendar import user_calendar
 from Calendario.components.default_calendar import default_calendar
 from Calendario.state.calendar_state import CalendarState
 from Calendario.components.user_navbar import user_navbar
+from Calendario.state.user_state import UserState
 
 def toast(): 
     return rx.toast(title=CalendarState.toast_info,position="top-center")
@@ -14,15 +15,24 @@ def calendar() -> rx.Component:
         user_navbar(),
         rx.container(
             rx.vstack(
-                rx.cond(
-                    CalendarState.calendars.length() > 0,
-                    user_calendar(),
-                    default_calendar(),
+                rx.cond(UserState.current_user,
+                        rx.cond(
+                        CalendarState.calendars.length() > 0,
+                        user_calendar(),
+                        default_calendar(),
+
+                    ),
+                    rx.vstack(
+                        rx.text("No hay nadie loggeado"),
+                        rx.button("Volver al inicio",
+                                  on_click=rx.redirect("/"))
+                    ),
                 ),
+                
+                
                 width="100%",
                 padding_x="0",
             ),
-            calendar_creator(),
             width="100%",
             max_width="1200px",
             padding_x="2em",

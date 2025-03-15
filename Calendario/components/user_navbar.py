@@ -6,14 +6,25 @@ def user_navbar() -> rx.Component:
     return rx.box(
         rx.box(
             rx.hstack(
+                
                 # Logo/Texto con efecto gradiente
                 rx.heading(
-                    "CalendApp",
+                    rx.hstack(
+                        rx.image(
+                            src="/favicon.ico",
+                            width="2em",
+                            heigth="2em"),
+                        rx.text("Calendario"),
+                        
+                    ),
                     background_image="linear-gradient(45deg, #4F46E5, #EC4899)",
                     background_clip="text",
                     font_weight="800",
-                    font_size="1.5em",
-                    _hover={"transform": "scale(1.05)"},
+                    font_size="1em",
+                    user_select="none",
+                    on_click=rx.redirect("/calendar"),
+                    _hover={"transform": "scale(1.05)",
+                            "cursor": "pointer"},
                 ),
                 
                 rx.spacer(),
@@ -23,11 +34,8 @@ def user_navbar() -> rx.Component:
                     rx.menu.trigger(
                         rx.button(
                             rx.hstack(
-                                rx.cond(
-                                    UserState.current_user,
-                                    rx.avatar(fallback=UserState.current_user.username[0].upper()),
-                                    rx.avatar(fallback="U")
-                                ),
+                                rx.spacer(" "),
+                                rx.icon("user"),
                                 rx.cond(
                                     UserState.current_user,
                                     rx.text(UserState.current_user.username),
@@ -35,21 +43,39 @@ def user_navbar() -> rx.Component:
                                 ),
                                 rx.icon("chevron-down"),
                                 spacing="2",
-                                align="center"
+                                align="center",
+                                color="white",  # Color del texto en blanco
+                                
                             ),
-                            variant="soft",
-                            radius="full"
+                            variant="ghost",
+                            radius="full",
+                            background="#23282b",
+                            style={
+                                "background": "transparent",
+                                "color": "white",  # Color del texto en blanco
+                                "border": "1px solid rgba(255, 255, 255, 0.3)",  # Borde gris claro semi-transparente
+                                "_hover": {
+                                    "background": "rgba(0, 0, 0, 0.2)",
+                                    "cursor": "pointer",
+                                    "transform": "scale(1.05)"
+                                }
+                            }
                         )
                     ),
                     rx.menu.content(
-                        rx.menu.item("Perfil", rx.icon("user")),
-                        rx.menu.item("Configuración", rx.icon("settings")), 
+                        rx.menu.item("Perfil", 
+                                     rx.icon("user"),
+                                     style={"_hover" : { "background " : "#23282b"}}),
+                        rx.menu.item("Configuración",
+                                      rx.icon("settings"),
+                                      style={"_hover" : { "background " : "#23282b"}}), 
                         rx.menu.separator(),
                         rx.menu.item(
                             "Cerrar sesión",
                             rx.icon("log-out"), 
                             on_click=UserState.logout,
-                            color="#EF4444"
+                            color="#EF4444",
+                            style={"_hover" : { "background " : "#23282b"}}
                         ),
                         width="200px",
                     ),
@@ -70,9 +96,7 @@ def user_navbar() -> rx.Component:
         top="0",
         width="100%",
         z_index="1000",
-        border_bottom="1px solid #eee",
-        box_shadow="md",
-        border_radius="0 0 8px 8px",
-        transition="all 0.3s ease",
-        background="grey"
+        border_bottom="1.5px solid #eee",
+        border_radius="0 0 20px 20px",
+        background="#1e1e1e"
     )

@@ -1,4 +1,5 @@
 #api.py
+import bcrypt
 import reflex as rx
 from Calendario.database.database import SupabaseAPI
 from Calendario.model.model import User, Calendar, Day, Meal, Comment
@@ -37,9 +38,10 @@ async def check_existing_username(username: str) -> bool:
 
 async def register_user(username: str, password: str, email: str, birthday: str) -> Union[User, None]:
     try: 
+        hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
         user_data = {
             "username": username,
-            "pasw": password,
+            "pasw": hashed_password,
             "email": email,
             "birthday": birthday
         }
