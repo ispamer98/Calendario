@@ -9,7 +9,7 @@ from Calendario.state.user_state import UserState
 def toast(): 
     return rx.toast(title=CalendarState.toast_info,position="top-center")
 
-@rx.page(route="/calendar", on_load=CalendarState.load_calendars)
+@rx.page(route="/calendar", on_load=CalendarState.reset_calendars)
 def calendar() -> rx.Component:
     return rx.vstack(
         user_navbar(),
@@ -37,8 +37,10 @@ def calendar() -> rx.Component:
             max_width="1200px",
             padding_x="2em",
             padding_top="6em",
+            
         ),
         width="100%",
         spacing="0",
-        style={"overflow-x": "hidden"}
+        style={"overflow-x": "hidden"},
+        
     )

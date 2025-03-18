@@ -12,7 +12,7 @@ def login_form() -> rx.Component:
             rx.box(
                 rx.button(
                     rx.icon("arrow-left", size=18),
-                    "Volver",
+                    "Inicio",
                     on_click=rx.redirect("/"),
                     variant="soft",
                     color_scheme="blue",
@@ -131,5 +131,5 @@ def login_form() -> rx.Component:
             padding="2em",  # Puedes añadir algo de padding para más consistencia visual
         ),
         width="100%",  # Asegura que el centro ocupa el ancho completo
-        padding_top="4em",  # Añade este padding para dar espacio arriba
+        margin_top="-20em",
     )

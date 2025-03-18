@@ -19,16 +19,21 @@ app = rx.App(
         radius="large",
         accent_color="blue",)
 )
-app.add_page(login, on_load=[Login_state.swith_off,
-                             RegisterState.swith_off,
-                             UserState.set_password(""),
-                             RegisterState.set_password(""),
-                             RegisterState.set_confirm_password(""),
-                             ]
+app.add_page(login, 
+            route="/login",
+            title="Iniciar Sesión | Calendario",
+            on_load=[Login_state.swith_off,
+                    RegisterState.swith_off,
+                    UserState.set_password(""),
+                    RegisterState.set_password(""),
+                    RegisterState.set_confirm_password(""),]
                 ),
-app.add_page(register, on_load=[RegisterState.load_page,
-                                Login_state.swith_off,
-                             RegisterState.swith_off,
-                             UserState.set_password(""),
-                             RegisterState.set_password(""),
-                             RegisterState.set_confirm_password(""),])
+app.add_page(register,
+            route="/register",
+            title="Registro | Calendario",
+            on_load=[RegisterState.load_page,
+                    Login_state.swith_off,
+                    RegisterState.swith_off,
+                    UserState.set_password(""),
+                    RegisterState.set_password(""),
+                    RegisterState.set_confirm_password(""),])

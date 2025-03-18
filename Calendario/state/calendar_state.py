@@ -16,45 +16,29 @@ class CalendarState(rx.State):
     """
     Manejador de estado para un calendario.
     """
-    current_month: datetime = datetime.today()  # Fecha del mes actual
-    selected_day: Optional[datetime] = None  # Día seleccionado
-    selected_day_data: Optional[Day] = None  # Datos del día seleccionado
     meals: List[Meal] = []  # Lista de opciones de comidas
     comments: List[Comment] = []  # Lista de comentarios para el día seleccionado
-    current_calendar: Optional[Calendar] = None
     calendars: List[Calendar] = []  # Almacena todos los calendarios del usuario
     toast_info : str = None
     new_calendar_name : str = ""
     new_calendar_month: str = datetime.today().strftime("%Y-%m")
     loading : bool = False
-    current_calendar_days: List[Day] = []
-    selected_day_data: Optional[Day] = None
-
-
+    show_calendar_creator: bool = False
+    error_message : Optional[str] = None 
+    current_calendar: Optional[Calendar] = None
     @rx.event
-    async def set_current_calendar(self, calendar: Calendar):
-        self.current_calendar = calendar
-        # Cargar los días del calendario
-        await self.load_calendar_days()
-
-    @rx.event
-    async def load_calendar_days(self):
-        if self.current_calendar:
-            db = SupabaseAPI()
-            self.current_calendar_days = await db.get_days_for_calendar(self.current_calendar.id)
-
-    @rx.event
-    async def select_day(self, day: Day):
-        self.selected_day_data = day
-        # Cargar comidas y comentarios
-        db = SupabaseAPI()
-        self.meals = await db.get_meals_for_day(day.id)
-        self.comments = await db.get_comments_for_day(day.id)
-
-
-    def show_date_picker(self):
-        return datetime.strptime(self.new_calendar_month, "%Y-%m").strftime("%B %Y")
+    def open_calendar_creator(self):
+        self.show_calendar_creator = True
     
+    @rx.event
+    def close_calendar_creator(self):
+        self.show_calendar_creator = False
+
+    @rx.event
+    def select_calendar(self, calendar = Calendar):
+        self.current_calendar = calendar
+
+
     @rx.event
     async def create_calendar(self):
         try:
@@ -79,8 +63,12 @@ class CalendarState(rx.State):
 
             if new_calendar:
                 self.calendars.append(new_calendar)
-                return rx.toast.success(f"Calendario '{self.new_calendar_name}' creado con éxito!")
-            
+                self.current_calendar = new_calendar
+                self.close_calendar_creator()  # Cierra el diálogo solo si se crea correctamente
+                return rx.toast.success(f"Calendario '{self.new_calendar_name}' creado con éxito!", position="top-center")
+        
+        except ValueError as ve:
+            return rx.toast.error(str(ve), position="top-center")
         except Exception as e:
             return rx.window_alert(f"Error: {str(e)}")
         finally:
@@ -88,8 +76,6 @@ class CalendarState(rx.State):
             self.new_calendar_name = ""
             self.new_calendar_month = datetime.today().strftime("%Y-%m")
 
-    def update_month(self, value: str):
-        self.new_calendar_month = value
 
 
     @rx.event
@@ -116,23 +102,15 @@ class CalendarState(rx.State):
         except Exception as e:
             print(e)
 
-
     @rx.event
-    def set_current_calendar(self, calendar : Calendar):
-        """
-        Actualiza el nombre de usuario en el estado.
-        """
-        self.current_calendar = calendar
-        print(f"Calendario actualizado: {self.current_calendar.name}")
-
+    def reset_calendars(self):
+        """Resetea y recarga los calendarios"""
+        self.calendars = []
+        return CalendarState.load_calendars()
     @rx.event
     def clean(self):
-        self.current_month = datetime.today()
-        self.selected_day = None
-        self.selected_day_data = None
         self.meals = []  # Reset to empty list
         self.comments = []  # Reset to empty list
-        self.current_calendar = None 
         self.calendars = []  # Reset to empty list
 
         return rx.toast.info(

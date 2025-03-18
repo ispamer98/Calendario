@@ -1,6 +1,8 @@
 # Calendario/pages/index.py (nueva versión)
 import reflex as rx
+from Calendario.components.footer import footer
 @rx.page(route="/", title="Calendario")
+@footer
 def index() -> rx.Component:
     return rx.container(
         rx.vstack(

@@ -119,7 +119,8 @@ class SupabaseAPI:
     def create_calendar_with_days(self, user_id: int, calendar_name: str, start_date: datetime, end_date: datetime):
         try:
             # Calcular fechas de inicio y fin del mes actual
-
+            if not calendar_name.strip():
+                raise ValueError("El nombre del calendario es obligatorio")
             # Insertar calendario con las fechas calculadas
             calendar_data = {
                 "name": calendar_name,
@@ -153,6 +154,9 @@ class SupabaseAPI:
                     end_date=end_date,
                     created_at=datetime.fromisoformat(response.data[0]["created_at"])
                 )
+        except ValueError as ve:
+            print(f"Error de validación: {ve}")
+            raise 
         except Exception as e:
             print(f"Error creating calendar: {str(e)}")
         return None

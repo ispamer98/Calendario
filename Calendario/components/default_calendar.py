@@ -2,6 +2,8 @@ import reflex as rx
 from datetime import datetime
 import calendar
 
+from Calendario.state.calendar_state import CalendarState
+
 def default_calendar() -> rx.Component:
     # Obtener fecha actual
     current_date = datetime.now()

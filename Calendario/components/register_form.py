@@ -228,8 +228,8 @@ def register_form() -> rx.Component:
         rx.box(
             rx.button(
                 rx.icon("arrow-left", size=18),
-                "Volver",
-                on_click=rx.redirect("/login"),
+                "Inicio",
+                on_click=rx.redirect("/"),
                 variant="soft",
                 color_scheme="blue",
                 size="2",

@@ -1,6 +1,8 @@
 from fastapi import background
 import reflex as rx
+from Calendario.components.calendar_creator import calendar_creator
 from Calendario.state.user_state import UserState
+from Calendario.state.calendar_state import CalendarState
 
 def user_navbar() -> rx.Component:
     return rx.box(
@@ -28,7 +30,7 @@ def user_navbar() -> rx.Component:
                 ),
                 
                 rx.spacer(),
-                
+                calendar_creator(),
                 # Menú de usuario
                 rx.menu.root(
                     rx.menu.trigger(
@@ -63,12 +65,19 @@ def user_navbar() -> rx.Component:
                         )
                     ),
                     rx.menu.content(
+                        rx.menu.item("Crear Calendario",
+                                     rx.icon("calendar-plus"),
+                                     style={"_hover" : { "background " : "#23282b"}},
+                                     on_click=CalendarState.open_calendar_creator()
+                                     ),
                         rx.menu.item("Perfil", 
                                      rx.icon("user"),
-                                     style={"_hover" : { "background " : "#23282b"}}),
+                                     style={"_hover" : { "background " : "#23282b"}}
+                                     ),
                         rx.menu.item("Configuración",
                                       rx.icon("settings"),
-                                      style={"_hover" : { "background " : "#23282b"}}), 
+                                      style={"_hover" : { "background " : "#23282b"}}
+                                      ), 
                         rx.menu.separator(),
                         rx.menu.item(
                             "Cerrar sesión",
