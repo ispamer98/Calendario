@@ -35,8 +35,18 @@ class CalendarState(rx.State):
         self.show_calendar_creator = False
 
     @rx.event
-    def select_calendar(self, calendar = Calendar):
-        self.current_calendar = calendar
+    def set_current_calendar(self, value: str):
+        """Event handler para actualizar el calendario seleccionado."""
+        print(f"Valor recibido en el evento: {value}")  # Debug
+        try:
+            calendar_id = int(value)
+            for calendar in self.calendars:
+                if calendar.id == calendar_id:
+                    self.current_calendar = calendar
+                    print(f"Calendario actualizado a: {calendar.start_date.month}")
+                    return
+        except ValueError:
+            print(f"Error convirtiendo el valor: {value}")
 
 
     @rx.event

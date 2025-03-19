@@ -16,12 +16,7 @@ def calendar() -> rx.Component:
         rx.container(
             rx.vstack(
                 rx.cond(UserState.current_user,
-                        rx.cond(
-                        CalendarState.calendars.length() > 0,
-                        user_calendar(),
-                        default_calendar(),
-
-                    ),
+                    user_calendar(),
                     rx.vstack(
                         rx.text("No hay nadie loggeado"),
                         rx.button("Volver al inicio",

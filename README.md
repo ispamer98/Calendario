@@ -4,6 +4,9 @@ File: README.md
 ================================================
 File: README.md
 ================================================
+================================================
+File: README.md
+================================================
 "# Calendario" 
 
 
@@ -4383,4 +4386,1991 @@ File: assets/css/styles.css
     }
 }
 
+
+
+
+
+================================================
+File: requirements.txt
+================================================
+reflex==0.7.1
+dotenv
+supabase
+bcrypt>=4.0.1
+
+
+================================================
+File: rxconfig.py
+================================================
+import reflex as rx
+
+config = rx.Config(
+    app_name="Calendario",
+    show_built_with_reflex=False
+)
+
+
+
+================================================
+File: assets/css/styles.css
+================================================
+/* assets/css/styles.css */
+@media (max-width: 768px) {
+    .register-container {
+        padding: 1em !important;
+    }
+    
+    .register-input {
+        font-size: 16px; /* Mejor para inputs móviles */
+    }
+}
+
+
+
+================================================
+File: Calendario/__init__.py
+================================================
+
+
+
+================================================
+File: Calendario/Calendario.py
+================================================
+"""Welcome to Reflex! This file outlines the steps to create a basic app."""
+
+from Calendario.pages.index import index
+from Calendario.pages.login import login
+from Calendario.pages.register import register
+from Calendario.pages.calendar import calendar
+from Calendario.state.login_state import Login_state
+from Calendario.state.register_state import RegisterState
+from Calendario.state.user_state import UserState
+
+import reflex as rx
+
+
+
+app = rx.App(
+        theme=rx.theme(
+        appearance="dark",
+        has_background=True,
+        radius="large",
+        accent_color="blue",)
+)
+app.add_page(login, 
+            route="/login",
+            title="Iniciar Sesión | Calendario",
+            on_load=[Login_state.swith_off,
+                    RegisterState.swith_off,
+                    UserState.set_password(""),
+                    RegisterState.set_password(""),
+                    RegisterState.set_confirm_password(""),]
+                ),
+app.add_page(register,
+            route="/register",
+            title="Registro | Calendario",
+            on_load=[RegisterState.load_page,
+                    Login_state.swith_off,
+                    RegisterState.swith_off,
+                    UserState.set_password(""),
+                    RegisterState.set_password(""),
+                    RegisterState.set_confirm_password(""),])
+
+
+================================================
+File: Calendario/components/calendar_creator.py
+================================================
+# Calendario/components/calendar_creator.py
+import reflex as rx
+from Calendario.state.calendar_state import CalendarState
+
+def calendar_creator() -> rx.Component:
+    return rx.dialog.root(
+        rx.dialog.trigger(
+            rx.box()  # Trigger vacío ya que lo controlamos desde el menú
+        ),
+        rx.dialog.content(
+            rx.form(
+                rx.vstack(
+                    rx.heading("Crear nuevo Calendario", size="5"),
+                    rx.text("Nombre del Calendario", size="2", color="gray"),
+                    rx.input(
+                        placeholder="Ej: Comidas de Marzo 2025",
+                        name="calendar_name",
+                        required=True,
+                        value=CalendarState.new_calendar_name,
+                        on_change=CalendarState.set_new_calendar_name,
+                        _hover={"border_color": "blue.400"}
+                    ),
+                    rx.text("Selecciona el mes", size="2", color="gray", margin_top="1em"),
+                    rx.input(
+                        type="month",
+                        name="calendar_month",
+                        required=True,
+                        value=CalendarState.new_calendar_month,
+                        on_change=CalendarState.set_new_calendar_month
+                    ),
+                    rx.hstack(
+                        rx.dialog.close(
+                            rx.button(
+                                "Cancelar",
+                                variant="soft",
+                                on_click=CalendarState.close_calendar_creator
+                            )
+                        ),
+                        rx.button(
+                            "Crear",
+                            type="submit",
+                            variant="solid",
+                            color_scheme="jade",
+                            on_click=CalendarState.create_calendar
+                        ),
+                        spacing="3",
+                        margin_top="2em",
+                        justify="end"
+                    ),
+                    spacing="3",
+                    width="100%",
+                ),
+            ),
+            style={"max_width": 450},
+            box_shadow="lg",
+            padding="2em",
+            border_radius="8px",
+        ),
+        open=CalendarState.show_calendar_creator,
+    )
+
+
+================================================
+File: Calendario/components/current_user_button.py
+================================================
+
+
+
+================================================
+File: Calendario/components/day_button.py
+================================================
+import reflex as rx
+
+def day_button(day: str = None) -> rx.Component:
+
+    return rx.box(
+            rx.button(
+                rx.text("Día",day),
+                rx.box(
+                    rx.text("Línea 1", style={"margin": "0"}),
+                    rx.text("Línea 2", style={"margin": "0"}),
+                    class_name="extra_text",
+                ),
+                class_name="day_button",
+            ),
+            _hover="a",
+            style={"display": "flex", "justifyContent": "center", "alignItems": "center"
+            },
+        )
+
+
+================================================
+File: Calendario/components/default_calendar.py
+================================================
+import reflex as rx
+from datetime import datetime
+import calendar
+
+from Calendario.state.calendar_state import CalendarState
+
+def default_calendar() -> rx.Component:
+    # Obtener fecha actual
+    current_date = datetime.now()
+    current_day = current_date.day
+    
+    # Obtener el calendario del mes actual
+    cal = calendar.monthcalendar(current_date.year, current_date.month)
+    
+    def render_day(day):
+        return rx.table.cell(
+            rx.cond(
+                (day == 0),
+                "",
+                str(day)
+            ),
+            background_color=rx.cond(
+                (day == current_day),
+                "rgba(79, 70, 229, 0.1)",
+                "transparent"
+            ),
+            border_radius=rx.cond(
+                (day == current_day),
+                "8px",
+                "0px"
+            ),
+            font_weight=rx.cond(
+                (day == current_day),
+                "bold",
+                "normal"
+            )
+        )
+
+    def render_week(week):
+        return rx.table.row(
+            rx.foreach(
+                week,
+                render_day
+            )
+        )
+
+    return rx.table.root(
+        rx.table.header(
+            rx.table.row(
+                rx.table.column_header_cell("Lun"),
+                rx.table.column_header_cell("Mar"),
+                rx.table.column_header_cell("Mié"),
+                rx.table.column_header_cell("Jue"),
+                rx.table.column_header_cell("Vie"),
+                rx.table.column_header_cell("Sáb"),
+                rx.table.column_header_cell("Dom"),
+            )
+        ),
+        rx.table.body(
+            rx.foreach(
+                cal,
+                render_week
+            )
+        ),
+        width="100%",
+        text_align="center",
+        border="1px solid #eee",
+        border_radius="8px",
+        padding="1em"
+    )
+
+
+================================================
+File: Calendario/components/footer.py
+================================================
+# Calendario/components/footer.py
+from typing import Callable
+import reflex as rx
+
+def footer(page: Callable[[], rx.Component]) -> rx.Component:
+    return rx.vstack(
+        # Contenedor principal que mantiene el centrado
+        rx.box(
+            page(),
+            min_height="100vh",  # Asegura que ocupe al menos toda la altura de la ventana
+            width="100%",
+            display="flex",
+            justify_content="center",
+            align_items="center",
+        ),
+        
+        # Footer
+        rx.box(
+            rx.vstack(
+                rx.hstack(
+                    rx.vstack(
+                        rx.heading("Calendario", size="6"),
+                        rx.text("Organiza tus comidas de manera eficiente"),
+                        align_items="start",
+                    ),
+                    rx.spacer(),
+                    rx.hstack(
+                        rx.link("Inicio", href="/"),
+                        rx.link("Sobre Nosotros", href="/about"),
+                        rx.link("Contacto", href="/contact"),
+                        spacing="8",
+                    ),
+                    width="100%",
+                ),
+                rx.divider(),
+                rx.text(
+                    "© 2024 Calendario. Todos los derechos reservados.",
+                    color="gray.500",
+                    size="3",
+                ),
+                width="100%",
+                spacing="8",
+                py="8",
+            ),
+            width="100%",
+            bg="gray.900",
+            color="white",
+            padding="2em",
+        ),
+        width="100%",
+        spacing="0",
+    )
+
+
+================================================
+File: Calendario/components/login_form.py
+================================================
+# Calendario/components/login_form.py
+
+import reflex as rx
+from Calendario.state.user_state import UserState
+from Calendario.state.login_state import Login_state
+from Calendario.components.show_pasw_switch import show_pasw_switch_login
+
+def login_form() -> rx.Component:
+    """Componente del formulario de inicio de sesión."""
+    return rx.center(  # Centra horizontalmente
+        rx.container(
+            rx.box(
+                rx.button(
+                    rx.icon("arrow-left", size=18),
+                    "Inicio",
+                    on_click=rx.redirect("/"),
+                    variant="soft",
+                    color_scheme="blue",
+                    size="2",
+                    radius="full",
+                    _hover={"transform": "scale(1.05)"},
+                    style={"position": "fixed", "left": "1.5rem", "top": "1.5rem"}
+                ),
+                z_index="1000"
+            ),
+            rx.vstack(
+                rx.center(
+                    rx.image(
+                        width="2.5em",
+                        height="auto",
+                        border_radius="25%",
+                    ),
+                    rx.heading(
+                        "Accede a tu usuario",
+                        size="6",
+                        as_="h2",
+                        text_align="center",
+                        width="100%",
+                    ),
+                    direction="column",
+                    spacing="5",
+                    width="100%",
+                ),
+                rx.vstack(
+                    rx.text(
+                        "Nombre de usuario",
+                        size="3",
+                        weight="medium",
+                        text_align="left",
+                        width="100%",
+                    ),
+                    rx.input(
+                        rx.input.slot(rx.icon("user")),
+                        placeholder="Usuario",
+                        name="user",
+                        type="text",
+                        size="3",
+                        width="100%",
+                        required=True,
+                        autofocus=True,
+                        value=rx.cond(UserState.username, UserState.username, ""),
+                        on_change=UserState.set_username,
+                        on_key_down=UserState.press_enter,
+                    ),
+                    spacing="2",
+                    width="100%",
+                ),
+                rx.vstack(
+                    rx.hstack(
+                        rx.text(
+                            "Contraseña",
+                            size="3",
+                            weight="medium",
+                        ),
+                        justify="between",
+                        width="100%",
+                    ),
+                    rx.input(
+                        rx.input.slot(rx.icon("lock")),
+                        name="password",
+                        placeholder="Contraseña",
+                        type=rx.cond(Login_state.show_pasw, "text", "password"),
+                        size="3",
+                        width="100%",
+                        required=True,
+                        value=UserState.password,
+                        on_change=UserState.set_password,
+                        on_key_down=UserState.press_enter,
+                    ),
+                    show_pasw_switch_login(),
+                    spacing="2",
+                    width="100%",
+                ),
+                rx.button(
+                    rx.icon("user-check",size=18),
+                    "Iniciar Sesión",
+                    size="3",
+                    variant="surface",
+                    color_scheme="blue",
+                    radius="full",
+                    _hover={"transform": "scale(1.05)"},
+                    on_click=UserState.login,
+                    width="100%",
+
+                ),
+                rx.center(
+                    rx.vstack(
+                        rx.hstack(
+                            rx.text("¿No tienes cuenta?", size="3"),
+                            rx.link(
+                                "Registrate",
+                                on_click=rx.redirect("/register"),
+                                size="3",
+                            ),
+                        ),
+                        rx.link(
+                            "¿Has olvidado la contraseña?",
+                            href="/recovery_pasw",
+                            size="3",
+                        ),
+                    ),
+                    opacity="0.8",
+                    spacing="2",
+                    direction="row",
+                    width="100%",
+                ),
+                spacing="6",
+                width="100%",
+            ),
+            max_width="28em",
+            padding="2em",  # Puedes añadir algo de padding para más consistencia visual
+        ),
+        width="100%",  # Asegura que el centro ocupa el ancho completo
+        margin_top="-20em",
+    )
+
+
+================================================
+File: Calendario/components/login_register.py
+================================================
+#login_register.py
+
+# Calendario/components/login_card.py
+
+import reflex as rx
+from Calendario.state.login_state import Login_state
+from Calendario.components.login_form import login_form
+from Calendario.components.register_form import register_form
+
+def login_card() -> rx.Component:
+    """Componente que maneja el cambio entre login y registro."""
+    return rx.cond(
+        Login_state.mode == "login",
+        login_form(),  # Muestra el formulario de inicio de sesión
+        register_form(),  # Muestra el formulario de registro
+    )
+
+
+================================================
+File: Calendario/components/register_form.py
+================================================
+# Calendario/components/register_form.py
+
+import reflex as rx
+from Calendario.state.register_state import RegisterState
+from Calendario.state.login_state import Login_state
+from Calendario.components.show_pasw_switch import show_pasw_switch_register
+
+def register_form() -> rx.Component:
+    """Componente de registro con vistas separadas para móvil y desktop"""
+    
+    # Campos comunes
+    username_field = rx.vstack(
+    rx.hstack(
+            rx.text("Usuario", size="3", weight="medium"),
+            rx.button(
+                rx.icon("user-check", color="white"),
+                background="transparent",
+                on_click=RegisterState.check_aviable_username,
+                size="1",
+                padding="2",
+                _hover={"opacity": 0.8,
+                        "transform": "scale(1.2)"},
+                is_disabled=RegisterState.username == ""
+            ),
+            rx.match(
+                RegisterState.username_valid,
+                (None, rx.text("")),  # Nada cuando es None
+                (True, rx.icon("check", color="green")),  # Check verde independiente
+                (False, rx.icon("x", color="red")),  # X roja independiente
+            ),
+            spacing="2",
+            align="center"
+        ),
+            
+
+        rx.input(
+            rx.input.slot(rx.icon("user")),
+            placeholder="Usuario",
+            type="text",
+            size="3",
+            width="100%",
+            value=RegisterState.username,
+            on_change=RegisterState.set_username,
+            border_color=rx.cond(
+                RegisterState.errors["username"] != "", "#EF4444", "#666666"),
+            _focus={"border_color": "#3182CE"},
+            required=True
+        ),
+        rx.cond(
+            RegisterState.errors["username"] != "",
+            rx.text(RegisterState.errors["username"], color="#EF4444", size="2")
+        ),
+        spacing="2",
+        width="100%"
+    )
+    
+    password_field = rx.vstack(
+        rx.text("Contraseña", size="4", weight="medium"),
+        rx.input(
+            rx.input.slot(rx.icon("lock")),
+            placeholder="Contraseña",
+            type=rx.cond(RegisterState.show_pasw, "text", "password"),
+            size="3",
+            width="100%",
+            value=RegisterState.password,
+            on_change=RegisterState.set_password,
+            border_color=rx.cond(
+                RegisterState.errors["password"] != "", "#EF4444", "#666666"),
+            _focus={"border_color": "#3182CE"},
+            required=True
+        ),
+        rx.cond(  # Mensaje error contraseña
+            RegisterState.errors["password"] != "",
+            rx.text(
+                RegisterState.errors["password"],
+                size="2",
+                color="#EF4444"
+            )
+        ),
+        show_pasw_switch_register(),
+        rx.input(
+            rx.input.slot(rx.icon("lock")),
+            placeholder="Confirmar Contraseña",
+            type="password",
+            size="3",
+            width="100%",
+            value=RegisterState.confirm_password,
+            on_change=RegisterState.set_confirm_password,
+            border_color=rx.cond(
+                RegisterState.errors["confirm_password"] != "", "#EF4444", "#666666"),
+            _focus={"border_color": "#3182CE"},
+            required=True
+        ),
+        rx.cond(  # Mensaje error confirmar contraseña
+            RegisterState.errors["confirm_password"] != "",
+            rx.text(
+                RegisterState.errors["confirm_password"],
+                size="2",
+                color="#EF4444"
+            )
+        ),
+        spacing="2",
+        width="100%"
+    )
+    
+    email_field = rx.vstack(
+        rx.text("Correo electrónico", size="4", weight="medium"),
+        rx.input(
+            rx.input.slot(rx.icon("mail")),
+            placeholder="Correo electrónico",
+            type="email",
+            size="3",
+            width="100%",
+            value=RegisterState.email,
+            on_change=RegisterState.set_email,
+            border_color=rx.cond(
+                RegisterState.errors["email"] != "", "#EF4444", "#666666"),
+            _focus={"border_color": "#3182CE"},
+            required=True
+        ),
+        rx.cond(  # Mensaje error email
+            RegisterState.errors["email"] != "",
+            rx.text(
+                RegisterState.errors["email"],
+                size="2",
+                color="#EF4444"
+            )
+        ),
+        rx.input(
+            rx.input.slot(rx.icon("mail")),
+            placeholder="Confirmar Correo",
+            type="email",
+            size="3",
+            width="100%",
+            value=RegisterState.confirm_email,
+            on_change=RegisterState.set_confirm_email,
+            border_color=rx.cond(
+                RegisterState.errors["confirm_email"] != "", "#EF4444", "#666666"),
+            _focus={"border_color": "#3182CE"},
+            required=True
+        ),
+        rx.cond(  # Mensaje error confirmacion email
+            RegisterState.errors["confirm_email"] != "",
+            rx.text(
+                RegisterState.errors["confirm_email"],
+                size="2",
+                color="#EF4444"
+            )
+        ),
+        spacing="4",
+        width="100%"
+    )
+    
+    birthday_field = rx.vstack(
+        rx.center(rx.text("Fecha de Nacimiento", size="4", weight="medium")),
+        rx.hstack(
+            rx.input(
+                type="date",
+                size="3",
+                width="100%",
+                value=RegisterState.birthday,
+                on_change=RegisterState.set_birthday,
+                border=rx.cond(
+                    RegisterState.errors["birthday"] != "",
+                    "1px solid #EF4444", "1px solid #666666"),
+                _focus={"border": "1px solid #3182CE"},
+                required=True
+            ),
+            rx.cond(  # Mensaje error cumpleaños
+                RegisterState.errors["birthday"] != "",
+                rx.text(
+                    RegisterState.errors["birthday"],
+                    size="2",
+                    color="#EF4444"
+                )
+            ),
+            
+            rx.button(
+                rx.icon("rotate-ccw"),
+                on_click=rx.set_value("birthday", ""),
+                background="transparent",
+                _hover={"transform": "scale(1.2)"}
+            ),
+            width="100%",
+            align="center"
+        ),
+        spacing="4",
+        width="100%"
+    )
+    
+    # Versión móvil
+    mobile_view = rx.mobile_only(
+        rx.vstack(
+            username_field,
+            password_field,
+            email_field,
+            birthday_field,
+            spacing="6",
+            width="100%"
+        )
+    )
+    
+    # Versión desktop
+    desktop_view = rx.tablet_and_desktop(
+        rx.hstack(
+            rx.vstack(
+                username_field,
+                password_field,
+                spacing="6",
+                width="80%"
+            ),
+            rx.vstack(
+                email_field,
+                birthday_field,
+                spacing="6",
+                width="80%"
+            ),
+            spacing="6",
+            width=["20","30em","40em","50em","60em"],
+            max_width="60em",
+            
+        )
+    )
+    
+
+    return rx.container(
+        # Botón de volver al login (nuevo)
+        rx.box(
+            rx.button(
+                rx.icon("arrow-left", size=18),
+                "Inicio",
+                on_click=rx.redirect("/"),
+                variant="soft",
+                color_scheme="blue",
+                size="2",
+                radius="full",
+                _hover={"transform": "scale(1.05)"},
+                style={"position": "fixed", "left": "1.5rem", "top": "1.5rem"}
+            ),
+            z_index="1000"
+        ),
+        
+        rx.vstack(
+            rx.heading("Registra tu Usuario", size="6", text_align="center"),
+            mobile_view,
+            desktop_view,
+            rx.button(
+                rx.icon("user-plus",size=18),
+                "Registrarse",
+                size="3",
+                variant="surface",
+                color_scheme="blue",
+                radius="full",
+                width=["90%", "50%"],
+                _hover={"transform": "scale(1.05)"},
+                on_click=RegisterState.register
+            ),
+            rx.hstack(
+                rx.text("¿Ya estás registrado?"),
+                rx.link("Inicia Sesión", on_click=rx.redirect("/login")),
+                justify="center",
+                opacity="0.8"
+            ),
+            spacing="6",
+            width="100%",
+            align="center"
+        ),
+        padding="2em",
+        padding_top="4em",  # Aumentamos padding superior para no solapar con el botón
+        class_name="register-container",
+        position="relative"
+    )
+
+
+================================================
+File: Calendario/components/show_pasw_switch.py
+================================================
+import reflex as rx
+from Calendario.state.login_state import Login_state
+from Calendario.state.register_state import RegisterState
+from Calendario.state.user_state import UserState
+def show_pasw_switch_login() -> rx.Component:
+    return rx.hstack(
+        rx.switch(
+            on_change=Login_state.swith_on,
+            color_scheme="jade"  # Pasar el estado del switch
+        ),
+        rx.text("Mostrar contraseña"),
+        padding_top="0.5em",
+    )
+
+def show_pasw_switch_register() -> rx.Component:
+    return rx.hstack(
+        rx.switch(
+            on_change=RegisterState.swith_on,  # Cambia el estado del switch
+            is_checked=RegisterState.show_pasw,  # Estado actual del switch
+            color_scheme="jade",
+        ),
+        rx.text("Mostrar contraseña"),
+        padding_top="0.5em",
+    )
+
+
+
+
+================================================
+File: Calendario/components/user_calendar.py
+================================================
+# Calendario/components/user_calendar.py
+import reflex as rx
+from Calendario.state.calendar_state import CalendarState
+from Calendario.state.user_state import UserState
+from Calendario.components.calendar_creator import calendar_creator
+
+def user_calendar() -> rx.Component:
+    return rx.vstack(
+        rx.container(
+            rx.vstack(
+                rx.vstack(
+                    rx.button(
+                        "Logout",
+                        on_click=[UserState.logout]
+                    ),
+                    rx.text("CALENDARIOS"),
+                    rx.button(on_click=CalendarState.load_calendars),
+                    rx.cond(
+                        CalendarState.calendars.length() > 0,
+                        rx.vstack(
+                            rx.foreach(
+                                CalendarState.calendars,
+                                lambda calendar: rx.text(calendar.name)
+                            ),
+                        ),
+                        rx.text("NO HAY CALENDARIOS EN CALENDAR.PY")
+                    ),
+                ),
+                width="100%",
+                padding_x="0",
+            ),
+            width="100%",
+            max_width="1200px",
+            padding_x="2em",
+            padding_top="6em",
+        ),
+        width="100%",
+        spacing="0",
+        style={"overflow-x": "hidden"}
+    )
+
+
+================================================
+File: Calendario/components/user_navbar.py
+================================================
+from fastapi import background
+import reflex as rx
+from Calendario.components.calendar_creator import calendar_creator
+from Calendario.state.user_state import UserState
+from Calendario.state.calendar_state import CalendarState
+
+def user_navbar() -> rx.Component:
+    return rx.box(
+        rx.box(
+            rx.hstack(
+                
+                # Logo/Texto con efecto gradiente
+                rx.heading(
+                    rx.hstack(
+                        rx.image(
+                            src="/favicon.ico",
+                            width="2em",
+                            heigth="2em"),
+                        rx.text("Calendario"),
+                        
+                    ),
+                    background_image="linear-gradient(45deg, #4F46E5, #EC4899)",
+                    background_clip="text",
+                    font_weight="800",
+                    font_size="1em",
+                    user_select="none",
+                    on_click=rx.redirect("/calendar"),
+                    _hover={"transform": "scale(1.05)",
+                            "cursor": "pointer"},
+                ),
+                
+                rx.spacer(),
+                calendar_creator(),
+                # Menú de usuario
+                rx.menu.root(
+                    rx.menu.trigger(
+                        rx.button(
+                            rx.hstack(
+                                rx.spacer(" "),
+                                rx.icon("user"),
+                                rx.cond(
+                                    UserState.current_user,
+                                    rx.text(UserState.current_user.username),
+                                    rx.text("Usuario")
+                                ),
+                                rx.icon("chevron-down"),
+                                spacing="2",
+                                align="center",
+                                color="white",  # Color del texto en blanco
+                                
+                            ),
+                            variant="ghost",
+                            radius="full",
+                            background="#23282b",
+                            style={
+                                "background": "transparent",
+                                "color": "white",  # Color del texto en blanco
+                                "border": "1px solid rgba(255, 255, 255, 0.3)",  # Borde gris claro semi-transparente
+                                "_hover": {
+                                    "background": "rgba(0, 0, 0, 0.2)",
+                                    "cursor": "pointer",
+                                    "transform": "scale(1.05)"
+                                }
+                            }
+                        )
+                    ),
+                    rx.menu.content(
+                        rx.menu.item("Crear Calendario",
+                                     rx.icon("calendar-plus"),
+                                     style={"_hover" : { "background " : "#23282b"}},
+                                     on_click=CalendarState.open_calendar_creator()
+                                     ),
+                        rx.menu.item("Perfil", 
+                                     rx.icon("user"),
+                                     style={"_hover" : { "background " : "#23282b"}}
+                                     ),
+                        rx.menu.item("Configuración",
+                                      rx.icon("settings"),
+                                      style={"_hover" : { "background " : "#23282b"}}
+                                      ), 
+                        rx.menu.separator(),
+                        rx.menu.item(
+                            "Cerrar sesión",
+                            rx.icon("log-out"), 
+                            on_click=UserState.logout,
+                            color="#EF4444",
+                            style={"_hover" : { "background " : "#23282b"}}
+                        ),
+                        width="200px",
+                    ),
+                    modal=False
+                ),
+                justify="between",
+                align="center", 
+                width="100%",
+                padding_y="1em",
+                padding_x="2em",
+                style={"box-sizing": "border-box"}
+            ),
+            width="100%",
+            max_width="100vw",
+            style={"overflow-x": "hidden"}
+        ),
+        position="fixed",
+        top="0",
+        width="100%",
+        z_index="1000",
+        border_bottom="1.5px solid #eee",
+        border_radius="0 0 20px 20px",
+        background="#1e1e1e"
+    )
+
+
+
+================================================
+File: Calendario/database/database.py
+================================================
+#database.py
+
+import bcrypt
+
+import os
+import dotenv
+from typing import Union,List
+from supabase import create_client, Client
+import logging
+from Calendario.model.model import Calendar,Day
+from datetime import datetime, timedelta
+from dateutil.relativedelta import relativedelta
+
+logging.basicConfig(level=logging.INFO)
+
+class SupabaseAPI:
+
+    dotenv.load_dotenv()
+
+    SUPABASE_URL = os.environ.get("SUPABASE_URL")
+    SUPABASE_KEY = os.environ.get("SUPABASE_KEY")
+    
+    supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+    
+    def authenticate_user(self, username: str, password: str) -> Union[dict, None]:
+        """
+        Autentica a un usuario verificando su nombre y contraseña.
+
+        Args:
+            username (str): Nombre de usuario a buscar.
+            password (str): Contraseña del nnnnnnn.
+
+        Returns:
+            dict | None: Datos del usuario si la autenticación es exitosa, o None si falla.
+        """
+        try:
+            response = self.supabase.from_("user").select("*").ilike("username", username).execute()
+            print(response.data)
+
+            if response.data:
+                user = response.data[0]
+                if bcrypt.checkpw(password.encode('utf-8'), user["pasw"].encode('utf-8')):
+                    logging.info(f"Usuario autenticado: {username}")
+                    return user
+        except Exception as e:
+            logging.error(f"Error autenticando al usuario: {e}")
+        return None
+    
+
+    def check_existing_user(self,username: str, email: str) -> dict:
+        """
+        Verifica si el username o email ya existen en la base de datos.
+
+        Args:
+            username (str): Nombre de usuario a verificar.
+            email (str): Email a verificar.
+
+        Returns:
+            dict: Indica si existen el usuario o email.
+        """
+        existing_username= False
+        existing_email = False
+
+        try:
+
+            response_user = self.supabase.from_("user").select("username").ilike("username", username).execute()
+            existing_username= len(response_user.data) > 0
+
+            response_email= self.supabase.from_("user").select("email").ilike("email",email).execute()
+            existing_email= len(response_email.data) > 0
+
+            return {'username':existing_username, 'email':existing_email}
+        except Exception as e:
+            logging.error(f"Error verificando existencia de usuario o email: {e}")
+            return {'username': False, 'email': False}
+        
+    def check_existing_username(self, username):
+        try:
+            response = self.supabase.from_("user").select("username").ilike("username", username).execute()
+            return len(response.data) > 0  # Devuelve directamente el booleano
+        
+        except Exception as e:
+            logging.error(f"Error verificando existencia de usuario: {e}")
+            return False
+
+    def get_calendars(self, user_id: int) -> Union[List[Calendar], None]:
+        try:
+            response = (
+                self.supabase
+                .from_("calendars")
+                .select("*")
+                .eq("owner_id", user_id)
+                .execute()
+            )
+
+            if response.data:
+                calendars = [
+                    Calendar(
+                        id=cal['id'],
+                        name=cal['name'],
+                        owner_id=cal['owner_id'],
+                        start_date=cal['start_date'],
+                        end_date=cal['end_date'],
+                        shared_with=cal.get('shared_with', []),
+                        created_at=datetime.fromisoformat(
+                            cal['created_at'].replace('Z', '+00:00')
+                        ) if cal.get('created_at') else datetime.now(),
+                        
+                    )
+                    for cal in response.data
+                ]
+                return calendars
+                
+        except Exception as e:
+            logging.error(f"Error obteniendo calendarios del usuario: {e}")
+        return None
+
+
+    def create_calendar_with_days(self, user_id: int, calendar_name: str, start_date: datetime, end_date: datetime):
+        try:
+            # Calcular fechas de inicio y fin del mes actual
+            if not calendar_name.strip():
+                raise ValueError("El nombre del calendario es obligatorio")
+            # Insertar calendario con las fechas calculadas
+            calendar_data = {
+                "name": calendar_name,
+                "owner_id": user_id,
+                "start_date": start_date.isoformat(),  # Usa el start_date del parámetro
+                "end_date": end_date.isoformat(),      # Usa el end_date del parámetro
+                "created_at": datetime.now().isoformat()
+            }
+            
+            response = self.supabase.table("calendars").insert(calendar_data).execute()
+            
+            if response.data:
+                # Crear días del mes
+                days = []
+                current_day = start_date
+                while current_day <= end_date:
+                    days.append({
+                        "calendar_id": response.data[0]["id"],
+                        "date": current_day.isoformat()
+                    })
+                    current_day += timedelta(days=1)
+                
+                # Insertar días en lote
+                self.supabase.table("days").insert(days).execute()
+                
+                return Calendar(
+                    id=response.data[0]["id"],
+                    name=calendar_name,
+                    owner_id=user_id,
+                    start_date=start_date,
+                    end_date=end_date,
+                    created_at=datetime.fromisoformat(response.data[0]["created_at"])
+                )
+        except ValueError as ve:
+            print(f"Error de validación: {ve}")
+            raise 
+        except Exception as e:
+            print(f"Error creating calendar: {str(e)}")
+        return None
+    
+
+    def get_days_for_calendar(self, calendar_id: int) -> List[Day]:
+        try:
+            response = (
+                self.supabase
+                .from_("days")
+                .select("*")
+                .eq("calendar_id", calendar_id)
+                .execute()
+            )
+            
+            if response.data:
+                return [
+                    Day(
+                        id=day['id'],
+                        calendar_id=day['calendar_id'],
+                        date=datetime.fromisoformat(day['date']),
+                        # ... otros campos
+                    )
+                    for day in response.data
+                ]
+        except Exception as e:
+            print(f"Error getting days: {e}")
+        return []
+
+
+================================================
+File: Calendario/model/model.py
+================================================
+from typing import Optional
+import reflex as rx
+from datetime import datetime
+
+class User(rx.Base):
+    """
+    Modelo para usuarios.
+    """
+    id: int
+    username: str
+    pasw: str
+    email: str
+    birthday: str
+    created_at: datetime
+
+
+class Calendar(rx.Base):
+    """
+    Modelo para calendarios.
+    """
+    id: int
+    name: str
+    owner_id: int  # Relación con el usuario propietario
+    shared_with: Optional[list[int]] = []  # Permite None pero inicializa como lista vacía
+    created_at: datetime
+    start_date : datetime
+    end_date : datetime
+
+
+class Meal(rx.Base):
+    """
+    Modelo para opciones de comidas y cenas.
+    """
+    id: int
+    name: str  # Nombre de la comida o cena (ejemplo: "Pizza", "Ensalada")
+    description: str = None  # Descripción opcional (ejemplo: ingredientes)
+
+
+class Day(rx.Base):
+    """
+    Modelo para días dentro de un calendario.
+    """
+    id: int
+    calendar_id: int  # Relación con el calendario
+    date: datetime
+    meal_id: int = None  # Relación con el modelo Meal (comida)
+    dinner_id: int = None  # Relación con el modelo Meal (cena)
+    comments: list[int] = []  # Lista de IDs de comentarios
+
+
+class Comment(rx.Base):
+    """
+    Modelo para comentarios asociados a un día.
+    """
+    id: int
+    day_id: int  # Relación con el día
+    content: str  # Contenido del comentario
+    owner_id: int  # Usuario que hizo el comentario
+    created_at: datetime
+
+
+
+================================================
+File: Calendario/pages/calendar.py
+================================================
+import reflex as rx
+from Calendario.components.calendar_creator import calendar_creator
+from Calendario.components.user_calendar import user_calendar
+from Calendario.components.default_calendar import default_calendar
+from Calendario.state.calendar_state import CalendarState
+from Calendario.components.user_navbar import user_navbar
+from Calendario.state.user_state import UserState
+
+def toast(): 
+    return rx.toast(title=CalendarState.toast_info,position="top-center")
+
+@rx.page(route="/calendar", on_load=CalendarState.reset_calendars)
+def calendar() -> rx.Component:
+    return rx.vstack(
+        user_navbar(),
+        rx.container(
+            rx.vstack(
+                rx.cond(UserState.current_user,
+                        rx.cond(
+                        CalendarState.calendars.length() > 0,
+                        user_calendar(),
+                        default_calendar(),
+
+                    ),
+                    rx.vstack(
+                        rx.text("No hay nadie loggeado"),
+                        rx.button("Volver al inicio",
+                                  on_click=rx.redirect("/"))
+                    ),
+                ),
+                
+                
+                width="100%",
+                padding_x="0",
+            ),
+            width="100%",
+            max_width="1200px",
+            padding_x="2em",
+            padding_top="6em",
+            
+        ),
+        width="100%",
+        spacing="0",
+        style={"overflow-x": "hidden"},
+        
+    )
+
+
+================================================
+File: Calendario/pages/index.py
+================================================
+# Calendario/pages/index.py (nueva versión)
+import reflex as rx
+from Calendario.components.footer import footer
+@rx.page(route="/", title="Calendario")
+@footer
+def index() -> rx.Component:
+    return rx.container(
+        rx.vstack(
+            rx.heading("¡Bienvenido a Calendario!", size="9"),
+            rx.text("Organiza tus comidas de manera eficiente", size="6"),
+            rx.hstack(
+                rx.link(
+                    rx.button("Iniciar Sesión", size="4"),
+                    href="/login"
+                ),
+                rx.link(
+                    rx.button("Registrarse", size="4", variant="soft"),
+                    href="/register"
+                ),
+                spacing="4",
+                margin_top="2em"
+            ),
+            align="center",
+            height="100%"
+        ),
+        padding="2em",
+        max_width="1200px",
+        center_content=True
+    )
+
+
+================================================
+File: Calendario/pages/login.py
+================================================
+# Calendario/pages/login.py
+import reflex as rx
+from Calendario.components.footer import footer
+from Calendario.components.login_form import login_form
+from Calendario.state.user_state import UserState
+from Calendario.state.register_state import RegisterState
+
+@rx.page(route="/login")
+@footer
+def login() -> rx.Component:
+    return login_form()
+
+
+================================================
+File: Calendario/pages/register.py
+================================================
+# Calendario/pages/registro.py
+import reflex as rx
+from Calendario.components.footer import footer
+from Calendario.components.register_form import register_form
+from Calendario.state.user_state import UserState
+from Calendario.state.register_state import RegisterState
+
+@footer
+def register() -> rx.Component:
+    return rx.container(
+        register_form(),
+    )
+
+
+================================================
+File: Calendario/state/calendar_state.py
+================================================
+#calendar_state.py
+
+import reflex as rx
+from datetime import datetime, timedelta
+from typing import Optional, List
+from Calendario.database.database import SupabaseAPI
+from Calendario.model.model import Day, Meal, Comment,Calendar
+from Calendario.state.user_state import UserState
+from Calendario.utils.api import SUPABASE_API, fetch_and_transform_calendars
+from datetime import datetime
+from dateutil.relativedelta import relativedelta
+
+
+
+class CalendarState(rx.State):
+    """
+    Manejador de estado para un calendario.
+    """
+    meals: List[Meal] = []  # Lista de opciones de comidas
+    comments: List[Comment] = []  # Lista de comentarios para el día seleccionado
+    calendars: List[Calendar] = []  # Almacena todos los calendarios del usuario
+    toast_info : str = None
+    new_calendar_name : str = ""
+    new_calendar_month: str = datetime.today().strftime("%Y-%m")
+    loading : bool = False
+    show_calendar_creator: bool = False
+    error_message : Optional[str] = None 
+    current_calendar: Optional[Calendar] = None
+    @rx.event
+    def open_calendar_creator(self):
+        self.show_calendar_creator = True
+    
+    @rx.event
+    def close_calendar_creator(self):
+        self.show_calendar_creator = False
+
+    @rx.event
+    def select_calendar(self, calendar = Calendar):
+        self.current_calendar = calendar
+
+
+    @rx.event
+    async def create_calendar(self):
+        try:
+            self.loading = True  # Activamos carga
+            
+            if UserState.current_user is None:
+                raise Exception("Usuario no autenticado")
+
+            # Convertir mes seleccionado a fechas
+            start_date = datetime.strptime(self.new_calendar_month, "%Y-%m")
+            end_date = (start_date + relativedelta(months=1)) - timedelta(days=1)
+
+            # Crear calendario en Supabase
+            db = SupabaseAPI()
+            user_state = await self.get_state(UserState)
+            new_calendar = db.create_calendar_with_days(
+                user_id=user_state.current_user.id,
+                calendar_name=self.new_calendar_name,
+                start_date=start_date,
+                end_date=end_date
+            )
+
+            if new_calendar:
+                self.calendars.append(new_calendar)
+                self.current_calendar = new_calendar
+                self.close_calendar_creator()  # Cierra el diálogo solo si se crea correctamente
+                return rx.toast.success(f"Calendario '{self.new_calendar_name}' creado con éxito!", position="top-center")
+        
+        except ValueError as ve:
+            return rx.toast.error(str(ve), position="top-center")
+        except Exception as e:
+            return rx.window_alert(f"Error: {str(e)}")
+        finally:
+            self.loading = False
+            self.new_calendar_name = ""
+            self.new_calendar_month = datetime.today().strftime("%Y-%m")
+
+
+
+    @rx.event
+    async def load_calendars(self):
+        print("EN CALENDAR STATE LOAD  CALENDARS")
+
+        try:
+            user_state = await self.get_state(UserState)
+            user_id = user_state.current_user.id
+            
+            if user_state.current_user is None:
+                return rx.toast.error(
+                    position="top-center",
+                    title="Debes iniciar sesión para ver tus calendarios."
+                )
+                
+            calendars = await fetch_and_transform_calendars(user_id)
+            if calendars:
+                self.calendars = calendars
+                print(f"Calendarios cargados: {[f'ID: {cal.id}, Nombre: {cal.name}, Propietario ID: {cal.owner_id}, Compartido con: {cal.shared_with}, Creado en: {cal.created_at}' for cal in self.calendars]}")
+            else:
+                print("No se encontraron calendarios.")
+                
+        except Exception as e:
+            print(e)
+
+    @rx.event
+    def reset_calendars(self):
+        """Resetea y recarga los calendarios"""
+        self.calendars = []
+        return CalendarState.load_calendars()
+    @rx.event
+    def clean(self):
+        self.meals = []  # Reset to empty list
+        self.comments = []  # Reset to empty list
+        self.calendars = []  # Reset to empty list
+
+        return rx.toast.info(
+             position="top-center",
+             title="")
+
+
+================================================
+File: Calendario/state/login_state.py
+================================================
+#login_card_state
+
+import reflex as rx
+from Calendario.state.user_state import UserState
+from Calendario.state.register_state import RegisterState
+class Login_state(rx.State):
+    """
+    Manejador de estado para la tarjeta de inicio de sesión en Reflex.
+    """
+    is_open: bool = False
+    mode: str = "login"
+    show_pasw: bool = False
+
+
+    @rx.event
+    def login(self, mode="login"):
+        self.is_open = True
+        self.mode = mode
+        self.show_pasw = False  # Reinicia la visibilidad de la contraseña
+        return UserState.restart_pasw()
+
+    @rx.event
+    def register(self, mode="register"):
+        self.is_open = True
+        self.mode = mode
+        self.show_pasw = False  # Reinicia la visibilidad de la contraseña
+        return [RegisterState.reset_switch(),
+                RegisterState.reset_inputs(),
+                ]  # Reinicia el switch en el formulario de registro
+
+
+    @rx.event
+    def close(self):
+        self.is_open = False
+
+    @rx.event
+    def swith_on(self, value: bool = True):
+        """Controla la visibilidad de la contraseña."""
+        self.show_pasw = value
+
+    @rx.event
+    def swith_off(self, value: bool = False):
+        """Controla la visibilidad de la contraseña."""
+        self.show_pasw = value
+
+
+================================================
+File: Calendario/state/register_state.py
+================================================
+# register_state.py
+
+
+from Calendario.utils.api import check_existing_user, register_user, check_existing_username
+from Calendario.utils.send_email import send_welcome_email
+from datetime import datetime
+import reflex as rx 
+
+class RegisterState(rx.State):
+    username : str = ""
+    password : str = ""
+    confirm_password : str = ""
+    email : str = ""
+    confirm_email : str = ""
+    birthday : str = ""
+    show_pasw : bool = False
+    errors: dict = {
+        "username": "",
+        "password": "",
+        "confirm_password": "",
+        "email": "",
+        "confirm_email": "",
+        "birthday": ""
+    }
+    username_valid : bool = None
+
+
+    @rx.event
+    def reset_errors(self):
+        self.errors = {k: "" for k in self.errors}
+    @rx.event
+    async def register(self):
+        # Resetear errores
+        self.errors = {k: "" for k in self.errors}
+        has_errors = False
+
+        # Verificar si el usuario/email ya existen
+        existing = await check_existing_user(self.username, self.email)
+        if existing["username"]:
+            self.errors["username"] = "El nombre de usuario ya está registrado"
+            has_errors = True
+        if existing["email"]:
+            self.errors["email"] = "El correo electrónico ya está registrado"
+            has_errors = True
+
+
+        # Validación de username
+        if not self.username:
+            self.errors["username"] = "Usuario requerido"
+            has_errors = True
+        else:
+            # Verificar que la longitud esté entre 6 y 16 caracteres
+            if len(self.username) < 4 or len(self.username) > 16:
+                self.errors["username"] = "El usuario debe tener entre 4 y 16 caracteres"
+                has_errors = True
+
+            # Verificar que contenga al menos un número
+            elif not any(char.isdigit() for char in self.username):
+                self.errors["username"] = "El usuario debe contener al menos un número"
+                has_errors = True
+
+            # Verificar que no contenga caracteres especiales (solo letras y números)
+            elif not self.username.isalnum():
+                self.errors["username"] = "El usuario no puede contener caracteres especiales"
+                has_errors = True
+
+        # Validación de email
+        if not self.validate_email(self.email.lower()):
+            self.errors["email"] = "Email inválido"
+            has_errors = True
+        elif self.email.lower() != self.confirm_email.lower():
+            self.errors["confirm_email"] = "Los emails no coinciden"
+            has_errors = True
+
+        import re
+        # Validación de contraseña
+        if not self.password:
+            self.errors["password"] = "Contraseña requerida"
+            has_errors = True
+        else:
+            # Patrón que requiere:
+            # - Al menos 8 caracteres
+            # - Al menos una letra mayúscula
+            # - Al menos un dígito
+            # - Al menos un carácter especial (no alfanumérico)
+            pattern = r'^(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$'
+            if not re.match(pattern, self.password):
+                self.errors["password"] = ("La contraseña debe tener mínimo 8 caracteres, "
+                                            "al menos 1 mayúscula, 1 número y 1 carácter especial")
+                has_errors = True
+            elif self.password != self.confirm_password:
+                self.errors["confirm_password"] = "Las contraseñas no coinciden"
+                has_errors = True
+
+        # Validación de fecha
+        if not self.birthday:
+            self.errors["birthday"] = "Fecha requerida"
+            has_errors = True
+        else:
+            try:
+                birth_date = datetime.strptime(self.birthday, '%Y-%m-%d')
+                if birth_date > datetime.now():
+                    self.errors["birthday"] = "Fecha inválida"
+                    has_errors = True
+            except ValueError:
+                self.errors["birthday"] = "Formato inválido\n (DD-MM-AAAA)"
+                has_errors = True
+
+        if has_errors:
+            return rx.toast.error("No ha sido posible el registro",
+                                  position="top-center")
+
+
+        # Si no hay errores, proceder con registro
+        if not has_errors:
+            try:
+                # Aquí iría la lógica de registro en la base de datos
+                new_user = await register_user(
+                    self.username,
+                    self.password,
+                    self.email,
+                    self.birthday,
+                )
+                
+                if new_user == True:
+                # Enviar correo de bienvenida
+                    send_welcome_email(self.email, self.username)
+                
+                    from Calendario.state.login_state import Login_state
+
+                    
+                    return [rx.toast.success(
+                        "¡Registro exitoso! Revisa tu correo electrónico",
+                        position="top-center"
+                    ),Login_state.login()]
+                else:
+                    self.password=""
+                    self.confirm_password=""
+                    return rx.toast.error(
+                        "No se ha podido registrar el usuario",
+                        position="top-center",
+                    )
+            except Exception as e:
+                return rx.toast.error(
+                    f"Error en el registro: {str(e)}",
+                    position="top-center"
+                )
+
+    def validate_email(self, email: str) -> bool:
+        import re
+        pattern = r"""
+        ^                           # Inicio de la cadena
+        (?!.*\.\.)                  # No permite dos puntos consecutivos
+        [\w.%+-]+                   # Parte local (caracteres permitidos)
+        (?<!\.)                     # No termina con un punto
+        @                           # Separador
+        (?:                         # Dominio:
+            [a-zA-Z0-9]             #   - Inicia con alfanumérico
+            (?:[a-zA-Z0-9-]{0,61}  #   - Permite hasta 61 caracteres (incluyendo guiones)
+            [a-zA-Z0-9])?           #   - Termina con alfanumérico (no guión)
+            \.                      #   - Separador por punto
+        )+                          # Múltiples subdominios
+        [a-zA-Z]{2,63}              # TLD (2-63 caracteres alfabéticos)
+        $                           # Fin de la cadena
+        """
+        return bool(re.fullmatch(pattern, email, re.VERBOSE))
+
+
+    @rx.event
+    async def check_aviable_username(self):
+        if not self.username:
+            return
+        
+        try:
+            existing = await check_existing_username(self.username)
+            if existing:
+                self.username_valid = False
+                self.errors["username"] = "El nombre de usuario ya está registrado"
+            else:
+
+                                            # Verificar que la longitud esté entre 6 y 16 caracteres
+                if len(self.username) < 4 or len(self.username) > 16:
+                    self.errors["username"] = "El usuario debe tener entre 4 y 16 caracteres"
+                    self.username_valid = False
+
+
+                # Verificar que contenga al menos un número
+                elif not any(char.isdigit() for char in self.username):
+                    self.errors["username"] = "El usuario debe contener al menos un número"
+                    self.username_valid = False
+
+                # Verificar que no contenga caracteres especiales (solo letras y números)
+                elif not self.username.isalnum():
+                    self.errors["username"] = "El usuario no puede contener caracteres especiales"
+                    self.username_valid = False
+                
+                else:
+                    self.username_valid = True
+                    self.errors["username"] = ""
+
+        except Exception as e:
+            print(f"Error al verificar el nombre de usuario: {str(e)}")
+            self.username_valid = None
+
+
+    @rx.event
+    def set_username(self, username: str):
+        self.username = username
+        print(f"Usuario para registro actualizado: {self.username}")
+
+    @rx.event
+    def set_password(self, password: str):
+        self.password = password
+        print(f"Contraseña para registro actualizada: {self.password}")
+
+    @rx.event
+    def set_confirm_password(self, confirm_password: str):
+        self.confirm_password = confirm_password
+        print(f"Confirmar contraseña para registro actualizada: {self.confirm_password}")
+    @rx.event
+    def set_email(self, email: str):
+        self.email = email
+        print(f"Correo electrónico para registro actualizado: {self.email}")
+    @rx.event
+    def set_confirm_email(self, confirm_email: str):
+        self.confirm_email = confirm_email
+        print(f"Confirmar correo electrónico para registro actualizado: {self.confirm_email}")
+
+    @rx.event
+    def swith_on(self, value: bool = True):
+        """Controla la visibilidad de la contraseña."""
+        self.show_pasw = value
+
+    @rx.event
+    def swith_off(self, value: bool = False):
+        """Controla la visibilidad de la contraseña."""
+        self.show_pasw = value
+
+    @rx.event
+    def reset_switch(self):
+        """Reinicia el estado del switch a False."""
+        self.show_pasw = False
+    
+    @rx.event
+    def reset_inputs(self):
+        """Reinicia todos los inputs."""
+        self.username = ""
+        self.password = ""
+        self.confirm_password = ""
+        self.email = ""
+        self.confirm_email = ""
+        self.birthday = ""
+        self.errors = {k: "" for k in self.errors}
+        self.username_valid = None
+
+    @rx.event
+    def load_page(self):
+        self.password = ""
+        self.confirm_password = ""
+        self.confirm_email = ""
+        self.birthday = ""
+        self.reset_errors()
+        self.username_valid = None
+        
+
+
+
+
+================================================
+File: Calendario/state/user_state.py
+================================================
+#user_state.py
+
+import reflex as rx
+import time
+from typing import Optional
+from Calendario.model.model import User
+from Calendario.utils.api import authenticate_user
+
+class UserState(rx.State):
+    """
+    Manejador de estado para los datos del usuario en Reflex.
+    """
+
+    username: str = ""  # Guarda el nombre de usuario ingresado
+    password: str = ""  # Guarda la contraseña ingresada
+    current_user: Optional[User] = None  # Mantiene al usuario autenticado
+
+
+    @rx.event
+    def press_enter(self, key: str):
+        if key == "Enter":
+            # Return the event instead of calling it directly
+            return UserState.login
+    
+    def return_username(self) -> str:
+        return self.username
+    
+    @rx.event
+    def set_username(self, username: str):
+        """
+        Actualiza el nombre de usuario en el estado.
+        """
+        self.username = username
+        print(f"Username actualizado: {self.username}")
+
+    @rx.event
+    def set_password(self, password: str):
+        """
+        Actualiza la contraseña en el estado.
+        """
+        self.password = password
+        print(f"Password actualizado: {self.password}")
+
+    @rx.event
+    async def login(self):
+
+        if not self.username or not self.password:
+            self.clear_paswd()
+
+        try:
+            user_data = await authenticate_user(self.username.lower(), self.password)
+
+            
+            if user_data:
+                self.current_user = user_data
+                self.username = ""
+                self.password = ""
+                # Llamamos al evento para cargar los calendarios en el estado de CalendarState
+                return [rx.toast.success(
+                    position="top-center",
+                    title=f"!Bienvenido! \n{self.current_user.username.capitalize()}"
+                ),rx.redirect("/calendar")]
+            else:
+                # Limpiamos los campos de usuario y contraseña
+                self.username = ""
+                self.password = ""
+                return rx.toast.error(
+                    position="top-center",
+                    title="Usuario o contraseña incorrectos."
+                )
+        except Exception as e:
+            print(f"Error al intentar iniciar sesión: {e}")
+            return rx.toast.error(
+                position="top-center",
+                title="Error al intentar autenticar al usuario. Intente nuevamente más tarde."
+            )
+
+
+    @rx.event
+    def clear_paswd(self):
+        self.password = ""
+        print("Contraseña borrada:", self.password)  # Para depuración
+
+    
+
+
+
+    @rx.event
+
+    async def logout(self):
+        from Calendario.state.calendar_state import CalendarState
+        """
+        Cierra la sesión del usuario actual.
+        """
+        calendar_state = await self.get_state(CalendarState)
+        calendar_state.clean()
+        self.current_user = None
+        self.username = ""
+        self.password = ""
+        CalendarState.toast_info = "Cerrando la sesión"
+        return [
+            rx.redirect("/")
+        ]
+    
+
+    @rx.event
+    def restart_pasw(self):
+        self.password=""
+
+
+================================================
+File: Calendario/utils/api.py
+================================================
+#api.py
+import bcrypt
+import reflex as rx
+from Calendario.database.database import SupabaseAPI
+from Calendario.model.model import User, Calendar, Day, Meal, Comment
+from datetime import datetime
+
+from typing import Union,List,Optional
+
+SUPABASE_API = SupabaseAPI()
+
+async def authenticate_user(username: str, password: str) -> Union[User, None]:
+    """
+    Autentica al usuario y devuelve un objeto User si es exitoso.
+
+    Args:
+        username (str): Nombre de usuario.
+        password (str): Contraseña del usuario.
+
+    Returns:
+        User | None: Instancia del usuario autenticado o None si falla.
+    """
+    if not username or not password:
+        return None
+
+    user_data = SUPABASE_API.authenticate_user(username, password)
+    if user_data:
+        
+        return User(**user_data)  # Convierte los datos en una instancia de User
+
+    return None
+
+async def check_existing_user(username: str, email: str,) -> dict:
+    return SUPABASE_API.check_existing_user(username, email)
+
+async def check_existing_username(username: str) -> bool:
+    return SUPABASE_API.check_existing_username(username)
+
+async def register_user(username: str, password: str, email: str, birthday: str) -> Union[User, None]:
+    try: 
+        hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+        user_data = {
+            "username": username,
+            "pasw": hashed_password,
+            "email": email,
+            "birthday": birthday
+        }
+        
+        # Inserta el usuario en la base de datos
+        response = SUPABASE_API.supabase.table("user").insert(user_data).execute()
+        
+        if response.data:
+            # Convierte los datos de Supabase a un objeto User
+            return True
+        return None
+        
+    except Exception as e:
+        print(f"Error al registrar el usuario: {e}")
+        return None
+    
+async def fetch_and_transform_calendars(user_id: int) -> List[Calendar]:
+    calendars = SUPABASE_API.get_calendars(user_id)
+    if calendars is None:
+        print("No se encontraron datos de calendarios.")
+        return []
+    return calendars
+
+
+
+================================================
+File: Calendario/utils/send_email.py
+================================================
+import smtplib
+
+def send_welcome_email(email, username):
+    # Configuración del servidor SMTP (Gmail en este ejemplo)
+    servidor_smtp = "smtp.gmail.com"
+    puerto = 587
+    admin = "verificacionespython@gmail.com"
+    pasw = "cmblnedixejwrqag"  # Reemplaza con tu contraseña de aplicación
+
+    # Configuración del mensaje de bienvenida
+    asunto = "¡Bienvenido a tu Calendario!"
+    cuerpo = f"""
+    Hola {username},
+
+    ¡Bienvenido a tu Calendario!
+
+    Estamos emocionados de tenerte con nosotros. Ahora puedes organizar tus comidas/cenas, e interactuar con los comentarios.
+
+    ¡Gracias por unirte a nuestra comunidad!
+
+    Saludos,
+    El equipo de Calendario
+    """
+    correo = f"Subject: {asunto}\n\n{cuerpo}"
+
+    try:
+        with smtplib.SMTP(servidor_smtp, puerto) as server:
+            server.starttls()
+            server.login(admin, pasw)
+            server.sendmail(admin, email, correo.encode('utf-8'))
+        print(f"Correo de bienvenida enviado a {email}")
+    except Exception as e:
+        print(f"Error al enviar el correo: {e}")
 
