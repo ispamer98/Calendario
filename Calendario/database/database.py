@@ -178,7 +178,9 @@ class SupabaseAPI:
                         id=day['id'],
                         calendar_id=day['calendar_id'],
                         date=datetime.fromisoformat(day['date']),
-                        # ... otros campos
+                        meal_id=day['meal_id'],
+                        dinner_id=day['dinner_id'],
+                        comments=day['comments'],
                     )
                     for day in response.data
                 ]

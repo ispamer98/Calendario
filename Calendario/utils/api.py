@@ -9,6 +9,8 @@ from typing import Union,List,Optional
 
 SUPABASE_API = SupabaseAPI()
 
+
+
 async def authenticate_user(username: str, password: str) -> Union[User, None]:
     """
     Autentica al usuario y devuelve un objeto User si es exitoso.
@@ -64,3 +66,11 @@ async def fetch_and_transform_calendars(user_id: int) -> List[Calendar]:
         print("No se encontraron datos de calendarios.")
         return []
     return calendars
+
+
+async def get_days_for_calendar(calendar_id: int) -> List[Day] :
+    days = SUPABASE_API.get_days_for_calendar(calendar_id)
+    if days is None:
+        print("No se encontraron datos de días.")
+        return []
+    return days

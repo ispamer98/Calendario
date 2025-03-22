@@ -1,4 +1,5 @@
 # Calendario/components/user_calendar.py
+from turtle import position
 import reflex as rx
 from Calendario.state.calendar_state import CalendarState
 from Calendario.state.user_state import UserState
@@ -22,17 +23,25 @@ def user_calendar() -> rx.Component:
                     rx.vstack(
                         botones(),
                         rx.select.root(
-                            rx.select.trigger(placeholder="Selecciona un calendario"),
+                            rx.select.trigger(
+                                placeholder="Selecciona un calendario",
+                                width="300px",
+                                min_width="300px",
+                                justify_content="center"),
                             rx.select.content(
                                 rx.select.group(
                                     rx.foreach(
                                         CalendarState.calendars,
                                         lambda cal: rx.select.item(
-                                            f"{cal.name} ( {cal.start_date})",
+                                            f"{cal.name} ",
                                             value=cal.id.to(str),
+                                            justify_content="center",
                                         )
                                     )
-                                )
+                                ),
+                                position="popper",
+                                side="bottom",
+                                align="start"
                             ),
                             
                             on_change=CalendarState.set_current_calendar,

@@ -6,7 +6,7 @@ from typing import Optional, List
 from Calendario.database.database import SupabaseAPI
 from Calendario.model.model import Day, Meal, Comment,Calendar
 from Calendario.state.user_state import UserState
-from Calendario.utils.api import SUPABASE_API, fetch_and_transform_calendars
+from Calendario.utils.api import SUPABASE_API, fetch_and_transform_calendars, get_days_for_calendar
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 
@@ -26,6 +26,9 @@ class CalendarState(rx.State):
     show_calendar_creator: bool = False
     error_message : Optional[str] = None 
     current_calendar: Optional[Calendar] = None
+    days : List[Day] = [] 
+    selected_day: Optional[Day] = None  # Almacena el día seleccionado en el calendario
+   
     @rx.event
     def open_calendar_creator(self):
         self.show_calendar_creator = True
@@ -35,7 +38,7 @@ class CalendarState(rx.State):
         self.show_calendar_creator = False
 
     @rx.event
-    def set_current_calendar(self, value: str):
+    async def set_current_calendar(self, value: str):
         """Event handler para actualizar el calendario seleccionado."""
         print(f"Valor recibido en el evento: {value}")  # Debug
         try:
@@ -43,7 +46,10 @@ class CalendarState(rx.State):
             for calendar in self.calendars:
                 if calendar.id == calendar_id:
                     self.current_calendar = calendar
-                    print(f"Calendario actualizado a: {calendar.start_date.month}")
+                    print(f"Calendario actualizado a: {calendar.name}")
+                    self.days= await get_days_for_calendar(self.current_calendar.id)
+                    print(*(day for day in self.days))
+                    
                     return
         except ValueError:
             print(f"Error convirtiendo el valor: {value}")
@@ -122,6 +128,16 @@ class CalendarState(rx.State):
         self.meals = []  # Reset to empty list
         self.comments = []  # Reset to empty list
         self.calendars = []  # Reset to empty list
+        self.days = [] # Reset to empty list
+        self.current_calendar = None
+        self.selected_day = None
+        self.toast_info = None
+        self.new_calendar_name = ""
+        self.new_calendar_month = datetime.today().strftime("%Y-%m")
+        self.loading = False
+        self.show_calendar_creator = False
+        self.error_message = None
+
 
         return rx.toast.info(
              position="top-center",

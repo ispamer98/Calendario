@@ -1,3 +1,4 @@
+from re import M
 import reflex as rx
 from Calendario.components.calendar_creator import calendar_creator
 from Calendario.components.user_calendar import user_calendar
@@ -16,7 +17,18 @@ def calendar() -> rx.Component:
         rx.container(
             rx.vstack(
                 rx.cond(UserState.current_user,
-                    user_calendar(),
+                        rx.cond(CalendarState.calendars,
+                                user_calendar(),
+                                rx.vstack(
+                                    rx.text("No tienes ningun calendario"),
+                                    rx.button("Crear Calendario",
+                                          on_click=CalendarState.open_calendar_creator),
+
+                                
+                                ),
+                            
+                                ),
+                        
                     rx.vstack(
                         rx.text("No hay nadie loggeado"),
                         rx.button("Volver al inicio",
@@ -27,11 +39,13 @@ def calendar() -> rx.Component:
                 
                 width="100%",
                 padding_x="0",
+                
             ),
             width="100%",
             max_width="1200px",
             padding_x="2em",
             padding_top="6em",
+            
             
         ),
         width="100%",
