@@ -28,7 +28,25 @@ class CalendarState(rx.State):
     current_calendar: Optional[Calendar] = None
     days : List[Day] = [] 
     selected_day: Optional[Day] = None  # Almacena el día seleccionado en el calendario
-   
+    hovered_day: Optional[int] = None
+    current_date: Optional[str] = None
+
+    @rx.var
+    def today_formatted(self) -> str:
+        return self.current_date.strftime("%Y-%m-%d")  # Formato exacto
+
+    @rx.var
+    def highlighted_dates(self) -> dict:
+        """Diccionario que indica qué fechas deben resaltarse"""
+        # Aquí nos aseguramos de convertir day.date a un objeto datetime en el frontend
+        return {self.today_formatted: True}
+    @rx.event
+    def set_hovered_day(self, day_id: int):
+        self.hovered_day = day_id
+        
+    @rx.event
+    def clear_hovered_day(self):
+        self.hovered_day = None
     @rx.event
     def open_calendar_creator(self):
         self.show_calendar_creator = True
@@ -46,9 +64,11 @@ class CalendarState(rx.State):
             for calendar in self.calendars:
                 if calendar.id == calendar_id:
                     self.current_calendar = calendar
+                    self.current_date = datetime.today().strftime("%Y-%m-%d")
                     print(f"Calendario actualizado a: {calendar.name}")
                     self.days= await get_days_for_calendar(self.current_calendar.id)
-                    print(*(day for day in self.days))
+                    print(f"FECHA DE HOY {self.current_date}")
+                    print([day.date for day in self.days])
                     
                     return
         except ValueError:

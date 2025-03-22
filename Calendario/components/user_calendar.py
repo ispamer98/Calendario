@@ -1,6 +1,7 @@
 # Calendario/components/user_calendar.py
 from turtle import position
 import reflex as rx
+from Calendario.components.day_button import day_button
 from Calendario.state.calendar_state import CalendarState
 from Calendario.state.user_state import UserState
 from Calendario.components.calendar_creator import calendar_creator
@@ -13,6 +14,17 @@ async def calendars() -> rx.Component:
     calendar_state = await CalendarState.get_state(CalendarState)
     return calendar_state.calendars
 
+def calendar_grid() -> rx.Component:
+    return rx.grid(
+        rx.foreach(
+            CalendarState.days,
+            lambda day: day_button(day)
+        ),
+        grid_template_columns="repeat(7, 1fr)",
+        gap="4px",
+        width="100%",
+        padding="1em"
+    )
 
 def user_calendar() -> rx.Component:
     return rx.vstack(
@@ -52,14 +64,19 @@ def user_calendar() -> rx.Component:
                         rx.cond(
                             CalendarState.current_calendar,
                             rx.vstack(
-                                rx.text(
-                                    f"Calendario: {CalendarState.current_calendar.name}",
-                                    weight="bold",
-                                    size="5"
-                                )
-                            )
-                        )
+                                rx.heading(
+                                    CalendarState.current_calendar.name, 
+                                    size="6",
+                                    padding_bottom="1em"
+                                ),
+                                calendar_grid(),
+                                spacing="4"
+                            ),
+                            rx.text("Selecciona un calendario")
+                        ),
+                        
                     )
+                    
                 )
             )
         )

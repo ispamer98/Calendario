@@ -1,18 +1,65 @@
 import reflex as rx
+from Calendario.model.model import Day
+from datetime import datetime
+from Calendario.state.calendar_state import CalendarState
 
-def day_button(day: str = None) -> rx.Component:
+
+
+
+def day_button(day: rx.Var[Day]) -> rx.Component:
+    
+    is_today = day.date.date() == CalendarState.current_date.date()
+   # Usar operadores bitwise & y | para operaciones lógicas
+    has_meal = (day.meal_id != None) | (day.dinner_id != None)  
+    has_comments = (day.comments.length() > 0)  # Usar .length() en lugar de len()
 
     return rx.box(
-            rx.button(
-                rx.text("Día",day),
-                rx.box(
-                    rx.text("Línea 1", style={"margin": "0"}),
-                    rx.text("Línea 2", style={"margin": "0"}),
-                    class_name="extra_text",
+            rx.tooltip(
+                rx.button(
+                    rx.vstack(
+                        rx.hstack(
+                            rx.moment(day.date, format="DD"),
+                            rx.cond(
+                                has_meal,
+                                rx.icon("utensils", size=12, color="green")
+                            ),
+                            rx.cond(
+                                has_comments,
+                                rx.icon("message-square-more", size=12, color = "orange")
+                            ),
+                            spacing="1",
+                            align="center"
+
+                        ),
+                        spacing="1"
+                    ),
+                    width="100%",
+                    height="100%",
+                    padding="2px",
+                    # En el frontend
+                    background_color=rx.cond(
+                        is_today,
+                        "rgba(79, 70, 229, 0.2)",  # AZUL si ES HOY
+                        "orange.200"  # NARANJA para otros días (¡cambiar a tu color!)
+                    ),
+    
+                    _hover={
+                    "background_color": "rgba(255, 255, 255, 0.1)",
+                    "transform": "scale(1.05)"
+                    },
+                    on_mouse_enter=CalendarState.set_hovered_day(day.id),
+                    on_mouse_leave=CalendarState.clear_hovered_day,
+
                 ),
-                class_name="day_button",
+                content=detail_popover(day),
+                open_delay=1500,
+                placement="right",
+
             ),
-            _hover="a",
-            style={"display": "flex", "justifyContent": "center", "alignItems": "center"
-            },
-        )
+            min_width="60px",
+            min_height="60px",
+            position="relative",
+    )
+
+def detail_popover(day: rx.Var[Day]) -> rx.Component:
+    pass
