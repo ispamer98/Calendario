@@ -74,3 +74,6 @@ async def get_days_for_calendar(calendar_id: int) -> List[Day] :
         print("No se encontraron datos de días.")
         return []
     return days
+
+async def get_all_meals() -> list[Meal]:
+    return SUPABASE_API.get_all_meals()

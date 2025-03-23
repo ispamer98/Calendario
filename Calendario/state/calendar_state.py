@@ -6,7 +6,7 @@ from typing import Optional, List
 from Calendario.database.database import SupabaseAPI
 from Calendario.model.model import Day, Meal, Comment,Calendar
 from Calendario.state.user_state import UserState
-from Calendario.utils.api import SUPABASE_API, fetch_and_transform_calendars, get_days_for_calendar
+from Calendario.utils.api import SUPABASE_API, fetch_and_transform_calendars, get_all_meals, get_days_for_calendar
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 
@@ -48,11 +48,26 @@ class CalendarState(rx.State):
     def close_calendar_creator(self):
         self.show_calendar_creator = False
 
+
+
+    async def load_meals(self):
+        """Carga todas las comidas al iniciar"""
+        self.meals = await get_all_meals()
+        return self.meals
+        
+
+    def get_meal_name(self, meal_id: int) -> str:
+        """Obtiene el nombre de la comida usando el ID"""
+        if not meal_id:
+            return ""
+        return next((m.name for m in self.meals if m.id == meal_id), "")
+
     @rx.event
     async def set_current_calendar(self, value: str):
         """Event handler para actualizar el calendario seleccionado."""
         print(f"Valor recibido en el evento: {value}")  # Debug
         try:
+            self.load_meals
             calendar_id = int(value)
             for calendar in self.calendars:
                 if calendar.id == calendar_id:

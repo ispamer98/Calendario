@@ -7,7 +7,7 @@ import dotenv
 from typing import Union,List
 from supabase import create_client, Client
 import logging
-from Calendario.model.model import Calendar,Day
+from Calendario.model.model import Calendar,Day,Meal
 from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
 
@@ -174,6 +174,7 @@ class SupabaseAPI:
                 .from_("days")
                 .select("*")
                 .eq("calendar_id", calendar_id)
+                .order("date")
                 .execute()
             )
             
@@ -194,3 +195,14 @@ class SupabaseAPI:
         except Exception as e:
             print(f"Error getting days: {e}")
         return []
+    
+
+
+    def get_all_meals(self) -> list[Meal]:
+        try:
+            response = self.supabase.from_("meals").select("*").execute()
+            print("COMIDAS TOTALES!",response.data)
+            return [Meal(**meal) for meal in response.data]
+        except Exception as e:
+            print(f"Error obteniendo comidas: {e}")
+            return []

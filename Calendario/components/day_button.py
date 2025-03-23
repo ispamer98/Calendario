@@ -1,9 +1,8 @@
 import reflex as rx
-from Calendario.model.model import Day
+from Calendario.model.model import Day,Meal
 from datetime import datetime
 
 from Calendario.state.calendar_state import CalendarState
-
 
 
 def day_button(day: rx.Var[Day]) -> rx.Component:
@@ -11,26 +10,34 @@ def day_button(day: rx.Var[Day]) -> rx.Component:
     
     # Comparación directa
     is_today = day.date == CalendarState.current_date_str  # Comparación directa de strings
-
-
-    has_meal = (day.meal_id != None) | (day.dinner_id != None)  
+    has_meal = (day.meal_id != None)
+    has_dinner = (day.dinner_id != None)
     has_comments = (day.comments.length() > 0)  
 
+    meal_name = CalendarState.get_meal_name(day.meal_id.to(int))
+    dinner_name = CalendarState.get_meal_name(day.dinner_id.to(int))
+    # Asignación de variables locales
     return rx.box(
 
             rx.tooltip(
                 rx.button(
                     rx.vstack(
-                        rx.hstack(
+                        rx.vstack(
                             rx.moment(day.date, format="DD"),
-                            rx.cond(
-                                has_meal,
-                                rx.icon("utensils", size=12, color="green")
+                            rx.hstack(
+                                rx.cond(
+                                    has_meal | has_dinner,
+                                    rx.hstack(
+                                        
+                                        rx.icon("utensils", size=12, color="blue"),
+                                    )
+                                ),
+                                rx.cond(
+                                    has_comments,
+                                    rx.icon("message-square-more", size=12, color = "blue")
+                                ),
                             ),
-                            rx.cond(
-                                has_comments,
-                                rx.icon("message-square-more", size=12, color = "orange")
-                            ),
+                            
                             spacing="1",
                             align="center"
 
@@ -44,8 +51,8 @@ def day_button(day: rx.Var[Day]) -> rx.Component:
                     
                     background_color=rx.cond(
                         is_today, 
-                        "transparent",  # si es el día actual
-                        "#FFA500"
+                        "grey",  # si es el día actual
+                        "#blue-aqua"
                     ),
                     _hover={
                     "background_color": "rgba(255, 255, 255, 0.1)",
@@ -56,13 +63,14 @@ def day_button(day: rx.Var[Day]) -> rx.Component:
 
                 ),
                 content=detail_popover(day),
-                open_delay=1500,
+                
                 placement="right",
 
             ),
             min_width="60px",
             min_height="60px",
             position="relative",
+            on_mount=CalendarState.load_meals
     )
 
 def detail_popover(day: rx.Var[Day]) -> rx.Component:

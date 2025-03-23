@@ -37,15 +37,12 @@ class Meal(rx.Base):
 
 
 class Day(rx.Base):
-    """
-    Modelo para días dentro de un calendario.
-    """
     id: int
-    calendar_id: int  # Relación con el calendario
+    calendar_id: int
     date: datetime
-    meal_id: int = None  # Relación con el modelo Meal (comida)
-    dinner_id: int = None  # Relación con el modelo Meal (cena)
-    comments: list[int] = []  # Lista de IDs de comentarios
+    meal_id: int = None
+    dinner_id: int = None
+    comments: list[int] = []
 
 
 class Comment(rx.Base):
