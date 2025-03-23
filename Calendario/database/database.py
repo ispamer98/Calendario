@@ -118,22 +118,28 @@ class SupabaseAPI:
 
     def create_calendar_with_days(self, user_id: int, calendar_name: str, start_date: datetime, end_date: datetime):
         try:
-            # Calcular fechas de inicio y fin del mes actual
             if not calendar_name.strip():
                 raise ValueError("El nombre del calendario es obligatorio")
-            # Insertar calendario con las fechas calculadas
+            
+            # Normalizar fechas a UTC medianoche
+            start_date = start_date.replace(
+                hour=0, minute=0, second=0, microsecond=0, tzinfo=None
+            )
+            end_date = end_date.replace(
+                hour=0, minute=0, second=0, microsecond=0, tzinfo=None
+            )
+            
             calendar_data = {
                 "name": calendar_name,
                 "owner_id": user_id,
-                "start_date": start_date.isoformat(),  # Usa el start_date del parámetro
-                "end_date": end_date.isoformat(),      # Usa el end_date del parámetro
-                "created_at": datetime.now().isoformat()
+                "start_date": start_date.isoformat(),
+                "end_date": end_date.isoformat(),
+                "created_at": datetime.utcnow().isoformat()
             }
             
             response = self.supabase.table("calendars").insert(calendar_data).execute()
             
             if response.data:
-                # Crear días del mes
                 days = []
                 current_day = start_date
                 while current_day <= end_date:
@@ -143,7 +149,6 @@ class SupabaseAPI:
                     })
                     current_day += timedelta(days=1)
                 
-                # Insertar días en lote
                 self.supabase.table("days").insert(days).execute()
                 
                 return Calendar(
@@ -177,7 +182,9 @@ class SupabaseAPI:
                     Day(
                         id=day['id'],
                         calendar_id=day['calendar_id'],
-                        date=datetime.fromisoformat(day['date']),
+                        date=datetime.fromisoformat(
+                            day['date'].replace('Z', '+00:00')
+                        ).replace(tzinfo=None),
                         meal_id=day['meal_id'],
                         dinner_id=day['dinner_id'],
                         comments=day['comments'],

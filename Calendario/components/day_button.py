@@ -1,19 +1,23 @@
 import reflex as rx
 from Calendario.model.model import Day
 from datetime import datetime
+
 from Calendario.state.calendar_state import CalendarState
 
 
 
-
 def day_button(day: rx.Var[Day]) -> rx.Component:
+
     
-    is_today = day.date.date() == CalendarState.current_date.date()
-   # Usar operadores bitwise & y | para operaciones lógicas
+    # Comparación directa
+    is_today = day.date == CalendarState.current_date_str  # Comparación directa de strings
+
+
     has_meal = (day.meal_id != None) | (day.dinner_id != None)  
-    has_comments = (day.comments.length() > 0)  # Usar .length() en lugar de len()
+    has_comments = (day.comments.length() > 0)  
 
     return rx.box(
+
             rx.tooltip(
                 rx.button(
                     rx.vstack(
@@ -37,12 +41,12 @@ def day_button(day: rx.Var[Day]) -> rx.Component:
                     height="100%",
                     padding="2px",
                     # En el frontend
+                    
                     background_color=rx.cond(
-                        is_today,
-                        "rgba(79, 70, 229, 0.2)",  # AZUL si ES HOY
-                        "orange.200"  # NARANJA para otros días (¡cambiar a tu color!)
+                        is_today, 
+                        "transparent",  # si es el día actual
+                        "#FFA500"
                     ),
-    
                     _hover={
                     "background_color": "rgba(255, 255, 255, 0.1)",
                     "transform": "scale(1.05)"

@@ -29,17 +29,10 @@ class CalendarState(rx.State):
     days : List[Day] = [] 
     selected_day: Optional[Day] = None  # Almacena el día seleccionado en el calendario
     hovered_day: Optional[int] = None
-    current_date: Optional[str] = None
-
-    @rx.var
-    def today_formatted(self) -> str:
-        return self.current_date.strftime("%Y-%m-%d")  # Formato exacto
-
-    @rx.var
-    def highlighted_dates(self) -> dict:
-        """Diccionario que indica qué fechas deben resaltarse"""
-        # Aquí nos aseguramos de convertir day.date a un objeto datetime en el frontend
-        return {self.today_formatted: True}
+    current_date_str: str = datetime.utcnow().strftime("%Y-%m-%d 00:00:00")  # Variable para almacenar la fecha actual
+    # Variable para almacenar la fecha actual
+    def update_current_date(self):
+        self.current_date_str = datetime.utcnow().strftime("%Y-%m-%d 00:00:00")
     @rx.event
     def set_hovered_day(self, day_id: int):
         self.hovered_day = day_id
@@ -64,10 +57,8 @@ class CalendarState(rx.State):
             for calendar in self.calendars:
                 if calendar.id == calendar_id:
                     self.current_calendar = calendar
-                    self.current_date = datetime.today().strftime("%Y-%m-%d")
                     print(f"Calendario actualizado a: {calendar.name}")
                     self.days= await get_days_for_calendar(self.current_calendar.id)
-                    print(f"FECHA DE HOY {self.current_date}")
                     print([day.date for day in self.days])
                     
                     return
@@ -147,7 +138,6 @@ class CalendarState(rx.State):
     def clean(self):
         self.meals = []  # Reset to empty list
         self.comments = []  # Reset to empty list
-        self.calendars = []  # Reset to empty list
         self.days = [] # Reset to empty list
         self.current_calendar = None
         self.selected_day = None

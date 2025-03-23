@@ -10,7 +10,7 @@ from Calendario.state.user_state import UserState
 def toast(): 
     return rx.toast(title=CalendarState.toast_info,position="top-center")
 
-@rx.page(route="/calendar", on_load=CalendarState.reset_calendars)
+@rx.page(route="/calendar", on_load=[CalendarState.reset_calendars,CalendarState.clean])
 def calendar() -> rx.Component:
     return rx.vstack(
         user_navbar(),
