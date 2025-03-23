@@ -40,8 +40,8 @@ class Day(rx.Base):
     id: int
     calendar_id: int
     date: datetime
-    meal_id: int = None
-    dinner_id: int = None
+    meal_id: str = None
+    dinner_id: str = None
     comments: list[int] = []
 
 

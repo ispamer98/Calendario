@@ -72,6 +72,7 @@ def user_calendar() -> rx.Component:
                                 calendar_grid(),
                                 spacing="4"
                             ),
+                            
                             rx.text("Selecciona un calendario")
                         ),
                         

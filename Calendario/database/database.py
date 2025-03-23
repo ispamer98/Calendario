@@ -201,7 +201,7 @@ class SupabaseAPI:
     def get_all_meals(self) -> list[Meal]:
         try:
             response = self.supabase.from_("meals").select("*").execute()
-            print("COMIDAS TOTALES!",response.data)
+            print("COMIDAS TOTALES! EN DATABASE!",response.data)
             return [Meal(**meal) for meal in response.data]
         except Exception as e:
             print(f"Error obteniendo comidas: {e}")

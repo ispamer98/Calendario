@@ -48,38 +48,31 @@ class CalendarState(rx.State):
     def close_calendar_creator(self):
         self.show_calendar_creator = False
 
-
-
+    @rx.event
     async def load_meals(self):
         """Carga todas las comidas al iniciar"""
-        self.meals = await get_all_meals()
-        return self.meals
+        try:
+            total_meals = await get_all_meals()
+            self.meals = total_meals
+        except Exception as e:
+            print(f"Error loading meals: {e}")
+
         
-
-    def get_meal_name(self, meal_id: int) -> str:
-        """Obtiene el nombre de la comida usando el ID"""
-        if not meal_id:
-            return ""
-        return next((m.name for m in self.meals if m.id == meal_id), "")
-
     @rx.event
     async def set_current_calendar(self, value: str):
         """Event handler para actualizar el calendario seleccionado."""
-        print(f"Valor recibido en el evento: {value}")  # Debug
         try:
-            self.load_meals
             calendar_id = int(value)
+            # Primero cargamos las comidas
+            await self.load_meals()
+            
             for calendar in self.calendars:
                 if calendar.id == calendar_id:
                     self.current_calendar = calendar
-                    print(f"Calendario actualizado a: {calendar.name}")
-                    self.days= await get_days_for_calendar(self.current_calendar.id)
-                    print([day.date for day in self.days])
-                    
+                    self.days = await get_days_for_calendar(self.current_calendar.id)
                     return
         except ValueError:
             print(f"Error convirtiendo el valor: {value}")
-
 
     @rx.event
     async def create_calendar(self):
