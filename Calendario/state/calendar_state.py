@@ -63,8 +63,8 @@ class CalendarState(rx.State):
         """Event handler para actualizar el calendario seleccionado."""
         try:
             calendar_id = int(value)
-            # Primero cargamos las comidas
-            await self.load_meals()
+            
+            
             
             for calendar in self.calendars:
                 if calendar.id == calendar_id:
