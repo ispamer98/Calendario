@@ -29,6 +29,7 @@ class CalendarState(rx.State):
     days : List[Day] = [] 
     selected_day: Optional[Day] = None  # Almacena el día seleccionado en el calendario
     hovered_day: Optional[int] = None
+    display_days: list[Optional[Day]] = []
     current_date_str: str = datetime.utcnow().strftime("%Y-%m-%d 00:00:00")  # Variable para almacenar la fecha actual
     # Variable para almacenar la fecha actual
     def update_current_date(self):
@@ -48,6 +49,13 @@ class CalendarState(rx.State):
     def close_calendar_creator(self):
         self.show_calendar_creator = False
 
+
+
+    @rx.event
+    def set_selected_day(self, day: Optional[Day]):
+        """Establece el día seleccionado para mostrar en el popover compartido"""
+        self.selected_day = day
+
     @rx.event
     async def load_meals(self):
         """Carga todas las comidas al iniciar"""
@@ -60,16 +68,20 @@ class CalendarState(rx.State):
         
     @rx.event
     async def set_current_calendar(self, value: str):
-        """Event handler para actualizar el calendario seleccionado."""
         try:
             calendar_id = int(value)
-            
-            
-            
             for calendar in self.calendars:
                 if calendar.id == calendar_id:
                     self.current_calendar = calendar
                     self.days = await get_days_for_calendar(self.current_calendar.id)
+                    
+                    # Calcular espacios vacíos iniciales
+                    start_date = self.current_calendar.start_date
+                    first_weekday = start_date.weekday()  # Lunes=0, Domingo=6
+                    
+                    # Crear lista de días con espacios vacíos
+                    self.display_days = [None] * first_weekday + self.days
+                    
                     return
         except ValueError:
             print(f"Error convirtiendo el valor: {value}")
@@ -136,6 +148,14 @@ class CalendarState(rx.State):
                 
         except Exception as e:
             print(e)
+
+
+
+
+
+
+
+
 
     @rx.event
     def reset_calendars(self):

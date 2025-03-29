@@ -1,30 +1,74 @@
-# Calendario/components/user_calendar.py
-from turtle import position
 import reflex as rx
 from Calendario.components.day_button import day_button
 from Calendario.state.calendar_state import CalendarState
 from Calendario.state.user_state import UserState
-from Calendario.components.calendar_creator import calendar_creator
 
 def botones() -> rx.Component:
-    return [rx.text("CALENDARIOS"),
-    rx.button("Info Calendarios",on_click=CalendarState.load_calendars)]
+    return rx.vstack(
+        rx.text("CALENDARIOS"),
+        rx.button("Info Calendarios", on_click=CalendarState.load_calendars),
+        align_items="center",
+        spacing="2"
+    )
 
 async def calendars() -> rx.Component:
     calendar_state = await CalendarState.get_state(CalendarState)
     return calendar_state.calendars
 
 def calendar_grid() -> rx.Component:
-    return rx.grid(
-        rx.foreach(
-            CalendarState.days,
-            lambda day: day_button(day)
+    return rx.vstack(
+        # Encabezados de días de la semana
+        rx.grid(
+            rx.foreach(
+                ["L", "M", "X", "J", "V", "S", "D"],
+                lambda day: rx.center(
+                    rx.text(day, 
+                           size="2", 
+                           weight="bold", 
+                           color="gray.500",
+                           text_transform="uppercase"),
+                    width="100%",
+                    padding="2px"
+                )
+            ),
+            grid_template_columns="repeat(7, 1fr)",
+            gap="4px",
+            width="100%",
+            padding_x="1em"
         ),
-        grid_template_columns="repeat(7, 1fr)",
-        gap="4px",
+        
+        # Grid de días del mes
+        rx.grid(
+            rx.foreach(
+                CalendarState.display_days,
+                lambda day: rx.cond(
+                    day,
+                    day_button(day),
+                    rx.box(  # Celda vacía para días fuera del rango del mes
+                        style={
+                            "width": "12vw",
+                            "height": "12vw",
+                            "min_width": "40px",
+                            "min_height": "40px",
+                            "max_width": "70px",
+                            "max_height": "70px",
+                            "visibility": "hidden"  # Mantiene el espacio pero invisible
+                        }
+                    )
+                )
+            ),
+            grid_template_columns="repeat(7, 1fr)",
+            gap="4px",
+            width="100%",
+            padding="1em"
+        ),
+        spacing="3",
         width="100%",
-        padding="1em"
+        align_items="center"
     )
+
+
+
 
 def user_calendar() -> rx.Component:
     return rx.vstack(
@@ -39,7 +83,8 @@ def user_calendar() -> rx.Component:
                                 placeholder="Selecciona un calendario",
                                 width="300px",
                                 min_width="300px",
-                                justify_content="center"),
+                                justify_content="center"
+                            ),
                             rx.select.content(
                                 rx.select.group(
                                     rx.foreach(
@@ -55,7 +100,6 @@ def user_calendar() -> rx.Component:
                                 side="bottom",
                                 align="start"
                             ),
-                            
                             on_change=CalendarState.set_current_calendar,
                             width="100%",
                             variant="surface",
@@ -70,15 +114,22 @@ def user_calendar() -> rx.Component:
                                     padding_bottom="1em"
                                 ),
                                 calendar_grid(),
-                                spacing="4"
+                                spacing="4",
+                                align_items="center",  # Asegura que todo se alinee al centro
                             ),
-                            
                             rx.text("Selecciona un calendario")
                         ),
-                        
+                        align_items="center",  # Centra el contenido
+                        width="100%"
                     )
-                    
                 )
-            )
-        )
+            ),
+            align_items="center",  # Centra el contenedor
+            justify_content="center",
+            width="100%",
+            padding="2em"
+        ),
+        align_items="center",  # Asegura que toda la estructura esté centrada
+        justify_content="center",
+        width="100vw"
     )
