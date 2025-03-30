@@ -149,7 +149,17 @@ class CalendarState(rx.State):
         self.days = await get_days_for_calendar(calendar_id)
 
 
-
+    def update_day_in_state(self, updated_day: Day):
+        # Actualizar días en el estado
+        self.days = [
+            updated_day if day.id == updated_day.id else day
+            for day in self.days
+        ]
+        
+        # Actualizar display_days manteniendo los espacios vacíos iniciales
+        start_date = self.current_calendar.start_date
+        first_weekday = start_date.weekday()
+        self.display_days = [None] * first_weekday + self.days
 
 
     @rx.event

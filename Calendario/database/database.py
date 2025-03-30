@@ -208,3 +208,28 @@ class SupabaseAPI:
             return []
         
 
+    async def update_day_meal(self, day_id: int, meal: Optional[str]) -> Optional[Day]:
+            try:
+                response = (
+                    self.supabase.table("days")
+                    .update({"meal": meal})
+                    .eq("id", day_id)
+                    .execute()
+                )
+                return Day(**response.data[0]) if response.data else None
+            except Exception as e:
+                print(f"Error actualizando comida: {e}")
+                return None
+
+    async def update_day_dinner(self, day_id: int, dinner: Optional[str]) -> Optional[Day]:
+        try:
+            response = (
+                self.supabase.table("days")
+                .update({"dinner": dinner})
+                .eq("id", day_id)
+                .execute()
+            )
+            return Day(**response.data[0]) if response.data else None
+        except Exception as e:
+            print(f"Error actualizando cena: {e}")
+            return None

@@ -5,6 +5,7 @@ from Calendario.model.model import Day, Meal
 from datetime import datetime
 from Calendario.state.calendar_state import CalendarState
 from Calendario.components.meal_editor import meal_editor
+from Calendario.state.day_state import DayState
 
 def day_button(day: rx.Var[Day]) -> rx.Component:
     return rx.box(
@@ -145,7 +146,7 @@ def day_button(day: rx.Var[Day]) -> rx.Component:
                                 "transform": "scale(1.3)",  # Aumenta de tamaño en hover
                                 "transition": "transform 0.2s"  # Transición suave
                             },
-                            on_click=meal_editor(day)  # Al hacer clic derecho, se abre meal_editor(day)
+                            on_click=DayState.set_current_day(day)  # Al hacer clic derecho, se abre meal_editor(day)
                         ),
                         width="100%",
                         justify="between",

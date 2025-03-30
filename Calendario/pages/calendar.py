@@ -1,4 +1,5 @@
 import reflex as rx
+from Calendario.components.meal_editor import meal_editor
 from Calendario.components.calendar_creator import calendar_creator
 from Calendario.components.user_calendar import user_calendar
 from Calendario.state.calendar_state import CalendarState
@@ -12,6 +13,7 @@ def toast():
 def calendar() -> rx.Component:
     return rx.vstack(
         user_navbar(),
+        meal_editor(),
         rx.container(
             rx.vstack(
                 rx.cond(
