@@ -186,8 +186,8 @@ class SupabaseAPI:
                         date=datetime.fromisoformat(
                             day['date'].replace('Z', '+00:00')
                         ).replace(tzinfo=None),
-                        meal_id=day['meal_id'],
-                        dinner_id=day['dinner_id'],
+                        meal=day['meal'],
+                        dinner=day['dinner'],
                         comments=day['comments'],
                     )
                     for day in response.data
@@ -208,10 +208,3 @@ class SupabaseAPI:
             return []
         
 
-    def get_day_by_id(self, day_id: int) -> Optional[Day]:
-        try:
-            response = self.supabase.table("days").select("*").eq("id", day_id).execute()
-            return [Day(**day_id) for day_id in response.data]
-        except Exception as e:
-            print(f"Error getting day: {e}")
-            return []

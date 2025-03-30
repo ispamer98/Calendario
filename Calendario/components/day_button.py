@@ -39,14 +39,14 @@ def day_button(day: rx.Var[Day]) -> rx.Component:
                         rx.vstack(
                             rx.hstack(
                                 rx.cond(
-                                    day.meal_id != None,
+                                    day.meal != None,
                                     rx.icon("utensils-crossed", 
                                             size=12,  # Tamaño fijo pequeño
                                             color="var(--green-9)"),
                                     
                                 ),
                                 rx.cond(
-                                    day.dinner_id != None,
+                                    day.dinner != None,
                                     rx.icon("utensils-crossed",
                                             size=12,
                                             color="var(--blue-9)"),
@@ -136,13 +136,13 @@ def day_button(day: rx.Var[Day]) -> rx.Component:
                         rx.icon(
                             "pencil",
                             color="grey",  # Color razonable para un botón de edición
-                            size=17,
+                            size=18,
                             
                             style={
                                 "cursor": "pointer",    # Cambia el cursor al pasar sobre el icono
                             },
                             _hover={
-                                "transform": "scale(1.5)",  # Aumenta de tamaño en hover
+                                "transform": "scale(1.3)",  # Aumenta de tamaño en hover
                                 "transition": "transform 0.2s"  # Transición suave
                             },
                             on_click=meal_editor(day)  # Al hacer clic derecho, se abre meal_editor(day)
@@ -154,13 +154,13 @@ def day_button(day: rx.Var[Day]) -> rx.Component:
                     
                     rx.divider(),
                     rx.cond(
-                        day.meal_id != None,
+                        day.meal != None,
                         rx.vstack(
                             rx.text("Comida:", 
                                     size="2", 
                                     color="var(--green-9)", 
                                     weight="bold"),
-                            rx.text(day.meal_id, 
+                            rx.text(day.meal, 
                                     size="2"),
                             spacing="1",
                             width="100%"
@@ -168,13 +168,13 @@ def day_button(day: rx.Var[Day]) -> rx.Component:
                         rx.box()
                     ),
                     rx.cond(
-                        day.dinner_id != None,
+                        day.dinner != None,
                         rx.vstack(
                             rx.text("Cena:", 
                                     size="2", 
                                     color="var(--blue-9)", 
                                     weight="bold"),
-                            rx.text(day.dinner_id, 
+                            rx.text(day.dinner, 
                                     size="2"),
                             spacing="1",
                             width="100%"

@@ -145,6 +145,8 @@ class CalendarState(rx.State):
 
 
 
+    async def load_days(self, calendar_id: int):
+        self.days = await get_days_for_calendar(calendar_id)
 
 
 

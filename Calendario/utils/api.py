@@ -79,11 +79,3 @@ async def get_all_meals() -> list[Meal]:
     return SUPABASE_API.get_all_meals()
 
 
-async def get_day_by_id(day_id: int) -> Optional[Day]:
-    """Obtiene un día específico por su ID desde la base de datos"""
-    try:
-        response = await SUPABASE_API.get_day_by_id(day_id)
-        return Day(**response) if response else None
-    except Exception as e:
-        print(f"Error getting day: {e}")
-        return None
