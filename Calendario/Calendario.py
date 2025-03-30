@@ -17,7 +17,9 @@ app = rx.App(
         appearance="dark",
         has_background=True,
         radius="large",
-        accent_color="blue",)
+        accent_color="blue",
+        ),
+        
 )
 app.add_page(login, 
             route="/login",
@@ -26,7 +28,9 @@ app.add_page(login,
                     RegisterState.swith_off,
                     UserState.set_password(""),
                     RegisterState.set_password(""),
-                    RegisterState.set_confirm_password(""),]
+                    RegisterState.set_confirm_password(""),
+                    
+                    ]
                 ),
 app.add_page(register,
             route="/register",

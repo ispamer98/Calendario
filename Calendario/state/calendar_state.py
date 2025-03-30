@@ -27,7 +27,6 @@ class CalendarState(rx.State):
     error_message : Optional[str] = None 
     current_calendar: Optional[Calendar] = None
     days : List[Day] = [] 
-    selected_day: Optional[Day] = None  # Almacena el día seleccionado en el calendario
     hovered_day: Optional[int] = None
     display_days: list[Optional[Day]] = []
     current_date_str: str = datetime.utcnow().strftime("%Y-%m-%d 00:00:00")  # Variable para almacenar la fecha actual
@@ -49,12 +48,6 @@ class CalendarState(rx.State):
     def close_calendar_creator(self):
         self.show_calendar_creator = False
 
-
-
-    @rx.event
-    def set_selected_day(self, day: Optional[Day]):
-        """Establece el día seleccionado para mostrar en el popover compartido"""
-        self.selected_day = day
 
     @rx.event
     async def load_meals(self):
@@ -168,7 +161,6 @@ class CalendarState(rx.State):
         self.comments = []  # Reset to empty list
         self.days = [] # Reset to empty list
         self.current_calendar = None
-        self.selected_day = None
         self.toast_info = None
         self.new_calendar_name = ""
         self.new_calendar_month = datetime.today().strftime("%Y-%m")

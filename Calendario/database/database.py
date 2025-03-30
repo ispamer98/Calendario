@@ -4,7 +4,7 @@ import bcrypt
 
 import os
 import dotenv
-from typing import Union,List
+from typing import Union,List,Optional
 from supabase import create_client, Client
 import logging
 from Calendario.model.model import Calendar,Day,Meal
@@ -205,4 +205,13 @@ class SupabaseAPI:
             return [Meal(**meal) for meal in response.data]
         except Exception as e:
             print(f"Error obteniendo comidas: {e}")
+            return []
+        
+
+    def get_day_by_id(self, day_id: int) -> Optional[Day]:
+        try:
+            response = self.supabase.table("days").select("*").eq("id", day_id).execute()
+            return [Day(**day_id) for day_id in response.data]
+        except Exception as e:
+            print(f"Error getting day: {e}")
             return []
