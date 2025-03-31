@@ -1,5 +1,4 @@
 
-from turtle import position
 import reflex as rx
 from typing import Optional, List
 from Calendario.database.database import SupabaseAPI

@@ -9,7 +9,7 @@ from Calendario.state.user_state import UserState
 from Calendario.utils.api import SUPABASE_API, fetch_and_transform_calendars, get_all_meals, get_days_for_calendar
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
-
+import pytz
 
 
 class CalendarState(rx.State):
@@ -29,10 +29,13 @@ class CalendarState(rx.State):
     days : List[Day] = [] 
     hovered_day: Optional[int] = None
     display_days: list[Optional[Day]] = []
-    current_date_str: str = datetime.utcnow().strftime("%Y-%m-%d 00:00:00")  # Variable para almacenar la fecha actual
-    # Variable para almacenar la fecha actual
+    current_date_str: str
+
     def update_current_date(self):
-        self.current_date_str = datetime.utcnow().strftime("%Y-%m-%d 00:00:00")
+        madrid_tz = pytz.timezone('Europe/Madrid')
+        madrid_time = datetime.now(madrid_tz)
+        self.current_date_str = madrid_time.strftime("%Y-%m-%d 00:00:00")
+        print(self.current_date_str)
     @rx.event
     def set_hovered_day(self, day_id: int):
         self.hovered_day = day_id
@@ -74,6 +77,7 @@ class CalendarState(rx.State):
                     
                     # Crear lista de días con espacios vacíos
                     self.display_days = [None] * first_weekday + self.days
+                    self.update_current_date()
                     
                     return
         except ValueError:

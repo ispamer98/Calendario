@@ -1,4 +1,3 @@
-from turtle import width
 import reflex as rx
 from Calendario.components import meal_editor
 from Calendario.model.model import Day, Meal
