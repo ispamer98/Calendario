@@ -131,5 +131,6 @@ def login_form() -> rx.Component:
             padding="2em",  # Puedes añadir algo de padding para más consistencia visual
         ),
         width="100%",  # Asegura que el centro ocupa el ancho completo
-        margin_top="-20em",
+        padding_top="4em",  # Aumentamos padding superior para no solapar con el botón
+
     )

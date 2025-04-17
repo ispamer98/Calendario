@@ -1,20 +1,16 @@
-# Calendario/components/footer.py
 from typing import Callable
 import reflex as rx
 
 def footer(page: Callable[[], rx.Component]) -> rx.Component:
     return rx.vstack(
-        # Contenedor principal que mantiene el centrado
         rx.box(
             page(),
-            min_height="100vh",  # Asegura que ocupe al menos toda la altura de la ventana
             width="100%",
+            flex="1",  # Hace que el contenido principal crezca y empuje el footer hacia abajo
             display="flex",
             justify_content="center",
             align_items="center",
         ),
-        
-        # Footer
         rx.box(
             rx.vstack(
                 rx.hstack(
@@ -49,4 +45,7 @@ def footer(page: Callable[[], rx.Component]) -> rx.Component:
         ),
         width="100%",
         spacing="0",
+        height="100vh",  # El vstack ocupa todo el alto de la ventana
+        align_items="stretch",
+        style={"display": "flex", "flexDirection": "column"},  # Layout columna flex
     )

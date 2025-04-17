@@ -54,3 +54,4 @@ class Comment(rx.Base):
     content: str  # Contenido del comentario
     owner_id: int  # Usuario que hizo el comentario
     created_at: datetime
+    user: User

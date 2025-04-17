@@ -86,7 +86,7 @@ class CalendarState(rx.State):
     @rx.event
     async def create_calendar(self):
         try:
-            self.loading = True  # Activamos carga
+            self.loading = True
             
             if UserState.current_user is None:
                 raise Exception("Usuario no autenticado")
@@ -108,7 +108,14 @@ class CalendarState(rx.State):
             if new_calendar:
                 self.calendars.append(new_calendar)
                 self.current_calendar = new_calendar
-                self.close_calendar_creator()  # Cierra el diálogo solo si se crea correctamente
+                # Cargar los días del nuevo calendario
+                self.days = await get_days_for_calendar(new_calendar.id)
+                
+                # Actualizar display_days para el nuevo calendario
+                first_weekday = start_date.weekday()
+                self.display_days = [None] * first_weekday + self.days
+                
+                self.close_calendar_creator()
                 return rx.toast.success(f"Calendario '{self.new_calendar_name}' creado con éxito!", position="top-center")
         
         except ValueError as ve:
@@ -119,8 +126,6 @@ class CalendarState(rx.State):
             self.loading = False
             self.new_calendar_name = ""
             self.new_calendar_month = datetime.today().strftime("%Y-%m")
-
-
 
     @rx.event
     async def load_calendars(self):

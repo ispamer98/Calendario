@@ -1,3 +1,5 @@
+from calendar import Calendar
+import select
 import reflex as rx
 from Calendario.components.day_button import day_button
 from Calendario.state.calendar_state import CalendarState
@@ -83,7 +85,7 @@ def user_calendar() -> rx.Component:
                                 placeholder="Selecciona un calendario",
                                 width="300px",
                                 min_width="300px",
-                                justify_content="center"
+                                justify_content="center",
                             ),
                             rx.select.content(
                                 rx.select.group(
@@ -98,12 +100,17 @@ def user_calendar() -> rx.Component:
                                 ),
                                 position="popper",
                                 side="bottom",
-                                align="start"
+                                align="start",
                             ),
+                            value=rx.cond(CalendarState.current_calendar,
+                                          CalendarState.current_calendar.id.to(str),
+                                          ""),
+
                             on_change=CalendarState.set_current_calendar,
                             width="100%",
                             variant="surface",
-                            radius="full"
+                            radius="full",
+
                         ),
                         rx.cond(
                             CalendarState.current_calendar,

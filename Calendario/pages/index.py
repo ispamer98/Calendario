@@ -29,10 +29,9 @@ def index() -> rx.Component:
                 margin_top="2em"
             ),
             align="center",
-            height="100%"
         ),
         padding="2em",
         max_width="1200px",
-        center_content=True
+        margin_top="100px"
         )
     )

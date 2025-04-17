@@ -5,6 +5,8 @@ from Calendario.state.register_state import RegisterState
 from Calendario.state.login_state import Login_state
 from Calendario.components.show_pasw_switch import show_pasw_switch_register
 
+
+
 def register_form() -> rx.Component:
     """Componente de registro con vistas separadas para móvil y desktop"""
     

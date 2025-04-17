@@ -47,6 +47,11 @@ class UserState(rx.State):
 
 
 
+    @rx.event
+    def check_autenticated(self):
+        if self.current_user == None:
+            return rx.redirect("/")
+
     @rx.var
     def is_authenticated(self) -> bool:
         """Determina si el usuario está autenticado"""

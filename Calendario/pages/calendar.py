@@ -9,7 +9,11 @@ from Calendario.state.user_state import UserState
 def toast(): 
     return rx.toast(title=CalendarState.toast_info, position="top-center")
 
-@rx.page(route="/calendar", on_load=[CalendarState.reset_calendars, CalendarState.clean,UserState.on_load,CalendarState.load_meals])
+@rx.page(route="/calendar", on_load=[CalendarState.reset_calendars,
+                                     CalendarState.clean,
+                                     UserState.on_load,
+                                     CalendarState.load_meals,
+                                     UserState.check_autenticated])
 def calendar() -> rx.Component:
     return rx.vstack(
         user_navbar(),
