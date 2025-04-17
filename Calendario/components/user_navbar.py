@@ -14,7 +14,7 @@ def user_navbar() -> rx.Component:
                     rx.hstack(
                         rx.image(
                             src="/favicon.ico",
-                            width="2em",
+                            width="3em",
                             heigth="2em"),
                         rx.text("Calendario"),
                         

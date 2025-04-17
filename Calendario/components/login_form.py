@@ -10,16 +10,30 @@ def login_form() -> rx.Component:
     return rx.center(  # Centra horizontalmente
         rx.container(
             rx.box(
-                rx.button(
-                    rx.icon("arrow-left", size=18),
-                    "Inicio",
-                    on_click=rx.redirect("/"),
-                    variant="soft",
-                    color_scheme="blue",
-                    size="2",
-                    radius="full",
-                    _hover={"transform": "scale(1.05)"},
-                    style={"position": "fixed", "left": "1.5rem", "top": "1.5rem"}
+                rx.mobile_only(
+                    rx.button(
+                        rx.icon("arrow-left", size=18),
+                        on_click=rx.redirect("/"),
+                        variant="soft",
+                        color_scheme="blue",
+                        size="2",
+                        radius="full",
+                        _hover={"transform": "scale(1.05)"},
+                        style={"position": "fixed", "left": "1.5rem", "top": "1.5rem"}
+                    )
+                ),
+                rx.tablet_and_desktop(
+                    rx.button(
+                        rx.icon("arrow-left", size=18),
+                        "Inicio",
+                        on_click=rx.redirect("/"),
+                        variant="soft",
+                        color_scheme="blue",
+                        size="2",
+                        radius="full",
+                        _hover={"transform": "scale(1.05)"},
+                        style={"position": "fixed", "left": "1.5rem", "top": "1.5rem"}
+                    )
                 ),
                 z_index="1000"
             ),

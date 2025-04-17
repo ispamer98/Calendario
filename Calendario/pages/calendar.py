@@ -1,4 +1,5 @@
 import reflex as rx
+from Calendario.components.footer import footer
 from Calendario.components.meal_editor import meal_editor
 from Calendario.components.calendar_creator import calendar_creator
 from Calendario.components.user_calendar import user_calendar
@@ -49,5 +50,6 @@ def calendar() -> rx.Component:
         width="100%",
         spacing="0",
         align_items="center",  # Centrar la pila de elementos
-        style={"overflow-x": "hidden"},
+        style={"overflow-x": "hidden"}, 
+        heigth="100%"
     )

@@ -27,7 +27,14 @@ class RegisterState(rx.State):
 
     @rx.event
     def reset_errors(self):
-        self.errors = {k: "" for k in self.errors}
+        self.errors ={
+        "username": "",
+        "password": "",
+        "confirm_password": "",
+        "email": "",
+        "confirm_email": "",
+        "birthday": ""
+    }
     @rx.event
     async def register(self):
         # Resetear errores

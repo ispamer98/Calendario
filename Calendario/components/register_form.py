@@ -6,7 +6,6 @@ from Calendario.state.login_state import Login_state
 from Calendario.components.show_pasw_switch import show_pasw_switch_register
 
 
-
 def register_form() -> rx.Component:
     """Componente de registro con vistas separadas para móvil y desktop"""
     
@@ -198,7 +197,8 @@ def register_form() -> rx.Component:
             email_field,
             birthday_field,
             spacing="6",
-            width="100%"
+            width="100%",
+
         )
     )
     
@@ -228,22 +228,36 @@ def register_form() -> rx.Component:
     return rx.container(
         # Botón de volver al login (nuevo)
         rx.box(
-            rx.button(
-                rx.icon("arrow-left", size=18),
-                "Inicio",
-                on_click=rx.redirect("/"),
-                variant="soft",
-                color_scheme="blue",
-                size="2",
-                radius="full",
-                _hover={"transform": "scale(1.05)"},
-                style={"position": "fixed", "left": "1.5rem", "top": "1.5rem"}
+            rx.mobile_only(
+                rx.button(
+                    rx.icon("arrow-left", size=18),
+                    on_click=rx.redirect("/"),
+                    variant="soft",
+                    color_scheme="blue",
+                    size="2",
+                    radius="full",
+                    _hover={"transform": "scale(1.05)"},
+                    style={"position": "fixed", "left": "1.5rem", "top": "1.5rem"}
+                )
+            ),
+            rx.tablet_and_desktop(
+                rx.button(
+                    rx.icon("arrow-left", size=18),
+                    "Inicio",
+                    on_click=rx.redirect("/"),
+                    variant="soft",
+                    color_scheme="blue",
+                    size="2",
+                    radius="full",
+                    _hover={"transform": "scale(1.05)"},
+                    style={"position": "fixed", "left": "1.5rem", "top": "1.5rem"}
+                )
             ),
             z_index="1000"
         ),
         
         rx.vstack(
-            rx.heading("Registra tu Usuario", size="6", text_align="center"),
+            rx.heading("Registra tu Usuario", size="6", text_align="center",margin_top="10em"),
             mobile_view,
             desktop_view,
             rx.button(
@@ -270,5 +284,6 @@ def register_form() -> rx.Component:
         padding="2em",
         padding_top="4em",  # Aumentamos padding superior para no solapar con el botón
         class_name="register-container",
-        position="relative"
+        padding_bottom=rx.breakpoints(initial="13em", md="2em"),  # Móvil: más espacio abajo
+        position="relative",
     )
