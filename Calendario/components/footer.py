@@ -10,7 +10,8 @@ def footer(page: Callable[[], rx.Component]) -> rx.Component:
             display="flex",
             justify_content="center",
             align_items="center",
-            min_height="calc(100vh - 200px)",
+            min_height="calc(100vh - 250px)",  # Aumentar espacio mínimo
+            position="relative",
         ),
         rx.box(
             rx.vstack(
@@ -82,7 +83,7 @@ def footer(page: Callable[[], rx.Component]) -> rx.Component:
             box_shadow="0 -4px 20px rgba(0, 0, 0, 0.3)",
         ),
         width="100%",
-        height="100vh",
+        height=rx.breakpoints(initial="auto", md="100vh"),
         spacing="0",
-        style={"display": "flex", "flexDirection": "column"},
+
     )

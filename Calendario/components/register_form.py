@@ -257,7 +257,7 @@ def register_form() -> rx.Component:
         ),
         
         rx.vstack(
-            rx.heading("Registra tu Usuario", size="6", text_align="center",margin_top="10em"),
+            rx.heading("Registra tu Usuario", size="6", text_align="center",margin_top=["2em", "10em"]),  # Margen superior responsive),
             mobile_view,
             desktop_view,
             rx.button(
@@ -275,15 +275,17 @@ def register_form() -> rx.Component:
                 rx.text("¿Ya estás registrado?"),
                 rx.link("Inicia Sesión", on_click=rx.redirect("/login")),
                 justify="center",
-                opacity="0.8"
+                opacity="0.8",
+
             ),
             spacing="6",
             width="100%",
-            align="center"
+            align="center",
+            min_height="85vh",
+            position="relative",
         ),
         padding="2em",
-        padding_top="4em",  # Aumentamos padding superior para no solapar con el botón
         class_name="register-container",
-        padding_bottom=rx.breakpoints(initial="13em", md="2em"),  # Móvil: más espacio abajo
-        position="relative",
-    )
+        height="100%",
+
+      )  # Asegura que ocupe toda la altura        
