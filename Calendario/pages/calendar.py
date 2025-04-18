@@ -14,7 +14,8 @@ def toast():
                                      CalendarState.clean,
                                      UserState.on_load,
                                      CalendarState.load_meals,
-                                     UserState.check_autenticated])
+                                     UserState.check_autenticated,
+                                     ])
 def calendar() -> rx.Component:
     return rx.vstack(
         user_navbar(),
@@ -33,8 +34,23 @@ def calendar() -> rx.Component:
                         ),
                     ),
                     rx.vstack(
-                        rx.text("No hay nadie loggeado"),
-                        rx.button("Volver al inicio", on_click=rx.redirect("/")),
+                        rx.box(
+                            # Círculo de carga con animación CSS
+                            style={
+                                "border": "8px solid #f3f3f3",
+                                "borderTop": "8px solid #3182ce",
+                                "borderRadius": "50%",
+                                "width": "60px",
+                                "height": "60px",
+                                "animation": "spin 1s linear infinite",
+                                # Definición de la animación
+                                "@keyframes spin": {
+                                    "0%": {"transform": "rotate(0deg)"},
+                                    "100%": {"transform": "rotate(360deg)"}
+                                },
+                            }
+                        ),
+                        rx.text("Cargando...", margin_top="1em"),
                         align_items="center"
                     ),
                 ),

@@ -42,7 +42,7 @@ class Day(rx.Base):
     date: datetime
     meal: str = None
     dinner: str = None
-    comments: list[int] = []
+    comments: bool = False
 
 
 class Comment(rx.Base):

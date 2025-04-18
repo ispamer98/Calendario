@@ -30,6 +30,20 @@ class CalendarState(rx.State):
     hovered_day: Optional[int] = None
     display_days: list[Optional[Day]] = []
     current_date_str: str
+    loading: bool = True
+
+    @rx.var
+    def calendar_title(self) -> str:
+        if self.current_calendar and self.current_calendar.start_date:
+            meses = [
+                "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+                "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
+            ]
+            mes = meses[self.current_calendar.start_date.month - 1]
+            año = self.current_calendar.start_date.year
+            return f"Calendario de {mes} del {año}"
+        return ""
+    
 
     def update_current_date(self):
         madrid_tz = pytz.timezone('Europe/Madrid')
@@ -129,6 +143,7 @@ class CalendarState(rx.State):
 
     @rx.event
     async def load_calendars(self):
+        self.loading = True  # Activa el loader al iniciar la carga
         print("EN CALENDAR STATE LOAD  CALENDARS")
 
         try:
@@ -145,8 +160,9 @@ class CalendarState(rx.State):
             if calendars:
                 self.calendars = calendars
                 print(f"Calendarios cargados: {[f'ID: {cal.id}, Nombre: {cal.name}, Propietario ID: {cal.owner_id}, Compartido con: {cal.shared_with}, Creado en: {cal.created_at}' for cal in self.calendars]}")
-            else:
-                print("No se encontraron calendarios.")
+                
+            self.loading = False  # Desactiva el loader solo después de cargar
+
                 
         except Exception as e:
             print(e)
@@ -190,6 +206,3 @@ class CalendarState(rx.State):
         self.error_message = None
 
 
-        return rx.toast.info(
-             position="top-center",
-             title="")

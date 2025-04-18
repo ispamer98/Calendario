@@ -79,7 +79,7 @@ def user_calendar() -> rx.Component:
                 rx.cond(
                     CalendarState.calendars.length() > 0,
                     rx.vstack(
-                        botones(),
+                        
                         rx.select.root(
                             rx.select.trigger(
                                 placeholder="Selecciona un calendario",
@@ -116,15 +116,15 @@ def user_calendar() -> rx.Component:
                             CalendarState.current_calendar,
                             rx.vstack(
                                 rx.heading(
-                                    CalendarState.current_calendar.name, 
+                                    CalendarState.calendar_title, 
                                     size="6",
-                                    padding_bottom="1em"
+                                    padding_bottom="1em",
+                                    padding_top="2em"
                                 ),
                                 calendar_grid(),
                                 spacing="4",
                                 align_items="center",  # Asegura que todo se alinee al centro
                             ),
-                            rx.text("Selecciona un calendario")
                         ),
                         align_items="center",  # Centra el contenido
                         width="100%"

@@ -53,7 +53,7 @@ def day_button(day: rx.Var[Day]) -> rx.Component:
                                     
                                 ),
                                 rx.cond(
-                                    day.comments.length() > 0,
+                                    day.comments == True,
                                     rx.icon("message-square-more",
                                             size=12,
                                             color="var(--orange-9)"),
@@ -182,17 +182,12 @@ def day_button(day: rx.Var[Day]) -> rx.Component:
                         rx.box()
                     ),
                     rx.cond(
-                        day.comments.length() > 0,
+                        day.comments == True,
                         rx.vstack(
                             rx.text("Comentarios:", 
                                     size="2", 
                                     color="var(--orange-9)", 
                                     weight="bold"),
-                            rx.foreach(
-                                day.comments,
-                                lambda comment: rx.text(comment, 
-                                                        size="1")
-                            ),
                             spacing="1",
                             width="100%"
                         ),

@@ -22,7 +22,7 @@ def calendar_creator() -> rx.Component:
                     rx.heading("Crear nuevo Calendario", size="5"),
                     rx.text("Nombre del Calendario", size="2", color="gray"),
                     rx.input(
-                        placeholder="Ej: Comidas de Marzo 2025",
+                        placeholder="Ej: Comidas de Marzo",
                         name="calendar_name",
                         required=True,
                         value=CalendarState.new_calendar_name,
@@ -43,16 +43,28 @@ def calendar_creator() -> rx.Component:
                         rx.dialog.close(
                             rx.button(
                                 "Cancelar",
+                                type="button",
+                                color_scheme="red",
+                                size="3",
                                 variant="soft",
-                                on_click=CalendarState.close_calendar_creator
+                                on_click=CalendarState.close_calendar_creator,
+                                _hover={
+                                    "background": "var(--red-9)",
+                                    "color": "white"
+                                }
                             )
                         ),
                         rx.button(
                             "Crear",
                             type="submit",
-                            variant="solid",
-                            color_scheme="jade",
-                            on_click=CalendarState.create_calendar
+                            variant="soft",
+                            color_scheme="green",
+                            on_click=CalendarState.create_calendar,
+                            size="3",
+                            _hover={
+                                "background": "var(--green-9)",
+                                "color": "white"
+                            }
                         ),
                         spacing="3",
                         margin_top="2em",
@@ -60,12 +72,14 @@ def calendar_creator() -> rx.Component:
                     ),
                     spacing="3",
                     width="100%",
+                    align_items="center",
                 ),
             ),
             style={"max_width": 450},
             box_shadow="lg",
             padding="2em",
             border_radius="8px",
+            
         ),
         open=CalendarState.show_calendar_creator,
     )
