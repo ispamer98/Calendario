@@ -19,7 +19,7 @@ class CalendarState(rx.State):
     meals: List[Meal] = []  # Lista de opciones de comidas
     comments: List[Comment] = []  # Lista de comentarios para el día seleccionado
     calendars: List[Calendar] = []  # Almacena todos los calendarios del usuario
-    toast_info : str = None
+    toast_info: Optional[str] = None
     new_calendar_name : str = ""
     new_calendar_month: str = datetime.today().strftime("%Y-%m")
     loading : bool = False

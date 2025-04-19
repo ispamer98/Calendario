@@ -136,7 +136,7 @@ def day_button(day: rx.Var[Day]) -> rx.Component:
                         ),
                         
                         rx.icon(
-                            "pencil",
+                            "utensils-crossed",
                             color="grey",  # Color razonable para un botón de edición
                             size=18,
                             
@@ -340,4 +340,5 @@ def day_button(day: rx.Var[Day]) -> rx.Component:
         margin="2px",
         flex_shrink="0",
         on_focus=lambda: [DayState.load_day_comments(day.id),],
+        
     )
