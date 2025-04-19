@@ -1,3 +1,4 @@
+from turtle import width
 import reflex as rx
 from Calendario.components import meal_editor
 from Calendario.model.model import Day, Meal
@@ -117,7 +118,9 @@ def day_button(day: rx.Var[Day]) -> rx.Component:
                         "transform": "scale(1.05)",
                         "box_shadow": "xl"
                     },
-                    transition="all 0.2s"
+                    transition="all 0.2s",
+                    
+                    
                 )
             ),
             rx.popover.content(
@@ -145,7 +148,20 @@ def day_button(day: rx.Var[Day]) -> rx.Component:
                                 "transform": "scale(1.3)",  # Aumenta de tamaño en hover
                                 "transition": "transform 0.2s"  # Transición suave
                             },
-                            on_click=DayState.set_current_day(day)  # Al hacer clic derecho, se abre meal_editor(day)
+                            on_click=DayState.set_current_day(day)  # Al hacer clic, se abre meal_editor(day)
+                        ),
+                        rx.icon(
+                            "message-square-more",
+                            color="grey",
+                            size=18,
+                            style={
+                                "cursor": "pointer",    # Cambia el cursor al pasar sobre el icono
+                            },
+                            _hover={
+                                "transform": "scale(1.3)",  # Aumenta de tamaño en hover
+                                "transition": "transform 0.2s"  # Transición suave
+                            },
+                            on_click=DayState.toggle_comment_input
                         ),
                         width="100%",
                         justify="between",
@@ -182,16 +198,127 @@ def day_button(day: rx.Var[Day]) -> rx.Component:
                         rx.box()
                     ),
                     rx.cond(
-                        day.comments == True,
+                        DayState.current_comments.length() > 0,
                         rx.vstack(
-                            rx.text("Comentarios:", 
-                                    size="2", 
-                                    color="var(--orange-9)", 
-                                    weight="bold"),
+                            rx.text(
+                                "Comentarios:", 
+                                size="2", 
+                                color="var(--orange-9)", 
+                                weight="bold",
+                                width="100%"
+                            ),
+                            rx.box(
+                                rx.foreach(
+                                    DayState.reversed_comments,
+                                    lambda comment: rx.box(
+                                        rx.vstack(
+                                            rx.hstack(
+                                                rx.box(
+                                                    rx.text(
+                                                        comment.user.username,
+                                                        weight="bold",
+                                                        color="var(--accent-9)",
+                                                        size="2",
+                                                        padding_x="0.5em",
+                                                    ),
+                                                    background="rgba(255, 255, 255, 0.1)",
+                                                    border_radius="4px",
+                                                    margin_right="1em"
+                                                ),
+                                                rx.box(
+                                                    rx.moment(
+                                                        comment.created_at, 
+                                                        format="DD/MM HH:mm",
+                                                        timezone="Europe/Madrid",
+                                                        color="gray.500",
+                                                        size="1"
+                                                    ),
+                                                    margin_left="auto"
+                                                ),
+                                                rx.icon(
+                                                    "trash",
+                                                    color="var(--red-9)",
+                                                    size=16,
+                                                    style={"cursor" : "pointer"},
+                                                    _hover={
+                                                        "transform" : "scale(1.3)",
+                                                        "transition" : "transform 0.2s"
+                                                    },
+                                                    on_click= lambda: DayState.delete_comment(comment.id,day),
+                                                    margin_right="1em"
+
+                                                ),
+                                                width="100%",
+                                                align_items="center"
+                                            ),
+                                            rx.hstack(
+                                                rx.text("·", color="var(--jade-9)", size="2"),
+                                                rx.scroll_area(
+                                                    rx.text(
+                                                        comment.content,
+                                                        color="var(--jade-11)",
+                                                        size="2",
+                                                        weight="light",
+                                                        style={
+                                                            "display": "block",
+                                                            "overflow": "auto",
+                                                            "text_overflow": "ellipsis",
+                                                            "max_height": "2.8em",  # Aproximadamente 2 líneas (ajusta según tu fuente/size)
+                                                            "line_height": "1.4em", # Asegura el cálculo de altura de línea
+                                                        },
+                                                        white_space="normal",  # Permite saltos de línea
+                                                    ),
+                                                    style={
+                                                        "max_height": "2.8em",  # Igual que el texto para dos líneas
+                                                        "overflow_y": "auto",   # Scroll si hay más de dos líneas
+                                                        "width": "100%",
+                                                    },
+                                                ),
+                                                spacing="2",
+                                                padding_left="0.5em",
+                                                width="100%"
+                                            ),
+                                            spacing="1",
+                                            padding_y="0.5em",
+                                            width="100%"
+                                        ),
+                                        border_bottom="1px solid rgba(255, 255, 255, 0.05)",
+                                        padding_bottom="2px",
+                                        margin_bottom="2px",
+                                        width="100%",
+                                        min_height="40px",
+                                    )
+                                ),
+                                max_height="180px",  # Ajusta según tu diseño
+                                overflow_y="auto",
+                                width="100%",
+                            ),
                             spacing="1",
                             width="100%"
                         ),
                         rx.box()
+                    ),
+                    rx.cond(
+                        DayState.show_comment_input,
+                        rx.hstack(
+                            rx.input(
+                                placeholder="Escribe tu comentario...",
+                                value=DayState.new_comment_text,
+                                on_change=lambda value: DayState.set_new_comment_text(value),
+                                size="1",
+                                width="100%",
+                            ),
+                            rx.button(
+                                rx.icon("check"),
+                                on_click=DayState.add_comment(day),
+                                size="1",
+                                variant="soft",
+                                color_scheme="green",
+                                disabled=DayState.new_comment_text.strip() == ""
+                            ),
+                            spacing="2",
+                            width="100%"
+                        )
                     ),
                     spacing="2",
                     padding="2",
@@ -200,15 +327,18 @@ def day_button(day: rx.Var[Day]) -> rx.Component:
                 ),
 
                 style={
-                    "max-width": "95vw"
+                    "max-width": "100vw"
                 },
-                align="start",  # Puedes usar "start", "center", o "end"
+                align="start", 
                 collision_padding=20,  # Añade padding para evitar colisiones
                 avoid_collisions=True,  # Intenta evitar colisiones con otros elementos
                 sticky="partial",  # Mantiene el popover visible mientras sea posible
-            )
+            ),
+            on_open_change=DayState.close_comment_input
+            
         ),
         position="relative",
         margin="2px",
-        flex_shrink="0"
+        flex_shrink="0",
+        on_focus=lambda: [DayState.load_day_comments(day.id),],
     )

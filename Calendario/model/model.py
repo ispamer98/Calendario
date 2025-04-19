@@ -8,10 +8,10 @@ class User(rx.Base):
     """
     id: int
     username: str
-    pasw: str
-    email: str
-    birthday: str
-    created_at: datetime
+    pasw: Optional[str] = None
+    email: Optional[str] = None
+    birthday: Optional[str] = None
+    created_at: Optional[datetime] = None
 
 
 class Calendar(rx.Base):

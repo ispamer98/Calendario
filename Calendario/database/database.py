@@ -7,7 +7,7 @@ import dotenv
 from typing import Union,List,Optional
 from supabase import create_client, Client
 import logging
-from Calendario.model.model import Calendar,Day,Meal
+from Calendario.model.model import Calendar,Day,Meal,Comment,User
 from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
 
@@ -233,3 +233,113 @@ class SupabaseAPI:
         except Exception as e:
             print(f"Error actualizando cena: {e}")
             return None
+
+
+    def get_comments_for_day(self, day_id: int) -> List[Comment]:
+        try:
+            print(f"Buscando comentarios para day_id: {day_id}")  # Debug
+            response = (
+                self.supabase.from_("comments")
+                .select("*, user:owner_id(username)")
+                .eq("day_id", day_id)
+                .order("created_at", desc=False)  # Cambiar a ascendente para ver nuevos primero
+                .execute()
+            )
+            print("Respuesta de Supabase:", response.data)  # Debug
+            return [
+                Comment(
+                    id=comment['id'],
+                    day_id=comment['day_id'],
+                    content=comment['content'],
+                    owner_id=comment['owner_id'],  # <- aquí estaba el error
+                    created_at=datetime.fromisoformat(comment['created_at'].replace('Z', '+00:00')),
+                    user=User(
+                        id=comment['owner_id'],  # <- aquí también
+                        username=comment['user']['username']
+                    )
+                ) for comment in response.data
+            ]
+        except Exception as e:
+            print(f"Error obteniendo comentarios: {e}")
+            return []
+
+    def add_comment(self, day_id: int, owner_id: int, content: str) -> Optional[Comment]:
+        try:
+            comment_data = {
+                "day_id": day_id,
+                "owner_id": owner_id,
+                "content": content
+            }
+            
+            response = self.supabase.table("comments").insert(comment_data).execute()
+            
+            if response.data:
+                # Obtener el comentario recién creado con datos del usuario
+                new_comment = self.get_comments_for_day(day_id)[0]
+                return new_comment
+        except Exception as e:
+            print(f"Error agregando comentario: {e}")
+        return None
+    
+    def update_day_comments_flag(self, day_id: int) -> bool:
+        try:
+            response = (
+                self.supabase.table("days")
+                .update({"comments": True})
+                .eq("id", day_id)
+                .execute()
+            )
+            return len(response.data) > 0
+        except Exception as e:
+            print(f"Error actualizando flag de comentarios: {e}")
+            return False
+        
+
+    def get_day(self, day_id: int) -> Optional[Day]:
+        try:
+            response = self.supabase.from_("days").select("*").eq("id", day_id).execute()
+            if response.data:
+                return Day(**response.data[0])
+        except Exception as e:
+            print(f"Error obteniendo día: {e}")
+        return None
+    
+
+    def delete_comment(self, comment_id: int) -> bool:
+        try:
+            # Obtener day_id del comentario antes de eliminarlo
+            comment = self.supabase.table("comments").select("day_id").eq("id", comment_id).execute()
+            if not comment.data:
+                return False
+            day_id = comment.data[0]["day_id"]
+
+            # Eliminar el comentario
+            delete_response = self.supabase.table("comments").delete().eq("id", comment_id).execute()
+            if not delete_response.data:
+                return False
+
+            # Contar comentarios restantes para el día
+            count_query = self.supabase.table("comments").select("count", count="exact").eq("day_id", day_id).execute()
+            comment_count = count_query.data[0]["count"]
+
+            # Actualizar flag si no hay comentarios
+            if comment_count == 0:
+                self.update_day_comments_false(day_id)
+                
+            return True
+        except Exception as e:
+            print(f"Error eliminando comentario: {e}")
+            return False
+
+    def update_day_comments_false(self, day_id: int) -> bool:
+        try:
+            response = (
+                self.supabase.table("days")
+                .update({"comments": False})
+                .eq("id", day_id)
+                .execute()
+            )
+            return len(response.data) > 0
+        except Exception as e:
+            print(f"Error actualizando flag a False: {e}")
+            return False
