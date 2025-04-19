@@ -105,13 +105,7 @@ class DayState(rx.State):
             
         except Exception as e:
             return rx.toast.error(f"Error: {str(e)}")
-    @rx.var
-    def formatted_date(self) -> str:
-        return str(rx.moment(
-            date=self.current_day.date,
-            format="dddd, D [de] MMMM [del] YYYY",
-            locale="es"
-        ))
+
     @rx.event
     async def set_current_day(self, day: Day):
         self.current_day = day

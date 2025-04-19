@@ -30,7 +30,7 @@ class SupabaseAPI:
             username (str): Nombre de usuario a buscar.
             password (str): Contraseña del nnnnnnn.
 
-        Returns:
+        Re ns:
             dict | None: Datos del usuario si la autenticación es exitosa, o None si falla.
         """
         try:
