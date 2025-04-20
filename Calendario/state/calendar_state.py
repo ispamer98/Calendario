@@ -6,7 +6,7 @@ from typing import Optional, List
 from Calendario.database.database import SupabaseAPI
 from Calendario.model.model import Day, Meal, Comment,Calendar
 from Calendario.state.user_state import UserState
-from Calendario.utils.api import SUPABASE_API, fetch_and_transform_calendars, get_all_meals, get_days_for_calendar
+from Calendario.utils.api import fetch_and_transform_calendars, get_all_meals, get_days_for_calendar, share_calendar_with_user
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 import pytz

@@ -157,6 +157,7 @@ def day_button(day: rx.Var[Day]) -> rx.Component:
                                 "cursor": "pointer",    # Cambia el cursor al pasar sobre el icono
                             },
                             _hover={
+                                
                                 "transform": "scale(1.3)",  # Aumenta de tamaño en hover
                                 "transition": "transform 0.2s"  # Transición suave
                             },
@@ -228,7 +229,6 @@ def day_button(day: rx.Var[Day]) -> rx.Component:
                                                     rx.moment(
                                                         comment.created_at, 
                                                         format="DD/MM HH:mm",
-                                                        timezone="Europe/Madrid",
                                                         color="gray.500",
                                                         size="1"
                                                     ),

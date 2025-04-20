@@ -6,7 +6,7 @@ from Calendario.state.user_state import UserState
 def redirect_to_calendar():
     return rx.vstack(rx.script("window.location.href = '/calendar'"))
 
-@rx.page(route="/", title="Calendario", on_load=UserState.on_load)
+@rx.page(route="/", title="CalendPy", on_load=UserState.on_load)
 @footer
 def index() -> rx.Component:
     return rx.cond(
@@ -16,7 +16,7 @@ def index() -> rx.Component:
             rx.vstack(
                 rx.image("/favicon.ico",width="300px", height="220px"),
                 rx.heading(
-                    "¡Bienvenido a Calendario!",
+                    "¡Bienvenido a CalendPy!",
                     size=rx.breakpoints(initial="7", md="8", lg="9"),
                     text_align="center",
                     background_image="linear-gradient(45deg, #4F46E5, #3B82F6)",

@@ -12,7 +12,7 @@ def redirect_to_calendar():
 
 
 @rx.page(route="/login",
-            title="Iniciar Sesión | Calendario",
+            title="Iniciar Sesión | CalendPy",
             on_load=[Login_state.swith_off,
                     RegisterState.swith_off,
                     UserState.set_password(""),

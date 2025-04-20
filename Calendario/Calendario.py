@@ -16,7 +16,10 @@ app = rx.App(
         has_background=False,
         radius="large",
         accent_color="blue",
-        height="100vh"
+        height="100vh",
+        stylesheets=[
+        "https://fonts.googleapis.com/css2?family=Sarina&display=swap",
+        ],
         ),
         
 )

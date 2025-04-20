@@ -343,3 +343,33 @@ class SupabaseAPI:
         except Exception as e:
             print(f"Error actualizando flag a False: {e}")
             return False
+        
+
+    def share_with(self,calendar:Calendar, username:str):
+        try:
+            response_username = (
+                self.supabase.table("user")
+                .select("*")
+                .eq("username",username)
+                .execute()
+            )
+            if response_username.data:
+                username_id = response_username.data[0].id
+
+                shared_with = Calendar.shared_with or []
+                if username_id not in shared_with:
+                    shared_with.append(username_id)
+
+                    self.supabase.table("calendar").update({"shared_with" : shared_with}).eq("id",calendar.id).execute()
+
+                    print(f"Calendario compartido con el usuario {username} (ID : {username_id})")
+                
+                else: 
+                    print(f"El usuario {username} ya tiene acceso a este calendario.")
+            
+            else:
+                print(f"{username} no encontrado")
+
+        except Exception as e:
+            print(f"Error al compartir calendario {e}")
+

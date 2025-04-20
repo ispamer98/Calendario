@@ -11,7 +11,7 @@ def redirect_to_calendar():
 
 
 @rx.page(route="/register",
-            title="Registro | Calendario",
+            title="Registro | CalendPy",
             on_load=[RegisterState.load_page,
                     Login_state.swith_off,
                     RegisterState.swith_off,
