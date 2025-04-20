@@ -21,6 +21,34 @@ config = rx.Config(
 
 
 ================================================
+FILE: assets/manifest.json
+================================================
+{
+    "name": "CalendPy",
+    "short_name": "CalendPy",
+    "start_url": ".",
+    "display": "standalone",
+    "background_color": "#000000",
+    "theme_color": "#1e1e1e",
+    "description": "Calendario de comidas",
+    "icons": [
+      {
+        "src": "logo.png",
+        "type": "image/png",
+        "sizes": "512x256",
+        "purpose": "any maskable"
+      },
+      {
+        "src": "logo.png",
+        "type": "image/png",
+        "sizes": "256x128",
+        "purpose": "any maskable"
+      }
+    ]
+  }
+
+
+================================================
 FILE: assets/css/styles.css
 ================================================
 /* assets/css/styles.css */
@@ -68,6 +96,7 @@ app = rx.App(
         "https://fonts.googleapis.com/css2?family=Sarina&display=swap",
         ],
         ),
+        head_components=[rx.el.link(rel="manifest", href="/manifest.json")]
         
 )
 
@@ -171,38 +200,46 @@ from Calendario.state.calendar_state import CalendarState
 
 
 
+# Calendario/components/calendar_sharer.py
 def calendar_sharer() -> rx.Component:
     return rx.dialog.root(
         rx.dialog.trigger(
             rx.button("Compartir calendario", variant="soft", size="3")
         ),
         rx.dialog.content(
-            rx.form(
-                rx.vstack(
-                    rx.heading("Compartir calendario", size="5"),
-                    rx.input(
-                        placeholder="Nombre de usuario",
-                        value=CalendarState.username_to_share,
-                        on_change=CalendarState.set_username_to_share,
-                    ),
-                    rx.cond(
-                        CalendarState.error_message_share,
-                        rx.text(CalendarState.error_message_share, color="red")
-                    ),
-                    rx.hstack(
-                        rx.dialog.close(
-                            rx.button("Cancelar", variant="soft", color_scheme="gray")
-                        ),
-                        rx.dialog.close(  # <<-- CIERRA EL DIÁLOGO AL SUBMIT
-                            rx.button("Compartir", type="submit", color_scheme="blue")
-                        ),
-                        spacing="3"
-                    ),
-                    spacing="4"
+            rx.vstack(
+                rx.heading("Compartir calendario", size="5"),
+                rx.input(
+                    placeholder="Nombre de usuario",
+                    value=CalendarState.username_to_share,
+                    on_change=CalendarState.set_username_to_share,
+                    autofocus=True
                 ),
-                on_submit=CalendarState.share_calendar,
-                reset_on_submit=True  # <<-- LIMPIA EL INPUT DESPUÉS DE SUBMIT
-            )
+                rx.hstack(
+                    rx.dialog.close(
+                        rx.button("Cancelar", variant="soft", color_scheme="gray")
+                    ),
+                    rx.button(
+                        "Compartir", 
+                        color_scheme="blue",
+                        on_click=CalendarState.share_calendar
+                    )
+                ),
+                rx.cond(
+                    CalendarState.error_message,
+                    rx.text(CalendarState.error_message, color="red", size="2")
+                )
+            ),
+            title="Compartir calendario",
+            size="3"
+        ),
+        open=CalendarState.show_calendar_sharer,
+        on_open_change=lambda opened: (
+            rx.cond(
+    opened,
+    CalendarState.open_calendar_sharer(),
+    CalendarState.close_calendar_sharer()
+)
         )
     )
 
@@ -1318,6 +1355,7 @@ async def calendars() -> rx.Component:
 
 def calendar_grid() -> rx.Component:
     return rx.vstack(
+
         # Encabezados de días de la semana
         rx.grid(
             rx.foreach(
@@ -1378,43 +1416,54 @@ def user_calendar() -> rx.Component:
                 rx.cond(
                     CalendarState.calendars.length() > 0,
                     rx.vstack(
-                        
-                        rx.select.root(
-                            rx.select.trigger(
-                                placeholder="Selecciona un calendario",
-                                width="300px",
-                                min_width="300px",
-                                justify_content="center",
-                            ),
-                            rx.select.content(
-                                rx.select.group(
-                                    rx.foreach(
-                                        CalendarState.calendars,
-                                        lambda cal: rx.select.item(
-                                            f"{cal.name} ",
-                                            value=cal.id.to(str),
-                                            justify_content="center",
-                                        )
-                                    )
+                        rx.hstack(
+                            rx.select.root(
+                                rx.select.trigger(
+                                    placeholder="Selecciona un calendario",
+                                    width="300px",
+                                    min_width="300px",
+                                    justify_content="center",
                                 ),
-                                position="popper",
-                                side="bottom",
-                                align="start",
+                                
+                                rx.select.content(
+                                    rx.select.group(
+                                        rx.foreach(
+                                            CalendarState.calendars,
+                                            lambda cal: rx.select.item(
+                                                f"{cal.name} ",
+                                                value=cal.id.to(str),
+                                                justify_content="center",
+                                            )
+                                        )
+                                    ),
+                                    position="popper",
+                                    side="bottom",
+                                    align="start",
+                                ),
+                                value=rx.cond(CalendarState.current_calendar,
+                                            CalendarState.current_calendar.id.to(str),
+                                            ""),
+
+                                on_change=CalendarState.set_current_calendar,
+                                width="100%",
+                                variant="surface",
+                                radius="full",
+
                             ),
-                            value=rx.cond(CalendarState.current_calendar,
-                                          CalendarState.current_calendar.id.to(str),
-                                          ""),
-
-                            on_change=CalendarState.set_current_calendar,
-                            width="100%",
-                            variant="surface",
-                            radius="full",
-
+                            rx.icon(
+                                tag="refresh-ccw",
+                                color="cyan",
+                                size=28,
+                                on_click=CalendarState.refresh_page,
+                                style={"cursor": "pointer"}
+                            ),
                         ),
+                        
                         rx.cond(
                             CalendarState.current_calendar,
                             rx.vstack(
                                 rx.heading(
+                                    
                                     CalendarState.calendar_title, 
                                     size="6",
                                     padding_bottom="1em",
@@ -1653,32 +1702,38 @@ class SupabaseAPI:
 
     def get_calendars(self, user_id: int) -> Union[List[Calendar], None]:
         try:
+            # 1) Creamos la condición combinada: owner_id o array shared_with contiene user_id
+            condition = f"owner_id.eq.{user_id},shared_with.cs.{{{user_id}}}"
+
+            # 2) Ejecutamos un único query con .or_()
             response = (
                 self.supabase
-                .from_("calendars")
-                .select("*")
-                .eq("owner_id", user_id)
-                .execute()
+                    .from_("calendars")
+                    .select("*")
+                    .or_(condition)
+                    .execute()
             )
 
+            # 3) Si hay datos, mapeamos al modelo Calendar
             if response.data:
-                calendars = [
-                    Calendar(
-                        id=cal['id'],
-                        name=cal['name'],
-                        owner_id=cal['owner_id'],
-                        start_date=cal['start_date'],
-                        end_date=cal['end_date'],
-                        shared_with=cal.get('shared_with', []),
-                        created_at=datetime.fromisoformat(
-                            cal['created_at'].replace('Z', '+00:00')
-                        ) if cal.get('created_at') else datetime.now(),
-                        
+                calendars = []
+                for cal in response.data:
+                    calendars.append(
+                        Calendar(
+                            id=cal['id'],
+                            name=cal['name'],
+                            owner_id=cal['owner_id'],
+                            start_date=cal['start_date'],
+                            end_date=cal['end_date'],
+                            shared_with=cal.get('shared_with', []),
+                            created_at=(
+                                datetime.fromisoformat(cal['created_at'].replace('Z', '+00:00'))
+                                if cal.get('created_at') else datetime.now()
+                            )
+                        )
                     )
-                    for cal in response.data
-                ]
                 return calendars
-                
+
         except Exception as e:
             logging.error(f"Error obteniendo calendarios del usuario: {e}")
         return None
@@ -1913,41 +1968,35 @@ class SupabaseAPI:
             return False
         
 
-    def share_with(self, calendar: Calendar, username: str) -> bool:
+# Calendario/database/database.py
+    def share_with(self, calendar: Calendar, username: str) -> tuple[bool, str]:
         try:
-            response_username = self.supabase.from_("user").select("*").eq("username", username).execute()
+            # Buscar usuario ignorando mayúsculas/minúsculas
+            response_username = self.supabase.from_("user").select("*").ilike("username", username.lower()).execute()
             if not response_username.data:
-                print(f"Usuario {username} no encontrado")
-                return False
+                return False, "Usuario no encontrado"
             username_id = response_username.data[0]["id"]
 
-            response_calendar = (
-                self.supabase.from_("calendars")
-                .select("shared_with")
-                .eq("id", calendar.id)
-                .execute()
-            )
+            # 2. Obtener calendario actual
+            response_calendar = self.supabase.from_("calendars").select("shared_with").eq("id", calendar.id).execute()
             if not response_calendar.data:
-                print(f"Calendario {calendar.id} no encontrado")
-                return False
+                return False, "Calendario no encontrado"
                 
             shared_with = response_calendar.data[0].get("shared_with", []) or []
+            
+            # 3. Verificar si ya tiene acceso
             if username_id in shared_with:
-                print(f"El usuario {username} ya tiene acceso")
-                return True
+                return False, "El usuario ya tiene acceso a este calendario"
 
+            # 4. Actualizar shared_with
             shared_with.append(username_id)
-            update_response = (
-                self.supabase.from_("calendars")
-                .update({"shared_with": shared_with})
-                .eq("id", calendar.id)
-                .execute()
-            )
-            return bool(update_response.data)
+            update_response = self.supabase.from_("calendars").update({"shared_with": shared_with}).eq("id", calendar.id).execute()
+            
+            return bool(update_response.data), "Calendario compartido exitosamente"
             
         except Exception as e:
             print(f"Error al compartir calendario: {e}")
-            return False
+            return False, "Error interno al compartir el calendario"
 
 
 ================================================
@@ -2034,6 +2083,7 @@ def toast():
                                      UserState.on_load,
                                      CalendarState.load_meals,
                                      UserState.check_autenticated,
+                                     
                                      ])
 def calendar() -> rx.Component:
     return rx.vstack(
@@ -2046,6 +2096,7 @@ def calendar() -> rx.Component:
                     rx.cond(
                         CalendarState.calendars,
                         user_calendar(),
+                        
                         rx.vstack(
                             rx.text("No tienes ningún calendario"),
                             rx.button("Crear Calendario", on_click=CalendarState.open_calendar_creator),
@@ -2342,35 +2393,67 @@ class CalendarState(rx.State):
     current_date_str: str
     loading: bool = True
     username_to_share: str = ""  # Nombre de usuario con quien compartir
-    error_message_share: Optional[str] = None  # Mensaje de error al compartir
+    show_calendar_sharer: bool = False  # Nuevo estado
 
+    @rx.event
+    async def refresh_page(self):
+        """Redirige a /calendar con el ID del calendario actual para recargarlo."""
+        if not self.current_calendar:
+            # Si no hay calendario seleccionado, no hace nada
+            return 
+        # Redirige a /calendar pasando el parámetro calendar_id
+        else: 
+            await self.set_current_calendar(self.current_calendar.id)
+            await get_days_for_calendar(self.current_calendar.id)
+
+            print("refresh funciona")
+
+        
+
+    @rx.event
+    def open_calendar_sharer(self):
+        self.show_calendar_sharer = True
+        self.error_message = None
+
+    @rx.event
+    def close_calendar_sharer(self):
+        self.show_calendar_sharer = False
+# Calendario/state/calendar_state.py
     async def share_calendar(self):
         try:
-            if not self.current_calendar or not self.username_to_share:
-                self.error_message_share = "Debes seleccionar un calendario y escribir un nombre de usuario"
-                return
+            # Resetear mensajes previos
+            self.error_message = None
+            
+            # Validaciones básicas
+            if not self.current_calendar:
+                
+                return rx.toast.error("Selecciona un calendario primero", position="top-center")
+                
+            if not self.username_to_share.strip():
+                self.username_to_share = ""
+                return rx.toast.error("Escribe un nombre de usuario", position="top-center")
 
+            # Verificar auto-compartición
             user_state = await self.get_state(UserState)
             if self.username_to_share.lower() == user_state.current_user.username.lower():
-                self.error_message_share = "No puedes compartir el calendario contigo mismo"
-                return
-
-            success = await share_calendar_with_user(self.current_calendar, self.username_to_share)
-            if success:
-                # Actualizar estado local
-                self.error_message_share = None
-                username=self.username_to_share
                 self.username_to_share = ""
-                return rx.toast.success(
-                    f"¡Calendario compartido con {username}!",
-                    position="top-center"
-                )
+                return rx.toast.error("No puedes compartir contigo mismo", position="top-center")
+
+            # Llamar a la API
+            success, message = await share_calendar_with_user(self.current_calendar, self.username_to_share)
+            
+            if success:
+                # Éxito: limpiar input y cerrar diálogo
+                self.username_to_share = ""
+                self.close_calendar_sharer()
+                return rx.toast.success(message, position="top-center")
             else:
-                self.error_message_share = "Error al compartir. Verifica el nombre de usuario."
+                # Error: mantener diálogo abierto y mostrar mensaje
+                self.username_to_share = ""
+                return rx.toast.error(message, position="top-center")
                 
         except Exception as e:
-            self.error_message_share = f"Error: {str(e)}"
-
+            return rx.toast.error(f"Error inesperado: {str(e)}", position="top-center")
     @rx.var
     def calendar_title(self) -> str:
         if self.current_calendar and self.current_calendar.start_date:
@@ -2536,7 +2619,6 @@ class CalendarState(rx.State):
         self.meals = []  # Reset to empty list
         self.comments = []  # Reset to empty list
         self.days = [] # Reset to empty list
-        self.current_calendar = None
         self.toast_info = None
         self.new_calendar_name = ""
         self.new_calendar_month = datetime.today().strftime("%Y-%m")
