@@ -20,6 +20,7 @@ async def calendars() -> rx.Component:
 
 def calendar_grid() -> rx.Component:
     return rx.vstack(
+
         # Encabezados de días de la semana
         rx.grid(
             rx.foreach(
@@ -80,43 +81,54 @@ def user_calendar() -> rx.Component:
                 rx.cond(
                     CalendarState.calendars.length() > 0,
                     rx.vstack(
-                        
-                        rx.select.root(
-                            rx.select.trigger(
-                                placeholder="Selecciona un calendario",
-                                width="300px",
-                                min_width="300px",
-                                justify_content="center",
-                            ),
-                            rx.select.content(
-                                rx.select.group(
-                                    rx.foreach(
-                                        CalendarState.calendars,
-                                        lambda cal: rx.select.item(
-                                            f"{cal.name} ",
-                                            value=cal.id.to(str),
-                                            justify_content="center",
-                                        )
-                                    )
+                        rx.hstack(
+                            rx.select.root(
+                                rx.select.trigger(
+                                    placeholder="Selecciona un calendario",
+                                    width="300px",
+                                    min_width="300px",
+                                    justify_content="center",
                                 ),
-                                position="popper",
-                                side="bottom",
-                                align="start",
+                                
+                                rx.select.content(
+                                    rx.select.group(
+                                        rx.foreach(
+                                            CalendarState.calendars,
+                                            lambda cal: rx.select.item(
+                                                f"{cal.name} ",
+                                                value=cal.id.to(str),
+                                                justify_content="center",
+                                            )
+                                        )
+                                    ),
+                                    position="popper",
+                                    side="bottom",
+                                    align="start",
+                                ),
+                                value=rx.cond(CalendarState.current_calendar,
+                                            CalendarState.current_calendar.id.to(str),
+                                            ""),
+
+                                on_change=CalendarState.set_current_calendar,
+                                width="100%",
+                                variant="surface",
+                                radius="full",
+
                             ),
-                            value=rx.cond(CalendarState.current_calendar,
-                                          CalendarState.current_calendar.id.to(str),
-                                          ""),
-
-                            on_change=CalendarState.set_current_calendar,
-                            width="100%",
-                            variant="surface",
-                            radius="full",
-
+                            rx.icon(
+                                tag="refresh-ccw",
+                                color="cyan",
+                                size=28,
+                                on_click=CalendarState.refresh_page,
+                                style={"cursor": "pointer"}
+                            ),
                         ),
+                        
                         rx.cond(
                             CalendarState.current_calendar,
                             rx.vstack(
                                 rx.heading(
+                                    
                                     CalendarState.calendar_title, 
                                     size="6",
                                     padding_bottom="1em",

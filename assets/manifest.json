@@ -1,0 +1,23 @@
+{
+    "name": "CalendPy",
+    "short_name": "CalendPy",
+    "start_url": ".",
+    "display": "standalone",
+    "background_color": "#000000",
+    "theme_color": "#1e1e1e",
+    "description": "Calendario de comidas",
+    "icons": [
+      {
+        "src": "logo.png",
+        "type": "image/png",
+        "sizes": "512x256",
+        "purpose": "any maskable"
+      },
+      {
+        "src": "logo.png",
+        "type": "image/png",
+        "sizes": "256x128",
+        "purpose": "any maskable"
+      }
+    ]
+  }

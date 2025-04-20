@@ -17,6 +17,7 @@ def toast():
                                      UserState.on_load,
                                      CalendarState.load_meals,
                                      UserState.check_autenticated,
+                                     
                                      ])
 def calendar() -> rx.Component:
     return rx.vstack(
@@ -29,6 +30,7 @@ def calendar() -> rx.Component:
                     rx.cond(
                         CalendarState.calendars,
                         user_calendar(),
+                        
                         rx.vstack(
                             rx.text("No tienes ningún calendario"),
                             rx.button("Crear Calendario", on_click=CalendarState.open_calendar_creator),

@@ -21,5 +21,6 @@ app = rx.App(
         "https://fonts.googleapis.com/css2?family=Sarina&display=swap",
         ],
         ),
+        head_components=[rx.el.link(rel="manifest", href="/manifest.json")]
         
 )

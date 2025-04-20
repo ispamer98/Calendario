@@ -85,32 +85,38 @@ class SupabaseAPI:
 
     def get_calendars(self, user_id: int) -> Union[List[Calendar], None]:
         try:
+            # 1) Creamos la condición combinada: owner_id o array shared_with contiene user_id
+            condition = f"owner_id.eq.{user_id},shared_with.cs.{{{user_id}}}"
+
+            # 2) Ejecutamos un único query con .or_()
             response = (
                 self.supabase
-                .from_("calendars")
-                .select("*")
-                .eq("owner_id", user_id)
-                .execute()
+                    .from_("calendars")
+                    .select("*")
+                    .or_(condition)
+                    .execute()
             )
 
+            # 3) Si hay datos, mapeamos al modelo Calendar
             if response.data:
-                calendars = [
-                    Calendar(
-                        id=cal['id'],
-                        name=cal['name'],
-                        owner_id=cal['owner_id'],
-                        start_date=cal['start_date'],
-                        end_date=cal['end_date'],
-                        shared_with=cal.get('shared_with', []),
-                        created_at=datetime.fromisoformat(
-                            cal['created_at'].replace('Z', '+00:00')
-                        ) if cal.get('created_at') else datetime.now(),
-                        
+                calendars = []
+                for cal in response.data:
+                    calendars.append(
+                        Calendar(
+                            id=cal['id'],
+                            name=cal['name'],
+                            owner_id=cal['owner_id'],
+                            start_date=cal['start_date'],
+                            end_date=cal['end_date'],
+                            shared_with=cal.get('shared_with', []),
+                            created_at=(
+                                datetime.fromisoformat(cal['created_at'].replace('Z', '+00:00'))
+                                if cal.get('created_at') else datetime.now()
+                            )
+                        )
                     )
-                    for cal in response.data
-                ]
                 return calendars
-                
+
         except Exception as e:
             logging.error(f"Error obteniendo calendarios del usuario: {e}")
         return None
@@ -345,38 +351,32 @@ class SupabaseAPI:
             return False
         
 
-    def share_with(self, calendar: Calendar, username: str) -> bool:
+# Calendario/database/database.py
+    def share_with(self, calendar: Calendar, username: str) -> tuple[bool, str]:
         try:
-            response_username = self.supabase.from_("user").select("*").eq("username", username).execute()
+            # Buscar usuario ignorando mayúsculas/minúsculas
+            response_username = self.supabase.from_("user").select("*").ilike("username", username.lower()).execute()
             if not response_username.data:
-                print(f"Usuario {username} no encontrado")
-                return False
+                return False, "Usuario no encontrado"
             username_id = response_username.data[0]["id"]
 
-            response_calendar = (
-                self.supabase.from_("calendars")
-                .select("shared_with")
-                .eq("id", calendar.id)
-                .execute()
-            )
+            # 2. Obtener calendario actual
+            response_calendar = self.supabase.from_("calendars").select("shared_with").eq("id", calendar.id).execute()
             if not response_calendar.data:
-                print(f"Calendario {calendar.id} no encontrado")
-                return False
+                return False, "Calendario no encontrado"
                 
             shared_with = response_calendar.data[0].get("shared_with", []) or []
+            
+            # 3. Verificar si ya tiene acceso
             if username_id in shared_with:
-                print(f"El usuario {username} ya tiene acceso")
-                return True
+                return False, "El usuario ya tiene acceso a este calendario"
 
+            # 4. Actualizar shared_with
             shared_with.append(username_id)
-            update_response = (
-                self.supabase.from_("calendars")
-                .update({"shared_with": shared_with})
-                .eq("id", calendar.id)
-                .execute()
-            )
-            return bool(update_response.data)
+            update_response = self.supabase.from_("calendars").update({"shared_with": shared_with}).eq("id", calendar.id).execute()
+            
+            return bool(update_response.data), "Calendario compartido exitosamente"
             
         except Exception as e:
             print(f"Error al compartir calendario: {e}")
-            return False
+            return False, "Error interno al compartir el calendario"

@@ -32,35 +32,67 @@ class CalendarState(rx.State):
     current_date_str: str
     loading: bool = True
     username_to_share: str = ""  # Nombre de usuario con quien compartir
-    error_message_share: Optional[str] = None  # Mensaje de error al compartir
+    show_calendar_sharer: bool = False  # Nuevo estado
 
+    @rx.event
+    async def refresh_page(self):
+        """Redirige a /calendar con el ID del calendario actual para recargarlo."""
+        if not self.current_calendar:
+            # Si no hay calendario seleccionado, no hace nada
+            return 
+        # Redirige a /calendar pasando el parámetro calendar_id
+        else: 
+            await self.set_current_calendar(self.current_calendar.id)
+            await get_days_for_calendar(self.current_calendar.id)
+
+            print("refresh funciona")
+
+        
+
+    @rx.event
+    def open_calendar_sharer(self):
+        self.show_calendar_sharer = True
+        self.error_message = None
+
+    @rx.event
+    def close_calendar_sharer(self):
+        self.show_calendar_sharer = False
+# Calendario/state/calendar_state.py
     async def share_calendar(self):
         try:
-            if not self.current_calendar or not self.username_to_share:
-                self.error_message_share = "Debes seleccionar un calendario y escribir un nombre de usuario"
-                return
+            # Resetear mensajes previos
+            self.error_message = None
+            
+            # Validaciones básicas
+            if not self.current_calendar:
+                
+                return rx.toast.error("Selecciona un calendario primero", position="top-center")
+                
+            if not self.username_to_share.strip():
+                self.username_to_share = ""
+                return rx.toast.error("Escribe un nombre de usuario", position="top-center")
 
+            # Verificar auto-compartición
             user_state = await self.get_state(UserState)
             if self.username_to_share.lower() == user_state.current_user.username.lower():
-                self.error_message_share = "No puedes compartir el calendario contigo mismo"
-                return
-
-            success = await share_calendar_with_user(self.current_calendar, self.username_to_share)
-            if success:
-                # Actualizar estado local
-                self.error_message_share = None
-                username=self.username_to_share
                 self.username_to_share = ""
-                return rx.toast.success(
-                    f"¡Calendario compartido con {username}!",
-                    position="top-center"
-                )
+                return rx.toast.error("No puedes compartir contigo mismo", position="top-center")
+
+            # Llamar a la API
+            success, message = await share_calendar_with_user(self.current_calendar, self.username_to_share)
+            
+            if success:
+                # Éxito: limpiar input y cerrar diálogo
+                self.username_to_share = ""
+                self.close_calendar_sharer()
+                return rx.toast.success(message, position="top-center")
             else:
-                self.error_message_share = "Error al compartir. Verifica el nombre de usuario."
+                # Error: mantener diálogo abierto y mostrar mensaje
+                self.username_to_share = ""
+                return rx.toast.error(message, position="top-center")
                 
         except Exception as e:
-            self.error_message_share = f"Error: {str(e)}"
-
+            return rx.toast.error(f"Error inesperado: {str(e)}", position="top-center")
     @rx.var
     def calendar_title(self) -> str:
         if self.current_calendar and self.current_calendar.start_date:
@@ -226,7 +258,6 @@ class CalendarState(rx.State):
         self.meals = []  # Reset to empty list
         self.comments = []  # Reset to empty list
         self.days = [] # Reset to empty list
-        self.current_calendar = None
         self.toast_info = None
         self.new_calendar_name = ""
         self.new_calendar_month = datetime.today().strftime("%Y-%m")
