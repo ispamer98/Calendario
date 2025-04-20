@@ -1,6 +1,7 @@
 # register_state.py
 
 
+from typing import Optional
 from Calendario.utils.api import check_existing_user, register_user, check_existing_username
 from Calendario.utils.send_email import send_welcome_email
 from datetime import datetime
@@ -22,7 +23,7 @@ class RegisterState(rx.State):
         "confirm_email": "",
         "birthday": ""
     }
-    username_valid : bool = None
+    username_valid : Optional[bool] = None
 
 
     @rx.event
@@ -139,7 +140,7 @@ class RegisterState(rx.State):
                     return [rx.toast.success(
                         "¡Registro exitoso! Revisa tu correo electrónico",
                         position="top-center"
-                    ),Login_state.login()]
+                    ),rx.redirect("/login")]
                 else:
                     self.password=""
                     self.confirm_password=""

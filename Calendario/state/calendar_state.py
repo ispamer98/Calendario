@@ -31,6 +31,38 @@ class CalendarState(rx.State):
     display_days: list[Optional[Day]] = []
     current_date_str: str
     loading: bool = True
+    username_to_share: str = ""  # Nombre de usuario con quien compartir
+    error_message_share: Optional[str] = None  # Mensaje de error al compartir
+
+    @rx.event
+    async def share_calendar(self):
+        if not self.current_calendar or not self.username_to_share:
+            self.error_message_share = "Debes seleccionar un calendario y escribir un nombre de usuario"
+            return
+
+        try:
+            user_state = await self.get_state(UserState)
+            if self.username_to_share.lower() == user_state.current_user.username.lower():
+                self.error_message_share = "No puedes compartir el calendario contigo mismo"
+                return
+
+            usuario_compartido = self.username_to_share  # Guarda antes de limpiar
+            success = await share_calendar_with_user(self.current_calendar, usuario_compartido)
+            if success:
+                for calendar in self.calendars:
+                    if calendar.id == self.current_calendar.id:
+                        calendar.shared_with = self.current_calendar.shared_with
+                        break
+                self.error_message_share = None
+                self.username_to_share = ""
+                # Devolver la toast de éxito
+                return rx.toast.success(
+                    f"Calendario compartido con {usuario_compartido}", position="top-center"
+                )
+            else:
+                self.error_message_share = "No se pudo compartir el calendario. Verifica el nombre de usuario."
+        except Exception as e:
+            self.error_message_share = f"Error: {str(e)}"
 
     @rx.var
     def calendar_title(self) -> str:

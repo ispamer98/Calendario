@@ -2,6 +2,7 @@ from calendar import Calendar
 import select
 import reflex as rx
 from Calendario.components.day_button import day_button
+from Calendario.components.calendar_sharer import calendar_sharer
 from Calendario.state.calendar_state import CalendarState
 from Calendario.state.user_state import UserState
 
@@ -122,6 +123,8 @@ def user_calendar() -> rx.Component:
                                     padding_top="2em"
                                 ),
                                 calendar_grid(),
+                                calendar_sharer(),
+
                                 spacing="4",
                                 align_items="center",  # Asegura que todo se alinee al centro
                             ),
