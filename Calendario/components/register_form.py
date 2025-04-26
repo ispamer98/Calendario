@@ -1,5 +1,7 @@
 # Calendario/components/register_form.py
 
+import datetime
+
 import reflex as rx
 from Calendario.state.register_state import RegisterState
 from Calendario.state.login_state import Login_state
@@ -49,7 +51,12 @@ def register_form() -> rx.Component:
         ),
         rx.cond(
             RegisterState.errors["username"] != "",
-            rx.text(RegisterState.errors["username"], color="#EF4444", size="2")
+            rx.text(RegisterState.errors["username"],
+            color="#EF4444", size="2",
+            white_space="pre-line",  # Permite saltos de línea y wrap
+            max_width=["85vw", "100%"],  # Limita el ancho en móviles
+            word_break="break-word",     # Rompe palabras largas si es necesario            
+            )
         ),
         spacing="2",
         width="100%"
@@ -75,7 +82,10 @@ def register_form() -> rx.Component:
             rx.text(
                 RegisterState.errors["password"],
                 size="2",
-                color="#EF4444"
+                color="#EF4444",
+                white_space="pre-line",  # Permite saltos de línea y wrap
+                max_width=["75vw", "100%"],  # Limita el ancho en móviles
+                word_break="break-word",     # Rompe palabras largas si es necesario
             )
         ),
         show_pasw_switch_register(),
@@ -97,7 +107,10 @@ def register_form() -> rx.Component:
             rx.text(
                 RegisterState.errors["confirm_password"],
                 size="2",
-                color="#EF4444"
+                color="#EF4444",
+                white_space="pre-line",  # Permite saltos de línea y wrap
+                max_width=["85vw", "100%"],  # Limita el ancho en móviles
+                word_break="break-word",     # Rompe palabras largas si es necesario
             )
         ),
         spacing="2",
@@ -124,7 +137,10 @@ def register_form() -> rx.Component:
             rx.text(
                 RegisterState.errors["email"],
                 size="2",
-                color="#EF4444"
+                color="#EF4444",
+                white_space="pre-line",  # Permite saltos de línea y wrap
+                max_width=["85vw", "100%"],  # Limita el ancho en móviles
+                word_break="break-word",     # Rompe palabras largas si es necesario
             )
         ),
         rx.input(
@@ -145,7 +161,10 @@ def register_form() -> rx.Component:
             rx.text(
                 RegisterState.errors["confirm_email"],
                 size="2",
-                color="#EF4444"
+                color="#EF4444",
+                white_space="pre-line",  # Permite saltos de línea y wrap
+                max_width=["85vw", "100%"],  # Limita el ancho en móviles
+                word_break="break-word",     # Rompe palabras largas si es necesario
             )
         ),
         spacing="4",
@@ -154,37 +173,50 @@ def register_form() -> rx.Component:
     
     birthday_field = rx.vstack(
         rx.center(rx.text("Fecha de Nacimiento", size="4", weight="medium")),
-        rx.hstack(
-            rx.input(
-                type="date",
-                size="3",
+        rx.vstack(
+            rx.hstack(
+
+
+                rx.input(
+                    type="date",
+                    size="3",
+                    width="100%",
+                    value=RegisterState.birthday,
+                    on_change=RegisterState.set_birthday,
+                    border=rx.cond(
+                        RegisterState.errors["birthday"] != "",
+                        "1px solid #EF4444", "1px solid #666666"),
+                    _focus={"border": "1px solid #3182CE"},
+                    required=True,
+                    min="1950-01-01",
+                    max=datetime.date.today().isoformat(),
+                ),
+                
+                rx.button(
+                    rx.icon("rotate-ccw"),
+                    on_click=rx.set_value("birthday", ""),
+                    background="transparent",
+                    _hover={"transform": "scale(1.2)"}
+                ),
                 width="100%",
-                value=RegisterState.birthday,
-                on_change=RegisterState.set_birthday,
-                border=rx.cond(
-                    RegisterState.errors["birthday"] != "",
-                    "1px solid #EF4444", "1px solid #666666"),
-                _focus={"border": "1px solid #3182CE"},
-                required=True
+                align="center"
             ),
             rx.cond(  # Mensaje error cumpleaños
                 RegisterState.errors["birthday"] != "",
                 rx.text(
                     RegisterState.errors["birthday"],
                     size="2",
-                    color="#EF4444"
+                    color="#EF4444",
+                    white_space="pre-line",  # Permite saltos de línea y wrap
+                    max_width=["85vw", "100%"],  # Limita el ancho en móviles
+                    word_break="break-word",     # Rompe palabras largas si es necesario
                 )
             ),
             
-            rx.button(
-                rx.icon("rotate-ccw"),
-                on_click=rx.set_value("birthday", ""),
-                background="transparent",
-                _hover={"transform": "scale(1.2)"}
-            ),
+            spacing="4",
             width="100%",
-            align="center"
         ),
+
         spacing="4",
         width="100%"
     )
