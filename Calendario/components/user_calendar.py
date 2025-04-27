@@ -135,7 +135,56 @@ def user_calendar() -> rx.Component:
                                     padding_top="2em"
                                 ),
                                 calendar_grid(),
-                                calendar_sharer(),
+                                rx.hstack(
+                                    calendar_sharer(),
+                                    rx.dialog.root(
+                                        rx.dialog.trigger(
+                                            rx.hstack(
+                                                rx.text("Eliminar"),
+                                                rx.icon(
+                                                    "calendar-off",
+                                                    color_scheme="red",
+                                                    variant="ghost",
+                                                ),
+                                                style={
+                                                    "_hover": {
+                                                        "color": "red",
+                                                        "transform": "scale(1.12)",
+                                                        "cursor": "pointer"
+                                                    }
+                                                },
+                                                margin_top="0.5em"
+                                            ),
+                                        ),
+                                        rx.dialog.content(
+                                            rx.dialog.title("Confirmar eliminación"),
+                                            rx.dialog.description(
+                                                "¿Estás seguro de querer eliminar este calendario y todos sus datos?"
+                                            ),
+                                            rx.flex(
+                                                rx.dialog.close(
+                                                    rx.button(
+                                                        "Cancelar",
+                                                        variant="soft",
+                                                        color_scheme="gray"
+                                                    ),
+                                                ),
+                                                rx.dialog.close(
+                                                    rx.button(
+                                                        "Eliminar",
+                                                        color_scheme="red",
+                                                        on_click=CalendarState.delete_calendar(CalendarState.current_calendar.id)
+                                                    ),
+                                                ),
+                                                spacing="3",
+                                                margin_top="2em",
+                                                justify="end"
+                                            )
+                                        )
+                                    ),
+                                    spacing= "7"
+                                ),
+                                
 
                                 spacing="4",
                                 align_items="center",  # Asegura que todo se alinee al centro

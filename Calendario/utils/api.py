@@ -92,3 +92,7 @@ async def get_user_by_id(user_id: int) -> Union[User, None]:
 
 async def get_shared_users(calendar_id: int) -> List[User]:
     return SUPABASE_API.load_shared_users(calendar_id)
+
+# Calendario/utils/api.py
+async def delete_calendar_and_days(calendar_id: int) -> bool:
+    return SUPABASE_API.delete_calendar(calendar_id)

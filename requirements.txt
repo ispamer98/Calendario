@@ -1,4 +1,4 @@
-reflex==0.7.7
+reflex==0.7.8
 dotenv
 supabase
 bcrypt>=4.0.1

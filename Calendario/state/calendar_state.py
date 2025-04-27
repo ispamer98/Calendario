@@ -6,7 +6,7 @@ from typing import Optional, List
 from Calendario.database.database import SupabaseAPI
 from Calendario.model.model import Day, Meal, Comment, Calendar, User
 from Calendario.state.user_state import UserState
-from Calendario.utils.api import get_shared_users,fetch_and_transform_calendars, get_all_meals, get_days_for_calendar, get_user_by_id, share_calendar_with_user
+from Calendario.utils.api import delete_calendar_and_days, get_shared_users,fetch_and_transform_calendars, get_all_meals, get_days_for_calendar, get_user_by_id, share_calendar_with_user
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 import pytz
@@ -45,10 +45,32 @@ class CalendarState(rx.State):
         else: 
             await self.set_current_calendar(self.current_calendar.id)
             await get_days_for_calendar(self.current_calendar.id)
+            await self.load_calendars()
 
             print("refresh funciona")
 
         
+    @rx.event
+    async def delete_calendar(self, calendar_id: int):
+        try:
+            success = await delete_calendar_and_days(calendar_id)
+            
+            if success:
+                # Actualizar lista de calendarios
+                self.calendars = [cal for cal in self.calendars if cal.id != calendar_id]
+                
+                # Resetear calendario actual si era el eliminado
+                if self.current_calendar and self.current_calendar.id == calendar_id:
+                    self.current_calendar = None
+                    self.days = []
+                    self.display_days = []
+                
+                return rx.toast.success("Calendario eliminado exitosamente", position="top-center")
+            else:
+                return rx.toast.error("Error eliminando el calendario", position="top-center")
+                
+        except Exception as e:
+            return rx.toast.error(f"Error: {str(e)}", position="top-center")
 
     @rx.event
     def open_calendar_sharer(self):

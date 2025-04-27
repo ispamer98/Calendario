@@ -393,30 +393,94 @@ class SupabaseAPI:
     # Calendario/database/database.py
     def load_shared_users(self, calendar_id: int) -> list[User]:
         try:
-            response = self.supabase.from_("calendars")\
-                .select("shared_with, owner_id")\
-                .eq("id", calendar_id)\
-                .execute()
+            response = (
+                self.supabase
+                    .from_("calendars")
+                    .select("shared_with, owner_id")
+                    .eq("id", calendar_id)
+                    .execute()
+            )
             
             if not response.data:
                 return []
                 
             calendar_data = response.data[0]
-            shared_users = []
+            shared_users: list[User] = []
             
-            # Obtener owner
+            # 1) Obtener owner
             owner = self.get_user_by_id(calendar_data["owner_id"])
             if owner:
                 shared_users.append(owner)
+            else:
+                return []  # si ni siquiera hay owner, devolvemos vacío
             
-            # Obtener usuarios compartidos
-            for user_id in calendar_data.get("shared_with", []):
+            # 2) Normalizar shared_with: si es None, lo convertimos en lista vacía
+            shared_with_ids = calendar_data.get("shared_with") or []
+            
+            # 3) Iterar solo si hay IDs
+            for user_id in shared_with_ids:
+                # evitamos volver a agregar al owner por si acaso
+                if user_id == owner.id:
+                    continue
+
                 user = self.get_user_by_id(user_id)
-                if user and user.id != owner.id:
+                if user:
                     shared_users.append(user)
-                    
+                        
             return shared_users
 
         except Exception as e:
             print(f"Error obteniendo usuarios compartidos: {e}")
             return []
+
+    
+    def delete_calendar(self, calendar_id: int) -> bool:
+        try:
+            # 1) Recuperar todos los IDs de días vinculados al calendario
+            days_resp = (
+                self.supabase
+                    .table("days")
+                    .select("id")
+                    .eq("calendar_id", calendar_id)
+                    .execute()
+            )
+            day_ids = [row["id"] for row in (days_resp.data or [])]
+
+            # 2) Si hay días, eliminar sus comentarios asociados
+            if day_ids:
+                delete_comments_resp = (
+                    self.supabase
+                        .table("comments")
+                        .delete()
+                        .in_("day_id", day_ids)
+                        .execute()
+                )
+                # Opcional: informar si no se encontraron comentarios
+                if delete_comments_resp.count == 0:
+                    print(f"No se encontraron comentarios para los días del calendario {calendar_id}")
+
+            # 3) Eliminar todos los días del calendario
+            delete_days_resp = (
+                self.supabase
+                    .table("days")
+                    .delete()
+                    .eq("calendar_id", calendar_id)
+                    .execute()
+            )
+            if delete_days_resp.count == 0:
+                print(f"No se encontraron días para el calendario {calendar_id}")
+
+            # 4) Eliminar el propio calendario
+            delete_cal_resp = (
+                self.supabase
+                    .table("calendars")
+                    .delete()
+                    .eq("id", calendar_id)
+                    .execute()
+            )
+            # Si data trae al menos un elemento, la eliminación fue exitosa
+            return bool(delete_cal_resp.data)
+
+        except Exception as e:
+            print(f"Error eliminando calendario (id={calendar_id}): {e}")
+            return False
