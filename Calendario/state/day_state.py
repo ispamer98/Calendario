@@ -41,6 +41,8 @@ class DayState(rx.State):
     @rx.event
     def close_comment_input(self):
         self.show_comment_input = False
+        self.new_comment_text=""
+        
 
     @rx.event
     def set_new_comment_text(self, value: str):

@@ -31,6 +31,7 @@ def calendar_sharer() -> rx.Component:
                 variant="soft", 
                 size="3",
                 _hover={"transform": "scale(1.05)"},
+                on_click=CalendarState.load_shared_users
                 
             )
         ),
@@ -105,7 +106,7 @@ def calendar_sharer() -> rx.Component:
             border="1px solid var(--slate-6)",
             box_shadow="xl"
         ),
-        on_mount=CalendarState.load_shared_users,
+        
         open=CalendarState.show_calendar_sharer,
         on_open_change=lambda opened: (
             rx.cond(

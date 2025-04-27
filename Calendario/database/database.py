@@ -9,7 +9,7 @@ from supabase import create_client, Client
 import logging
 from Calendario.model.model import Calendar,Day,Meal,Comment,User
 from datetime import datetime, timedelta
-from dateutil.relativedelta import relativedelta
+
 
 logging.basicConfig(level=logging.INFO)
 
@@ -390,11 +390,33 @@ class SupabaseAPI:
             return None
         
 
-    def load_shared_users(self,calendar_id: int, ) -> Union[User, None]:
+    # Calendario/database/database.py
+    def load_shared_users(self, calendar_id: int) -> list[User]:
         try:
-            response = self.supabase.from_("calendars").select("*").eq("calendar_id",calendar_id).execute()
-            return 
+            response = self.supabase.from_("calendars")\
+                .select("shared_with, owner_id")\
+                .eq("id", calendar_id)\
+                .execute()
+            
+            if not response.data:
+                return []
+                
+            calendar_data = response.data[0]
+            shared_users = []
+            
+            # Obtener owner
+            owner = self.get_user_by_id(calendar_data["owner_id"])
+            if owner:
+                shared_users.append(owner)
+            
+            # Obtener usuarios compartidos
+            for user_id in calendar_data.get("shared_with", []):
+                user = self.get_user_by_id(user_id)
+                if user and user.id != owner.id:
+                    shared_users.append(user)
+                    
+            return shared_users
 
         except Exception as e:
             print(f"Error obteniendo usuarios compartidos: {e}")
-            return None
+            return []

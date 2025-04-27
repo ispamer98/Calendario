@@ -6,7 +6,7 @@ from typing import Optional, List
 from Calendario.database.database import SupabaseAPI
 from Calendario.model.model import Day, Meal, Comment, Calendar, User
 from Calendario.state.user_state import UserState
-from Calendario.utils.api import fetch_and_transform_calendars, get_all_meals, get_days_for_calendar, get_user_by_id, share_calendar_with_user
+from Calendario.utils.api import get_shared_users,fetch_and_transform_calendars, get_all_meals, get_days_for_calendar, get_user_by_id, share_calendar_with_user
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 import pytz
@@ -54,6 +54,7 @@ class CalendarState(rx.State):
     def open_calendar_sharer(self):
         self.show_calendar_sharer = True
         self.error_message = None
+        self.username_to_share = ""
         
 
     @rx.event
@@ -102,23 +103,18 @@ class CalendarState(rx.State):
     async def load_shared_users(self):
         if not self.current_calendar:
             return
-        
-        # Obtener owner
-        owner = await get_user_by_id(self.current_calendar.owner_id)
-        self.owner_username = owner.username if owner else "Propietario"
-        
-        # Obtener usuarios compartidos
-        shared_users = []
-        if self.current_calendar.shared_with and self.current_calendar.shared_with:
-            for user_id in self.current_calendar.shared_with:
-                user = await get_user_by_id(user_id)
-                if user:
-                    shared_users.append(user)
-                    print("---------------------------------------\nUsuario",user.username)
-            self.shared_users = shared_users
-        else:
+            
+        try:
+            users = await get_shared_users(self.current_calendar.id)
+            if users:
+                self.owner_username = users[0].username
+                self.shared_users = users[1:] if len(users) > 1 else []
+            else:
+                self.shared_users = []
+                
+        except Exception as e:
+            print(f"Error cargando usuarios compartidos: {e}")
             self.shared_users = []
-        print(self.owner_username,"Propietario\n",)
 
     @rx.var
     def calendar_title(self) -> str:
@@ -181,7 +177,7 @@ class CalendarState(rx.State):
                     # Crear lista de días con espacios vacíos
                     self.display_days = [None] * first_weekday + self.days
                     self.update_current_date()
-                    await self.load_shared_users()
+                    
                     
                     return
         except ValueError:

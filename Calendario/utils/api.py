@@ -89,3 +89,6 @@ async def update_comments_flag(day_id: int, has_comments: bool) -> bool:
 
 async def get_user_by_id(user_id: int) -> Union[User, None]:
     return SUPABASE_API.get_user_by_id(user_id)
+
+async def get_shared_users(calendar_id: int) -> List[User]:
+    return SUPABASE_API.load_shared_users(calendar_id)
