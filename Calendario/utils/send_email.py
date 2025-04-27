@@ -3,11 +3,18 @@ import os
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.mime.image import MIMEImage
+import dotenv
+from importlib.resources import files
 
-SMTP_SERVER = "smtp.gmail.com"  # O el servidor que uses (ej: smtp.office365.com, etc)
-SMTP_PORT = 587
-SMTP_USER = "verificacionespython@gmail.com"  # Cambiar por tu correo
-SMTP_PASSWORD = "cmblnedixejwrqag"  # Cambiar por tu contraseña o token de app
+from Calendario import static
+
+
+dotenv.load_dotenv()
+
+SMTP_SERVER = os.environ.get("SMTP_SERVER")  # O el servidor que uses (ej: smtp.office365.com, etc)
+SMTP_PORT = os.environ.get("SMTP_PORT")
+SMTP_USER = os.environ.get("SMTP_USER")  # Cambiar por tu correo
+SMTP_PASSWORD = os.environ.get("SMTP_PASSWORD")  # Cambiar por tu contraseña o token de app
 def send_welcome_email(email, username):
     # Configuración del servidor SMTP
 
@@ -63,8 +70,8 @@ def send_welcome_email(email, username):
     parte_html = MIMEText(html, 'html')
     mensaje.attach(parte_html)
 
-    # Cargar y adjuntar imagen (cambiar la ruta de tu imagen)
-    with open('assets/logo.png', 'rb') as img_file:
+    logo_path = files(static) / "logo.png"
+    with open(logo_path, "rb") as img_file:
         img = MIMEImage(img_file.read())
         img.add_header('Content-ID', '<logo>')
         mensaje.attach(img)
@@ -147,7 +154,8 @@ def send_password_reset_email(email: str, reset_link: str):
 
     # 2) Adjuntar el logo inline
     try:
-        with open("assets/logo.png", "rb") as img_file:
+        logo_path = files(static) / "logo.png"
+        with open(logo_path, "rb") as img_file:
             img = MIMEImage(img_file.read())
             img.add_header("Content-ID", "<logo>")
             img.add_header("Content-Disposition", "inline", filename="logo.png")
