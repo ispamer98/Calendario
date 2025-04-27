@@ -54,7 +54,6 @@ class CalendarState(rx.State):
     def open_calendar_sharer(self):
         self.show_calendar_sharer = True
         self.error_message = None
-        self.load_shared_users()
         
 
     @rx.event
@@ -85,6 +84,7 @@ class CalendarState(rx.State):
             success, message = await share_calendar_with_user(self.current_calendar, self.username_to_share)
             
             if success:
+                
                 # Éxito: limpiar input y cerrar diálogo
                 self.username_to_share = ""
                 self.close_calendar_sharer()
@@ -109,15 +109,17 @@ class CalendarState(rx.State):
         
         # Obtener usuarios compartidos
         shared_users = []
-        if self.current_calendar.shared_with:
+        if self.current_calendar.shared_with and self.current_calendar.shared_with:
             for user_id in self.current_calendar.shared_with:
                 user = await get_user_by_id(user_id)
                 if user:
                     shared_users.append(user)
+                    print("---------------------------------------\nUsuario",user.username)
             self.shared_users = shared_users
         else:
             self.shared_users = []
         print(self.owner_username,"Propietario\n",)
+
     @rx.var
     def calendar_title(self) -> str:
         if self.current_calendar and self.current_calendar.start_date:

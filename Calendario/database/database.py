@@ -390,5 +390,11 @@ class SupabaseAPI:
             return None
         
 
+    def load_shared_users(self,calendar_id: int, ) -> Union[User, None]:
+        try:
+            response = self.supabase.from_("calendars").select("*").eq("calendar_id",calendar_id).execute()
+            return 
 
-
+        except Exception as e:
+            print(f"Error obteniendo usuarios compartidos: {e}")
+            return None
