@@ -4,6 +4,8 @@ from Calendario.pages.index import index
 from Calendario.pages.login import login
 from Calendario.pages.register import register
 from Calendario.pages.calendar import calendar
+from Calendario.pages.forgot_pasword import forgot_password
+from Calendario.pages.reset_pasword import reset_password
 
 
 import reflex as rx

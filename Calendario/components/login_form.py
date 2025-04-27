@@ -129,7 +129,7 @@ def login_form() -> rx.Component:
                         ),
                         rx.link(
                             "¿Has olvidado la contraseña?",
-                            href="/recovery_pasw",
+                            href="/forgot_password",
                             size="3",
                         ),
                     ),
