@@ -86,3 +86,6 @@ async def update_comments_flag(day_id: int, has_comments: bool) -> bool:
     if has_comments:
         return SUPABASE_API.update_day_comments_flag(day_id)
     return SUPABASE_API.update_day_comments_false(day_id)
+
+async def get_user_by_id(user_id: int) -> Union[User, None]:
+    return SUPABASE_API.get_user_by_id(user_id)

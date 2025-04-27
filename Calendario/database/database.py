@@ -380,3 +380,15 @@ class SupabaseAPI:
         except Exception as e:
             print(f"Error al compartir calendario: {e}")
             return False, "Error interno al compartir el calendario"
+        
+    def get_user_by_id(self, user_id: int) -> Union[User, None]:
+        try:
+            response = self.supabase.from_("user").select("*").eq("id", user_id).execute()
+            return User(**response.data[0]) if response.data else None
+        except Exception as e:
+            print(f"Error obteniendo usuario: {e}")
+            return None
+        
+
+
+
