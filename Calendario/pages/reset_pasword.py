@@ -3,98 +3,139 @@ import reflex as rx
 from Calendario.components.footer import footer
 from Calendario.state.password_reset_state import PasswordResetState
 
-@rx.page(route="/reset_password", title="Nueva contraseña | CalendPy", on_load=PasswordResetState.on_load)
+# Reset Password Page
+@rx.page(route="/reset_password", title="Crear nueva contraseña | CalendPy", on_load=PasswordResetState.on_load)
 @footer
 def reset_password() -> rx.Component:
-    # Botón de volver al login en móvil y desktop
-    back_button = rx.box(
-        rx.mobile_only(
-            rx.button(
-                rx.icon("arrow-left", size=18),
-                on_click=rx.redirect("/login"),
-                variant="soft",
-                color_scheme="blue",
-                size="2",
-                radius="full",
-                _hover={"transform": "scale(1.05)"},
-                style={"position": "fixed", "left": "1.5rem", "top": "1.5rem"},
-            )
-        ),
-        rx.tablet_and_desktop(
-            rx.button(
-                rx.icon("arrow-left", size=18),
-                "Login",
-                on_click=rx.redirect("/login"),
-                variant="soft",
-                color_scheme="blue",
-                size="2",
-                radius="full",
-                _hover={"transform": "scale(1.05)"},
-                style={"position": "fixed", "left": "1.5rem", "top": "1.5rem"},
-            )
-        ),
-        z_index="1000"
-    )
-
-    # Formulario de nueva contraseña
-    form = rx.vstack(
-        rx.heading(
-            "Reestablecer contraseña",
-            size="6",
-            text_align="center",
-            margin_top=["2em", "10em"],
-        ),
-        rx.input(
-            rx.input.slot(rx.icon("lock")),
-            placeholder="Nueva contraseña",
-            type="password",
-            size="3",
-            width=["100%","40%"],
-            value=PasswordResetState.new_password,
-            on_change=PasswordResetState.set_new_password,
-        ),
-        rx.input(
-            rx.input.slot(rx.icon("lock")),
-            placeholder="Confirmar nueva contraseña",
-            type="password",
-            size="3",
-            width=["100%","40%"],
-            value=PasswordResetState.confirm_password,
-            on_change=PasswordResetState.set_confirm_password,
-        ),
-        rx.button(
-            rx.icon("check", size=18),
-            "Actualizar contraseña",
-            size="3",
-            variant="surface",
-            color_scheme="blue",
-            radius="full",
-            width=["90%", "40%"],
-            is_loading=PasswordResetState.loading,
-            on_click=PasswordResetState.update_password,
-            _hover={"transform": "scale(1.05)"},
-        ),
-        rx.hstack(
-            rx.text("¿Ya recuerdas tu contraseña?", size="3"),
-            rx.link(
-                "Inicia sesión",
-                on_click=rx.redirect("/login"),
-                size="3",
+    return rx.center(
+        rx.container(
+            # Back button identical to login_form
+            rx.box(
+                rx.mobile_only(
+                    rx.button(
+                        rx.icon("arrow-left", size=18),
+                        on_click=rx.redirect("/"),
+                        variant="soft",
+                        color_scheme="blue",
+                        size="2",
+                        radius="full",
+                        _hover={"transform": "scale(1.05)"},
+                        style={"position": "fixed", "left": "1.5rem", "top": "1.5rem"},
+                    )
+                ),
+                rx.tablet_and_desktop(
+                    rx.button(
+                        rx.icon("arrow-left", size=18),
+                        "Inicio",
+                        on_click=rx.redirect("/"),
+                        variant="soft",
+                        color_scheme="blue",
+                        size="2",
+                        radius="full",
+                        _hover={"transform": "scale(1.05)"},
+                        style={"position": "fixed", "left": "1.5rem", "top": "1.5rem"},
+                    )
+                ),
+                z_index="1000",
             ),
-            justify="center",
-            opacity="0.8",
-        ),
-        spacing="6",
-        width="100%",
-        align="center",
-        min_height="85vh",
-        position="relative",
-    )
 
-    return rx.container(
-        back_button,
-        form,
-        padding="2em",
-        height="100%",
-        class_name="reset-password-container",
+            rx.vstack(
+                # Title section
+                rx.center(
+                    rx.heading(
+                        "Crear nueva contraseña",
+                        size="6",
+                        as_="h2",
+                        text_align="center",
+                        width="100%",
+                    ),
+                    direction="column",
+                    spacing="5",
+                    width="100%",
+                ),
+
+                # New password field
+                rx.vstack(
+                    rx.text(
+                        "Nueva contraseña",
+                        size="3",
+                        weight="medium",
+                        width="100%",
+                        text_align="left",
+                    ),
+                    rx.input(
+                        rx.input.slot(rx.icon("lock")),
+                        placeholder="Nueva contraseña",
+                        type="password",
+                        size="3",
+                        width="100%",
+                        value=PasswordResetState.new_password,
+                        on_change=PasswordResetState.set_new_password,
+                    ),
+                    spacing="2",
+                    width="100%",
+                ),
+
+                # Confirm password field
+                rx.vstack(
+                    rx.text(
+                        "Confirmar contraseña",
+                        size="3",
+                        weight="medium",
+                        width="100%",
+                        text_align="left",
+                    ),
+                    rx.input(
+                        rx.input.slot(rx.icon("lock")),
+                        placeholder="Confirmar contraseña",
+                        type="password",
+                        size="3",
+                        width="100%",
+                        value=PasswordResetState.confirm_password,
+                        on_change=PasswordResetState.set_confirm_password,
+                    ),
+                    spacing="2",
+                    width="100%",
+                ),
+
+                # Submit button
+                rx.button(
+                    rx.icon("check", size=18),
+                    "Cambiar contraseña",
+                    size="3",
+                    variant="surface",
+                    color_scheme="blue",
+                    radius="full",
+                    _hover={"transform": "scale(1.05)"},
+                    on_click=PasswordResetState.update_password,
+                    is_loading=PasswordResetState.loading,
+                    width="100%",
+                ),
+
+                # Link to login
+                rx.center(
+                    rx.vstack(
+                        rx.hstack(
+                            rx.text("¿Ya recuerdas tu contraseña?", size="3"),
+                            rx.link(
+                                "Inicia sesión",
+                                on_click=rx.redirect("/login"),
+                                size="3",
+                            ),
+                        ),
+                    ),
+                    opacity="0.8",
+                    spacing="2",
+                    width="100%",
+                ),
+
+                spacing="6",
+                width="100%",
+            ),
+
+            max_width="28em",
+            padding="2em",
+        ),
+        width="100%",
+        padding_top="4em",
     )

@@ -53,7 +53,7 @@ class PasswordResetState(rx.State):
                 "used": False,
             }).execute()
 
-            reset_link = f"http://localhost:3000/reset_password?token={token}"
+            reset_link = f"https://calendario-red-ocean.reflex.run/reset_password?token={token}"
             send_password_reset_email(self.email, reset_link)
             return rx.toast.success("Enlace de recuperación enviado a tu correo.", position="top-center")
 
