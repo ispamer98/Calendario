@@ -39,7 +39,7 @@ def reset_password() -> rx.Component:
     # Formulario de nueva contraseña
     form = rx.vstack(
         rx.heading(
-            "Establecer nueva contraseña",
+            "Reestablecer contraseña",
             size="6",
             text_align="center",
             margin_top=["2em", "10em"],
@@ -49,7 +49,7 @@ def reset_password() -> rx.Component:
             placeholder="Nueva contraseña",
             type="password",
             size="3",
-            width="100%",
+            width=["100%","40%"],
             value=PasswordResetState.new_password,
             on_change=PasswordResetState.set_new_password,
         ),
@@ -58,7 +58,7 @@ def reset_password() -> rx.Component:
             placeholder="Confirmar nueva contraseña",
             type="password",
             size="3",
-            width="100%",
+            width=["100%","40%"],
             value=PasswordResetState.confirm_password,
             on_change=PasswordResetState.set_confirm_password,
         ),
@@ -69,7 +69,7 @@ def reset_password() -> rx.Component:
             variant="surface",
             color_scheme="blue",
             radius="full",
-            width=["90%", "50%"],
+            width=["90%", "40%"],
             is_loading=PasswordResetState.loading,
             on_click=PasswordResetState.update_password,
             _hover={"transform": "scale(1.05)"},

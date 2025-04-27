@@ -21,109 +21,117 @@ class PasswordResetState(rx.State):
         # Obtener token de la URL
         self.token = self.router.page.params.get("token", "")
 
+    @rx.event
     async def send_reset_link(self):
         self.general_error = ""
         self.success_message = ""
         if not self.email:
-            self.general_error = "Por favor, ingresa tu correo electrónico."
-            return
+            return rx.toast.error("Por favor, ingresa tu correo electrónico.", position="top-center")
+
         self.loading = True
         try:
-            # Verificar si el email existe
-            user_resp = SupabaseAPI().supabase \
-                .from_("user") \
-                .select("*") \
-                .eq("email", self.email) \
+            supabase = SupabaseAPI().supabase
+            # Si falla, .execute() lanza APIError
+            user_resp = (
+                supabase
+                .table("user")
+                .select("*")
+                .eq("email", self.email)
+                .single()
                 .execute()
+            )
+            # Aquí user_resp.data es None si no hay registro
             if not user_resp.data:
-                self.general_error = "No existe una cuenta con este correo."
-                return
+                return rx.toast.error("No existe una cuenta con este correo.", position="top-center")
 
-            # Generar token y guardarlo
             token = str(uuid.uuid4())
             expires_at = (datetime.now(timezone.utc) + timedelta(hours=1)).isoformat()
-            SupabaseAPI().supabase \
-                .from_("password_reset_tokens") \
-                .insert({
-                    "email": self.email,
-                    "token": token,
-                    "expires_at": expires_at,
-                    "used": False
-                }) \
-                .execute()
+            supabase.table("password_reset_tokens").insert({
+                "email": self.email,
+                "token": token,
+                "expires_at": expires_at,
+                "used": False,
+            }).execute()
 
-            # Enviar correo
             reset_link = f"http://localhost:3000/reset_password?token={token}"
             send_password_reset_email(self.email, reset_link)
-            self.success_message = "Enlace de recuperación enviado a tu correo."
+            return rx.toast.success("Enlace de recuperación enviado a tu correo.", position="top-center")
+
         except Exception as e:
-            self.general_error = f"Error: {str(e)}"
+            # Captura APIError u otras excepciones
+            return rx.toast.error(f"Error al buscar usuario o generar token: {e}", position="top-center")
         finally:
             self.loading = False
-
+    @rx.event
     async def update_password(self):
-        # Limpiar mensajes de error anteriores
-        self.password_error = ""
-        self.confirm_password_error = ""
-        self.general_error = ""
-        self.success_message = ""
+        supabase = SupabaseAPI().supabase
 
-        # Validar que las contraseñas coincidan
+        # Validaciones previas...
         if self.new_password != self.confirm_password:
-            self.confirm_password_error = "Las contraseñas no coinciden."
-            return
-
-        # Validar la fortaleza de la contraseña
+            return rx.toast.error("Las contraseñas no coinciden.", position="top-center")
+        
         pattern = r'^(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$'
         if not re.match(pattern, self.new_password):
-            self.password_error = "La contraseña debe tener mínimo 8 caracteres, al menos 1 mayúscula, 1 número y 1 carácter especial."
-            return
+            return rx.toast.error(
+                "La contraseña debe tener mínimo 8 caracteres, al menos 1 mayúscula, 1 número y 1 carácter especial.",
+                position="top-center",
+            )
 
         try:
-            # Obtener token de la base de datos
-            token_resp = SupabaseAPI().supabase \
-                .from_("password_reset_tokens") \
-                .select("*") \
-                .eq("token", self.token) \
+            # Obtener token
+            token_resp = (
+                supabase
+                .table("password_reset_tokens")
+                .select("email, expires_at, used")
+                .eq("token", self.token)
+                .single()
                 .execute()
+            )
+            if not token_resp.data:
+                return rx.toast.error("Enlace inválido o expirado.", position="top-center")
+            
+            if token_resp.data["used"]:
+                return rx.toast.error("Este enlace ya fue utilizado.", position="top-center")
+            
+            expires_at = datetime.fromisoformat(token_resp.data["expires_at"])
+            if datetime.now(timezone.utc) > expires_at:
+                return rx.toast.error("El enlace ha expirado.", position="top-center")
 
-            token_data = token_resp.data
-            if not token_data:
-                self.general_error = "Enlace inválido."
-                return
+            # Obtener contraseña actual del usuario
+            user_resp = (
+                supabase
+                .table("user")
+                .select("pasw")
+                .eq("email", token_resp.data["email"])
+                .single()
+                .execute()
+            )
+            current_hashed_pw = user_resp.data["pasw"]
 
-            token_info = token_data[0]
-
-            # Comprobar expiración del token
-            expires = datetime.fromisoformat(token_info["expires_at"])
-            now_utc = datetime.now(timezone.utc)
-            if token_info["used"] or expires < now_utc:
-                self.general_error = "El enlace ha expirado."
-                return
+            # Verificar si la nueva contraseña es igual a la actual
+            if bcrypt.checkpw(self.new_password.encode(), current_hashed_pw.encode()):
+                return rx.toast.error("La nueva contraseña no puede ser igual a la actual.", position="top-center")
 
             # Hashear y actualizar contraseña
-            hashed = bcrypt.hashpw(self.new_password.encode(), bcrypt.gensalt()).decode()
-            update_resp = SupabaseAPI().supabase \
-                .from_("user") \
-                .update({"pasw": hashed}) \
-                .eq("email", token_info["email"]) \
+            new_hashed_pw = bcrypt.hashpw(self.new_password.encode(), bcrypt.gensalt()).decode()
+            update_resp = (
+                supabase
+                .table("user")
+                .update({"pasw": new_hashed_pw})
+                .eq("email", token_resp.data["email"])
                 .execute()
-
-            # Verificar si la actualización fue exitosa
-            if not update_resp.data:
-                self.general_error = "No se pudo actualizar la contraseña."
-                return
+            )
 
             # Marcar token como usado
-            SupabaseAPI().supabase \
-                .from_("password_reset_tokens") \
+            supabase.table("password_reset_tokens") \
                 .update({"used": True}) \
                 .eq("token", self.token) \
                 .execute()
 
-            # Notificar éxito y redirigir al login
-            self.success_message = "Contraseña actualizada correctamente."
-            return rx.redirect("/login")
+            return [
+                rx.toast.success("Contraseña actualizada correctamente.", position="top-center"),
+                rx.redirect("/login"),
+            ]
 
         except Exception as e:
-            self.general_error = f"Error: {str(e)}"
+            return rx.toast.error(f"Error en actualización: {str(e)}", position="top-center")
