@@ -6,7 +6,7 @@ from Calendario.components.user_calendar import user_calendar
 from Calendario.state.calendar_state import CalendarState
 from Calendario.components.user_navbar import user_navbar
 from Calendario.state.user_state import UserState
-
+from Calendario.components.today_box import today_box
 def toast(): 
     return rx.toast(title=CalendarState.toast_info, position="top-center")
 

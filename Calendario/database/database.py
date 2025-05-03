@@ -5,6 +5,7 @@ import bcrypt
 import os
 import dotenv
 from typing import Union,List,Optional
+import pytz
 from supabase import create_client, Client
 import logging
 from Calendario.model.model import Calendar,Day,Meal,Comment,User
@@ -207,7 +208,6 @@ class SupabaseAPI:
     def get_all_meals(self) -> list[Meal]:
         try:
             response = self.supabase.from_("meals").select("*").execute()
-            print("COMIDAS TOTALES! EN DATABASE!",response.data)
             return [Meal(**meal) for meal in response.data]
         except Exception as e:
             print(f"Error obteniendo comidas: {e}")
@@ -251,7 +251,6 @@ class SupabaseAPI:
                 .order("created_at", desc=False)  # Cambiar a ascendente para ver nuevos primero
                 .execute()
             )
-            print("Respuesta de Supabase:", response.data)  # Debug
             return [
                 Comment(
                     id=comment['id'],
@@ -484,3 +483,69 @@ class SupabaseAPI:
         except Exception as e:
             print(f"Error eliminando calendario (id={calendar_id}): {e}")
             return False
+
+
+    def get_today_info(self, user_id: int) -> list[dict]:
+        try:
+            # Obtener fecha actual en Madrid
+            madrid_tz = pytz.timezone('Europe/Madrid')
+            today = datetime.now(madrid_tz).replace(hour=0, minute=0, second=0, microsecond=0)
+            today_str = today.isoformat()
+
+            # Obtener calendarios del usuario
+            calendars = self.get_calendars(user_id)
+            if not calendars:
+                return []
+
+            results = []
+
+            # Buscar en todos los calendarios
+            for calendar in calendars:
+                # Verificar si la fecha está dentro del rango
+                start_date = calendar.start_date
+                end_date = calendar.end_date
+
+                if start_date.tzinfo is None:
+                    start_date = madrid_tz.localize(start_date)
+                if end_date.tzinfo is None:
+                    end_date = madrid_tz.localize(end_date)
+
+                if start_date <= today <= end_date:
+                    # Buscar el día correspondiente
+                    day_response = (
+                        self.supabase.from_("days")
+                        .select("*")
+                        .eq("calendar_id", calendar.id)
+                        .eq("date", today_str)
+                        .execute()
+                    )
+
+                    if day_response.data:
+                        day_data = day_response.data[0]
+                        day = Day(
+                            id=day_data['id'],
+                            calendar_id=day_data['calendar_id'],
+                            date=datetime.fromisoformat(day_data['date'].replace('Z', '+00:00')),
+                            meal=day_data['meal'],
+                            dinner=day_data['dinner'],
+                            comments=day_data['comments']
+                        )
+
+                        # Obtener comentarios
+                        comments = self.get_comments_for_day(day.id)
+
+                        results.append({
+                            "calendar_name": calendar.name,
+                            "meal": day.meal,
+                            "dinner": day.dinner,
+                            "comments": [{
+                                "content": c.content,
+                                "username": c.user.username
+                            } for c in comments]
+                        })
+
+            return results
+
+        except Exception as e:
+            print(f"Error obteniendo información del día actual: {e}")
+            return []

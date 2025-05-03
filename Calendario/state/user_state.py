@@ -2,11 +2,23 @@
 
 import reflex as rx
 import time
-from typing import Optional
+from typing import Optional,Any
 from Calendario.model.model import User
-from Calendario.utils.api import authenticate_user
+from Calendario.utils.api import authenticate_user,get_today_info
 from datetime import datetime
 import json
+
+from typing import TypedDict
+
+class Comment(TypedDict):
+    username: str
+    content: str
+
+class CalendarInfo(TypedDict):
+    calendar_name: str
+    meal: str
+    dinner: str
+    comments: list[Comment]
 
 class UserState(rx.State):
     """
@@ -19,6 +31,12 @@ class UserState(rx.State):
     username: str = ""  # Guarda el nombre de usuario ingresado
     password: str = ""  # Guarda la contraseña ingresada
     current_user: Optional[User] = None  # Mantiene al usuario autenticado
+    today_data: list[CalendarInfo] = []
+    @rx.event
+    async def today_info(self):
+        self.today_data = await get_today_info(self.current_user.id) if self.current_user else []
+    
+        print("TODAY DATAAAAAAAAAAAAAAAAA",self.today_data)
 
     @rx.event
     def press_enter(self, key: str):

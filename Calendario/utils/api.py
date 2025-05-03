@@ -96,3 +96,6 @@ async def get_shared_users(calendar_id: int) -> List[User]:
 # Calendario/utils/api.py
 async def delete_calendar_and_days(calendar_id: int) -> bool:
     return SUPABASE_API.delete_calendar(calendar_id)
+
+async def get_today_info(user_id: int) -> Optional[dict]:
+    return SUPABASE_API.get_today_info(user_id)

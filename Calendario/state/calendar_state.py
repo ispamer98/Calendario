@@ -252,8 +252,6 @@ class CalendarState(rx.State):
     @rx.event
     async def load_calendars(self):
         self.loading = True  # Activa el loader al iniciar la carga
-        print("EN CALENDAR STATE LOAD  CALENDARS")
-
         try:
             user_state = await self.get_state(UserState)
             user_id = user_state.current_user.id
@@ -267,7 +265,6 @@ class CalendarState(rx.State):
             calendars = await fetch_and_transform_calendars(user_id)
             if calendars:
                 self.calendars = calendars
-                print(f"Calendarios cargados: {[f'ID: {cal.id}, Nombre: {cal.name}, Propietario ID: {cal.owner_id}, Compartido con: {cal.shared_with}, Creado en: {cal.created_at}' for cal in self.calendars]}")
                 
             self.loading = False  # Desactiva el loader solo después de cargar
 
