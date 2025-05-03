@@ -148,7 +148,7 @@ class CalendarState(rx.State):
             ]
             mes = meses[self.current_calendar.start_date.month - 1]
             año = self.current_calendar.start_date.year
-            return f"Calendario de {mes} del {año}"
+            return f" Calendario de {mes} del {año}"
         return ""
     
 

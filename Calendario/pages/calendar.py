@@ -69,12 +69,17 @@ def calendar() -> rx.Component:
                                         margin_left="-1em",  # O ajusta el valor según lo que necesites
                                         margin_rigth="1em"
                                     ),
+                                    rx.box(
+                                        rx.divider(),
+                                        width="100%",  # asegura que ocupe todo el ancho
+                                        margin_bottom="1em"
+                                    ),
                                     rx.cond(
                                         UserState.today_data.length() > 0,
                                         today_box()
                                     ),
                                     align_items="flex-start",
-                                    spacing="1",
+                                    spacing="2",
                                 )
                             ),
                         ),
