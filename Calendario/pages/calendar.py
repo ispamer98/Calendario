@@ -1,3 +1,6 @@
+# File: Calendario/pages/calendar.py
+
+from turtle import right, width
 import reflex as rx
 from Calendario.components.footer import footer
 from Calendario.components.meal_editor import meal_editor
@@ -7,69 +10,123 @@ from Calendario.state.calendar_state import CalendarState
 from Calendario.components.user_navbar import user_navbar
 from Calendario.state.user_state import UserState
 from Calendario.components.today_box import today_box
-def toast(): 
-    return rx.toast(title=CalendarState.toast_info, position="top-center")
 
-@rx.page(route="/calendar",
-         title="Calendario | CalendPy",
-         on_load=[CalendarState.reset_calendars,
-                                     CalendarState.clean,
-                                     UserState.on_load,
-                                     CalendarState.load_meals,
-                                     UserState.check_autenticated,
-                                     
-                                     ])
+
+@rx.page(
+    route="/calendar",
+    title="Calendario | CalendPy",
+    on_load=[
+        CalendarState.reset_calendars,
+        CalendarState.clean,
+        UserState.on_load,
+        CalendarState.load_meals,
+        UserState.check_autenticated,
+    ],
+)
 def calendar() -> rx.Component:
     return rx.vstack(
+        # ─── Navbar superior y editor de comidas ───
         user_navbar(),
         meal_editor(),
+
+        # ─── Contenedor principal ───
         rx.container(
-            rx.vstack(
+            rx.cond(
+                # 1) Usuario autenticado
+                UserState.current_user,
+
+                # 2) Tienes calendarios creados
                 rx.cond(
-                    UserState.current_user,
+                    CalendarState.calendars.length() > 0,
+
+                    # 3) Hay un calendario seleccionado
                     rx.cond(
-                        CalendarState.calendars,
-                        user_calendar(),
-                        
+                        CalendarState.current_calendar,
+
+                        # ── Layout cuando hay calendario seleccionado ──
+                        rx.fragment(
+                            # 🖥️ Desktop: calendario + today_box a la derecha
+                            rx.tablet_and_desktop(
+                                rx.hstack(
+                                    user_calendar(),
+                                    rx.cond(
+                                        UserState.today_data.length() > 0,
+                                        rx.box(
+                                            today_box(),
+                                            margin_left="5em",   # Ajusta para separar más a la derecha
+                                            margin_top="2em",    # Ajusta para más espacio arriba
+                                        )
+                                    ),
+                                    spacing="4",
+                                    align_items="flex-start",
+                                )
+                            ),
+                            # 📱 Móvil: calendario  + botones (ya dentro de user_calendar) y luego today_box debajo
+                            rx.mobile_only(
+                                rx.vstack(
+                                    rx.box(
+                                        user_calendar(),
+                                        margin_left="-1em",  # O ajusta el valor según lo que necesites
+                                        margin_rigth="1em"
+                                    ),
+                                    rx.cond(
+                                        UserState.today_data.length() > 0,
+                                        today_box()
+                                    ),
+                                    align_items="flex-start",
+                                    spacing="1",
+                                )
+                            ),
+                        ),
+
+                        # ── Ningún calendario aún seleccionado ──
                         rx.vstack(
-                            rx.text("No tienes ningún calendario"),
-                            rx.button("Crear Calendario", on_click=CalendarState.open_calendar_creator),
-                            align_items="center"  # Centrar contenido dentro del vstack
+                            user_calendar(),
+                            # Mostrar today_box justo bajo el selector si hay eventos de hoy
+                            rx.cond(
+                                UserState.today_data.length() > 0,
+                                today_box()
+                            ),
+                            spacing="1",
                         ),
                     ),
+
+                    # ❌ No tienes calendarios
                     rx.vstack(
-                        rx.box(
-                            # Círculo de carga con animación CSS
-                            style={
-                                "border": "8px solid #f3f3f3",
-                                "borderTop": "8px solid #3182ce",
-                                "borderRadius": "50%",
-                                "width": "60px",
-                                "height": "60px",
-                                "animation": "spin 1s linear infinite",
-                                # Definición de la animación
-                                "@keyframes spin": {
-                                    "0%": {"transform": "rotate(0deg)"},
-                                    "100%": {"transform": "rotate(360deg)"}
-                                },
-                            }
+                        rx.text("No tienes ningún calendario", color="gray.600"),
+                        rx.button(
+                            "Crear Calendario",
+                            on_click=CalendarState.open_calendar_creator
                         ),
-                        rx.text("Cargando...", margin_top="1em"),
-                        align_items="center"
+                        align_items="center",
+                        spacing="1"
                     ),
                 ),
-                width="100%",
-                align_items="center",  # Centrar todo dentro del vstack principal
+
+                # 🔄 Cargando usuario o datos
+                rx.vstack(
+                    rx.box(
+                        style={
+                            "border": "8px solid #f3f3f3",
+                            "borderTop": "8px solid #3182ce",
+                            "borderRadius": "50%",
+                            "width": "60px",
+                            "height": "60px",
+                        },
+                    ),
+                    rx.text("Cargando...", margin_top="1em"),
+                    align_items="center",
+                    spacing="1"
+                ),
             ),
             width="100%",
             max_width="1200px",
-            padding_x="2em",
             padding_top="6em",
-            align="center"  # Centrar el container horizontalmente
+            align="center",
         ),
         width="100%",
         spacing="0",
-        align_items="center",  # Centrar la pila de elementos
-        style={"overflow-x": "hidden"}, 
-        heigth="100%"
+        align_items="center",
+        style={"overflow-x": "hidden"},
+        height="100vh",
     )

@@ -6,7 +6,7 @@ from typing import Optional, List
 from Calendario.database.database import SupabaseAPI
 from Calendario.model.model import Day, Meal, Comment, Calendar, User
 from Calendario.state.user_state import UserState
-from Calendario.utils.api import delete_calendar_and_days, get_shared_users,fetch_and_transform_calendars, get_all_meals, get_days_for_calendar, get_user_by_id, share_calendar_with_user
+from Calendario.utils.api import get_today_info,delete_calendar_and_days,get_shared_users,fetch_and_transform_calendars, get_all_meals, get_days_for_calendar, get_user_by_id, share_calendar_with_user
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 import pytz
@@ -46,6 +46,7 @@ class CalendarState(rx.State):
             await self.set_current_calendar(self.current_calendar.id)
             await get_days_for_calendar(self.current_calendar.id)
             await self.load_calendars()
+            
 
             print("refresh funciona")
 

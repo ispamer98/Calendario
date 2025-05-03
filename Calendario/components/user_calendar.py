@@ -2,10 +2,8 @@ import reflex as rx
 from calendar import Calendar
 from Calendario.components.day_button import day_button
 from Calendario.components.calendar_sharer import calendar_sharer
-from Calendario.components.today_box import today_box
 from Calendario.state.calendar_state import CalendarState
 from Calendario.state.user_state import UserState
-
 
 async def calendars() -> rx.Component:
     calendar_state = await CalendarState.get_state(CalendarState)
@@ -175,6 +173,7 @@ def user_calendar() -> rx.Component:
                                         ),
                                         spacing="7",
                                     ),
+                                    
                                     spacing="4",
                                     align_items="center",
                                 ),
@@ -196,4 +195,5 @@ def user_calendar() -> rx.Component:
         align_items="center",
         justify_content="center",
         width="100vw",
+        
     )

@@ -15,7 +15,7 @@ def user_navbar() -> rx.Component:
                         rx.image(
                             src="/favicon.ico",
                             width="30px",
-                            heigth="20px"),
+                            height="20px"),
                         rx.text("CalendPy",
                                 font_family="Sarina,cursive",
                                 font_size="1.5em",),
