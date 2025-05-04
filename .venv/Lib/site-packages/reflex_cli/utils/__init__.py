@@ -2,6 +2,8 @@
 
 import click
 
+from reflex_cli.constants.hosting import ReflexHostingCli
+
 from . import console
 
 
@@ -18,6 +20,6 @@ def disabled_v1_hosting(*args, **kwargs):
     """
     console.error(
         "The alpha hosting service has been decommissioned as of Dec 5, 2024. "
-        "Please upgrade to reflex>=0.6.6.post1 to use Reflex Cloud hosting."
+        f"Please upgrade to reflex>={ReflexHostingCli.MINIMUM_REFLEX_VERSION} to use Reflex Cloud hosting."
     )
     raise click.exceptions.Exit(1)

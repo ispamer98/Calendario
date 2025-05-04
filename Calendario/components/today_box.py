@@ -14,6 +14,7 @@ def today_box() -> rx.Component:
                         format="dddd D [de] MMMM [de] YYYY",
                         locale="es",
                         style={"textTransform": "capitalize"},
+                        on_mount=CalendarState.update_current_date
                     ),
                 ),
                 size="5",

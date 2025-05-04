@@ -37,15 +37,15 @@ def apps_cli():
     help="The log level to use.",
 )
 @click.option(
+    "--json/--no-json",
     "-j",
-    "--json",
     "as_json",
     is_flag=True,
     help="Whether to output the result in json format.",
 )
 @click.option(
+    "--interactive/--no-interactive",
     "-i",
-    "--interactive",
     is_flag=True,
     default=True,
     help="Whether to use interactive mode.",
@@ -99,8 +99,8 @@ def app_history(
 @click.argument("deployment_id", required=True)
 @click.option("--token", help="The authentication token.")
 @click.option(
+    "--interactive/--no-interactive",
     "-i",
-    "--interactive",
     is_flag=True,
     default=True,
     help="Whether to use interactive mode.",
@@ -128,7 +128,9 @@ def deployment_build_logs(
 
 @apps_cli.command(name="status")
 @click.argument("deployment_id", required=True)
-@click.option("--watch", is_flag=True, help="Whether to continuously watch the status.")
+@click.option(
+    "--watch/--no-watch", is_flag=True, help="Whether to continuously watch the status."
+)
 @click.option("--token", help="The authentication token.")
 @click.option(
     "--loglevel",
@@ -137,8 +139,8 @@ def deployment_build_logs(
     help="The log level to use.",
 )
 @click.option(
+    "--interactive/--no-interactive",
     "-i",
-    "--interactive",
     is_flag=True,
     default=True,
     help="Whether to use interactive mode.",
@@ -186,8 +188,8 @@ def deployment_status(
     help="The log level to use.",
 )
 @click.option(
+    "--interactive/--no-interactive",
     "-i",
-    "--interactive",
     is_flag=True,
     default=True,
     help="Whether to use interactive mode.",
@@ -240,8 +242,8 @@ def stop_app(
     help="The log level to use.",
 )
 @click.option(
+    "--interactive/--no-interactive",
     "-i",
-    "--interactive",
     is_flag=True,
     default=True,
     help="Whether to use interactive mode.",
@@ -293,8 +295,8 @@ def start_app(
     help="The log level to use.",
 )
 @click.option(
+    "--interactive/--no-interactive",
     "-i",
-    "--interactive",
     is_flag=True,
     default=True,
     help="Whether to use interactive mode.",
@@ -349,8 +351,8 @@ def delete_app(
     help="The log level to use.",
 )
 @click.option(
+    "--interactive/--no-interactive",
     "-i",
-    "--interactive",
     is_flag=True,
     default=True,
     help="Whether to use interactive mode.",
@@ -423,14 +425,14 @@ def app_logs(
     help="The log level to use.",
 )
 @click.option(
+    "--json/--no-json",
     "-j",
-    "--json",
     "as_json",
     is_flag=True,
     help="Whether to output the result in JSON format.",
 )
 @click.option(
-    "--interactive",
+    "--interactive/--no-interactive",
     is_flag=True,
     default=True,
     help="Whether to list configuration options and ask for confirmation.",
@@ -491,8 +493,8 @@ def list_apps(
 )
 @click.option("--scale-type", help="The type of scaling.")
 @click.option(
+    "--interactive/--no-interactive",
     "-i",
-    "--interactive",
     is_flag=True,
     default=True,
     help="Whether to use interactive mode.",

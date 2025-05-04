@@ -34,7 +34,7 @@ import reflex.utils.format
 import reflex.utils.prerequisites
 import reflex.utils.processes
 from reflex.components.component import CustomComponent
-from reflex.config import environment
+from reflex.config import environment, get_config
 from reflex.state import (
     BaseState,
     StateManager,
@@ -44,6 +44,7 @@ from reflex.state import (
     reload_state_module,
 )
 from reflex.utils import console
+from reflex.utils.export import export
 
 try:
     from selenium import webdriver
@@ -116,7 +117,6 @@ class AppHarness:
     backend: uvicorn.Server | None = None
     state_manager: StateManager | None = None
     _frontends: list[WebDriver] = dataclasses.field(default_factory=list)
-    _decorated_pages: list = dataclasses.field(default_factory=list)
 
     @classmethod
     def create(
@@ -253,11 +253,11 @@ class AppHarness:
                     self._get_source_from_app_source(self.app_source),
                 ]
             )
+            get_config().loglevel = reflex.constants.LogLevel.INFO
             with chdir(self.app_path):
                 reflex.reflex._init(
                     name=self.app_name,
                     template=reflex.constants.Templates.DEFAULT,
-                    loglevel=reflex.constants.LogLevel.INFO,
                 )
                 self.app_module_path.write_text(source_code)
         else:
@@ -267,8 +267,6 @@ class AppHarness:
         with chdir(self.app_path):
             # ensure config and app are reloaded when testing different app
             reflex.config.get_config(reload=True)
-            # Save decorated pages before importing the test app module
-            before_decorated_pages = reflex.app.DECORATED_PAGES[self.app_name].copy()
             # Ensure the AppHarness test does not skip State assignment due to running via pytest
             os.environ.pop(reflex.constants.PYTEST_CURRENT_TEST, None)
             os.environ[reflex.constants.APP_HARNESS_FLAG] = "true"
@@ -276,12 +274,6 @@ class AppHarness:
                 # Do not reload the module for pre-existing apps (only apps generated from source)
                 reload=self.app_source is not None
             )
-            # Save the pages that were added during testing
-            self._decorated_pages = [
-                p
-                for p in reflex.app.DECORATED_PAGES[self.app_name]
-                if p not in before_decorated_pages
-            ]
         self.app_instance = self.app_module.app
         if self.app_instance and isinstance(
             self.app_instance._state_manager, StateManagerRedis
@@ -305,25 +297,37 @@ class AppHarness:
 
         original_shutdown = self.backend.shutdown
 
-        async def _shutdown_redis(*args, **kwargs) -> None:
+        async def _shutdown(*args, **kwargs) -> None:
             # ensure redis is closed before event loop
-            try:
-                if self.app_instance is not None and isinstance(
-                    self.app_instance.state_manager, StateManagerRedis
-                ):
+            if self.app_instance is not None and isinstance(
+                self.app_instance.state_manager, StateManagerRedis
+            ):
+                with contextlib.suppress(ValueError):
                     await self.app_instance.state_manager.close()
+
+            # socketio shutdown handler
+            if self.app_instance is not None and self.app_instance.sio is not None:
+                with contextlib.suppress(TypeError):
+                    await self.app_instance.sio.shutdown()
+
+            # sqlalchemy async engine shutdown handler
+            try:
+                async_engine = reflex.model.get_async_engine(None)
             except ValueError:
                 pass
+            else:
+                await async_engine.dispose()
+
             await original_shutdown(*args, **kwargs)
 
-        return _shutdown_redis
+        return _shutdown
 
     def _start_backend(self, port: int = 0):
-        if self.app_instance is None or self.app_instance.api is None:
+        if self.app_instance is None or self.app_instance._api is None:
             raise RuntimeError("App was not initialized.")
         self.backend = uvicorn.Server(
             uvicorn.Config(
-                app=self.app_instance.api,
+                app=self.app_instance._api,
                 host="127.0.0.1",
                 port=port,
             )
@@ -487,10 +491,6 @@ class AppHarness:
             self.backend_thread.join()
         if self.frontend_output_thread is not None:
             self.frontend_output_thread.join()
-
-        # Cleanup decorated pages added during testing
-        for page in self._decorated_pages:
-            reflex.app.DECORATED_PAGES[self.app_name].remove(page)
 
     def __exit__(self, *excinfo) -> None:
         """Contextmanager protocol for `stop()`.
@@ -934,7 +934,13 @@ class AppHarnessProd(AppHarness):
             config.api_url = "http://{}:{}".format(
                 *self._poll_for_servers().getsockname(),
             )
-            reflex.reflex.export(
+
+            get_config().loglevel = reflex.constants.LogLevel.INFO
+
+            if reflex.utils.prerequisites.needs_reinit(frontend=True):
+                reflex.reflex._init(name=get_config().app_name)
+
+            export(
                 zipping=False,
                 frontend=True,
                 backend=False,

@@ -22,14 +22,28 @@ if TYPE_CHECKING:
 
 
 @click.group
-def hosting_cli() -> None:
+@click.pass_context
+def hosting_cli(ctx: click.Context) -> None:
     """The Hosting CLI.
 
     This CLI is used to manage the Reflex cloud hosting service.
     It provides commands for managing apps, projects, secrets, and VM types/regions.
 
     """
+    if _reflex_version < constants.ReflexHostingCli.MINIMUM_REFLEX_VERSION:
+        ctx.fail(
+            f"Reflex version {_reflex_version} is not compatible with reflex-hosting-cli. "
+            f"Please upgrade Reflex to at least version {constants.ReflexHostingCli.MINIMUM_REFLEX_VERSION}."
+        )
+    if _reflex_version < constants.ReflexHostingCli.RECOMMENDED_REFLEX_VERSION:
+        console.warn(
+            f"Support for Reflex version {_reflex_version} in reflex-hosting-cli is deprecated. "
+            f"Please upgrade Reflex to at least version {constants.ReflexHostingCli.RECOMMENDED_REFLEX_VERSION}."
+        )
     check_version()
+
+
+_reflex_version = version.parse(importlib.metadata.version("reflex"))
 
 
 hosting_cli.add_command(
@@ -88,7 +102,11 @@ def _patch_typer(click_instance: click.Command) -> typer.Typer:
     return fake_typer_app
 
 
-if find_spec("typer") is not None:
+if (
+    find_spec("typer") is not None
+    and find_spec("typer.core") is not None
+    and find_spec("typer.models") is not None
+):
     hosting_cli = _patch_typer(hosting_cli)  # pyright: ignore[reportAssignmentType]
 
 TIME_FORMAT_HELP = "Accepts ISO 8601 format, unix epoch or time relative to now. For time relative to now, use the format: <d><unit>. Valid units are d (day), h (hour), m (minute), s (second). For example, 1d for 1 day ago from now."

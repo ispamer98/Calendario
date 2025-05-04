@@ -22,7 +22,7 @@ MAX_LOGS_LIMIT = 1000
 @click.group()
 def deployments_cli():
     """Commands for managing deployments."""
-    pass
+    disabled_v1_hosting()
 
 
 @deployments_cli.command(name="list")
@@ -33,8 +33,8 @@ def deployments_cli():
     help="The log level to use.",
 )
 @click.option(
+    "--json/--no-json",
     "-j",
-    "--json",
     "as_json",
     is_flag=True,
     help="Whether to output the result in json format.",
@@ -47,7 +47,6 @@ def list_deployments(loglevel: str, as_json: bool):
         as_json: Whether to output the result in json format.
 
     """
-    disabled_v1_hosting()
 
 
 @deployments_cli.command(name="delete")
@@ -66,7 +65,6 @@ def delete_deployment(key: str, loglevel: str):
         loglevel: The log level to use.
 
     """
-    disabled_v1_hosting()
 
 
 @deployments_cli.command(name="status")
@@ -85,7 +83,6 @@ def get_deployment_status(key: str, loglevel: str):
         loglevel: The log level to use.
 
     """
-    disabled_v1_hosting()
 
 
 @deployments_cli.command(name="logs")
@@ -124,7 +121,6 @@ def get_deployment_logs(
         loglevel: The log level to use.
 
     """
-    disabled_v1_hosting()
 
 
 @deployments_cli.command(name="build-logs")
@@ -163,7 +159,6 @@ def get_deployment_build_logs(
         loglevel: The log level to use.
 
     """
-    disabled_v1_hosting()
 
 
 @deployments_cli.command(name="regions")
@@ -174,8 +169,8 @@ def get_deployment_build_logs(
     help="The log level to use.",
 )
 @click.option(
+    "--json/--no-json",
     "-j",
-    "--json",
     "as_json",
     is_flag=True,
     help="Whether to output the result in json format.",
@@ -188,7 +183,6 @@ def get_deployment_regions(loglevel: str, as_json: bool):
         as_json: Whether to output the result in json format.
 
     """
-    disabled_v1_hosting()
 
 
 @deployments_cli.command(name="share")
@@ -210,7 +204,6 @@ def share_deployment(url: str | None, loglevel: str):
         loglevel: The log level to use.
 
     """
-    disabled_v1_hosting()
 
 
 def _patch_typer(click_instance: click.Command) -> typer.Typer:
@@ -251,5 +244,9 @@ def _patch_typer(click_instance: click.Command) -> typer.Typer:
     return fake_typer_app
 
 
-if find_spec("typer") is not None:
+if (
+    find_spec("typer") is not None
+    and find_spec("typer.core") is not None
+    and find_spec("typer.models") is not None
+):
     deployments_cli = _patch_typer(deployments_cli)  # pyright: ignore[reportAssignmentType]

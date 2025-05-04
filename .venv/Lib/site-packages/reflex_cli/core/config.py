@@ -7,7 +7,7 @@ import typing
 from collections.abc import Sequence
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Literal, Optional, get_origin
+from typing import Any, Literal, get_origin
 
 import yaml
 
@@ -140,13 +140,13 @@ def _validate_dispatch(
 class Config:
     """Configuration class for the CLI."""
 
-    name: Optional[str] = dataclasses.field(default=None)  # noqa: UP007
-    description: Optional[str] = dataclasses.field(default=None)  # noqa: UP007
-    vmtype: Optional[VmType] = dataclasses.field(default=None)  # noqa: UP007
-    regions: Optional[dict[RegionOption, int]] = dataclasses.field(default=None)  # noqa: UP007
-    hostname: Optional[str] = dataclasses.field(default=None)  # noqa: UP007
+    name: str | None = dataclasses.field(default=None)
+    description: str | None = dataclasses.field(default=None)
+    vmtype: VmType | None = dataclasses.field(default=None)
+    regions: dict[RegionOption, int] | None = dataclasses.field(default=None)
+    hostname: str | None = dataclasses.field(default=None)
     envfile: str = dataclasses.field(default=".env")
-    project: Optional[str] = dataclasses.field(default=None)  # noqa: UP007
+    project: str | None = dataclasses.field(default=None)
     packages: list[str] = dataclasses.field(default_factory=list)
 
     _cloud_yaml_path: Path = dataclasses.field(

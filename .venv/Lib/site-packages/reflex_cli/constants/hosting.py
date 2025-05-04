@@ -4,6 +4,8 @@ import os
 from pathlib import Path
 from types import SimpleNamespace
 
+from packaging import version
+
 from reflex_cli.constants.base import Reflex
 
 
@@ -11,6 +13,10 @@ class ReflexHostingCli(SimpleNamespace):
     """Constants related to reflex-hosting-cli."""
 
     MODULE_NAME = "reflex-hosting-cli"
+
+    MINIMUM_REFLEX_VERSION = version.parse("0.6.6.post1")
+
+    RECOMMENDED_REFLEX_VERSION = version.parse("0.7.6")
 
 
 class Hosting(SimpleNamespace):
@@ -46,5 +52,5 @@ class RequirementsTxt(SimpleNamespace):
     # The requirements.txt file.
     FILE = "requirements.txt"
 
-    # Number of unused packages for which we will throw a warning.
-    UNUSED_WARN_THRESHOLD = 20
+    # The pyproject.toml file.
+    PYPROJECT = "pyproject.toml"

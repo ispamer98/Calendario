@@ -26,15 +26,15 @@ def secrets_cli():
     help="The log level to use.",
 )
 @click.option(
+    "--json/--no-json",
     "-j",
-    "--json",
     "as_json",
     is_flag=True,
     help="Whether to output the result in JSON format.",
 )
 @click.option(
+    "--interactive/--no-interactive",
     "-i",
-    "--interactive",
     is_flag=True,
     default=True,
     help="Whether to use interactive mode.",
@@ -86,7 +86,9 @@ def get_secrets(
     help="The environment variables to set: <key>=<value>. Required if envfile is not specified. For multiple envs, repeat this option, e.g. --env k1=v2 --env k2=v2.",
 )
 @click.option(
-    "--reboot", is_flag=True, help="Automatically reboot your site with the new secrets"
+    "--reboot/--no-reboot",
+    is_flag=True,
+    help="Automatically reboot your site with the new secrets",
 )
 @click.option("--token", help="The authentication token.")
 @click.option(
@@ -96,8 +98,8 @@ def get_secrets(
     help="The log level to use.",
 )
 @click.option(
+    "--interactive/--no-interactive",
     "-i",
-    "--interactive",
     is_flag=True,
     default=True,
     help="Whether to use interactive mode.",
@@ -150,7 +152,9 @@ def update_secrets(
 @click.argument("key", required=True)
 @click.option("--token", help="The authentication token.")
 @click.option(
-    "--reboot", is_flag=True, help="Automatically reboot your site with the new secrets"
+    "--reboot/--no-reboot",
+    is_flag=True,
+    help="Automatically reboot your site with the new secrets",
 )
 @click.option(
     "--loglevel",
@@ -159,8 +163,8 @@ def update_secrets(
     help="The log level to use.",
 )
 @click.option(
+    "--interactive/--no-interactive",
     "-i",
-    "--interactive",
     is_flag=True,
     default=True,
     help="Whether to use interactive mode.",

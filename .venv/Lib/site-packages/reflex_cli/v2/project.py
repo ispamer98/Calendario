@@ -1,7 +1,6 @@
 """Project commands for the Reflex Cloud CLI."""
 
 import json
-from typing import Optional
 
 import click
 import httpx
@@ -28,22 +27,22 @@ def project_cli():
     help="The log level to use.",
 )
 @click.option(
+    "--json/--no-json",
     "-j",
-    "--json",
     "as_json",
     is_flag=True,
     help="Whether to output the result in json format.",
 )
 @click.option(
+    "--interactive/--no-interactive",
     "-i",
-    "--interactive",
     is_flag=True,
     default=True,
     help="Whether to use interactive mode.",
 )
 def create_project(
     name: str,
-    token: Optional[str],
+    token: str | None,
     loglevel: str,
     as_json: bool,
     interactive: bool,
@@ -79,8 +78,8 @@ def create_project(
     help="The log level to use.",
 )
 @click.option(
+    "--interactive/--no-interactive",
     "-i",
-    "--interactive",
     is_flag=True,
     default=True,
     help="Whether to use interactive mode.",
@@ -88,7 +87,7 @@ def create_project(
 def invite_user_to_project(
     role: str,
     user: str,
-    token: Optional[str],
+    token: str | None,
     loglevel: str,
     interactive: bool,
 ):
@@ -124,15 +123,15 @@ def invite_user_to_project(
     help="The log level to use.",
 )
 @click.option(
-    "--interactive",
+    "--interactive/--no-interactive",
     is_flag=True,
     default=True,
     help="Whether to list configuration options and ask for confirmation.",
 )
 def select_project(
-    project_id: Optional[str],
-    project_name: Optional[str],
-    token: Optional[str],
+    project_id: str | None,
+    project_name: str | None,
+    token: str | None,
     loglevel: str,
     interactive: bool,
 ):
@@ -180,15 +179,15 @@ def select_project(
 )
 @click.option("--token", help="The authentication token.")
 @click.option(
+    "--interactive/--no-interactive",
     "-i",
-    "--interactive",
     is_flag=True,
     default=True,
     help="Whether to use interactive mode.",
 )
 def get_select_project(
     loglevel: str,
-    token: Optional[str],
+    token: str | None,
     interactive: bool,
 ):
     """Get the currently selected project."""
@@ -232,21 +231,21 @@ def get_select_project(
     help="The log level to use.",
 )
 @click.option(
+    "--json/--no-json",
     "-j",
-    "--json",
     "as_json",
     is_flag=True,
     help="Whether to output the result in json format.",
 )
 @click.option(
+    "--interactive/--no-interactive",
     "-i",
-    "--interactive",
     is_flag=True,
     default=True,
     help="Whether to use interactive mode.",
 )
 def get_projects(
-    token: Optional[str],
+    token: str | None,
     loglevel: str,
     as_json: bool,
     interactive: bool,
@@ -293,22 +292,22 @@ def get_projects(
     help="The log level to use.",
 )
 @click.option(
+    "--json/--no-json",
     "-j",
-    "--json",
     "as_json",
     is_flag=True,
     help="Whether to output the result in json format.",
 )
 @click.option(
-    "--interactive",
+    "--interactive/--no-interactive",
     is_flag=True,
     default=True,
     help="Whether to list configuration options and ask for confirmation.",
 )
 def get_project_roles(
-    project_id: Optional[str],
-    project_name: Optional[str],
-    token: Optional[str],
+    project_id: str | None,
+    project_name: str | None,
+    token: str | None,
     loglevel: str,
     as_json: bool,
     interactive: bool,
@@ -369,23 +368,23 @@ def get_project_roles(
     help="The log level to use.",
 )
 @click.option(
+    "--json/--no-json",
     "-j",
-    "--json",
     "as_json",
     is_flag=True,
     help="Whether to output the result in json format.",
 )
 @click.option(
-    "--interactive",
+    "--interactive/--no-interactive",
     is_flag=True,
     default=True,
     help="Whether to list configuration options and ask for confirmation.",
 )
 def get_project_role_permissions(
     role_id: str,
-    project_id: Optional[str],
-    project_name: Optional[str],
-    token: Optional[str],
+    project_id: str | None,
+    project_name: str | None,
+    token: str | None,
     loglevel: str,
     as_json: bool,
     interactive: bool,
@@ -444,22 +443,22 @@ def get_project_role_permissions(
     help="The log level to use.",
 )
 @click.option(
+    "--json/--no-json",
     "-j",
-    "--json",
     "as_json",
     is_flag=True,
     help="Whether to output the result in json format.",
 )
 @click.option(
-    "--interactive",
+    "--interactive/--no-interactive",
     is_flag=True,
     default=True,
     help="Whether to list configuration options and ask for confirmation.",
 )
 def get_project_role_users(
-    project_id: Optional[str],
-    project_name: Optional[str],
-    token: Optional[str],
+    project_id: str | None,
+    project_name: str | None,
+    token: str | None,
     loglevel: str,
     as_json: bool,
     interactive: bool,

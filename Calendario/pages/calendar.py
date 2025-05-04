@@ -1,6 +1,5 @@
 # File: Calendario/pages/calendar.py
 
-from turtle import right, width
 import reflex as rx
 from Calendario.components.footer import footer
 from Calendario.components.meal_editor import meal_editor
@@ -21,6 +20,7 @@ from Calendario.components.today_box import today_box
         UserState.on_load,
         CalendarState.load_meals,
         UserState.check_autenticated,
+        CalendarState.update_current_date
     ],
 )
 def calendar() -> rx.Component:
@@ -87,12 +87,12 @@ def calendar() -> rx.Component:
                         # ── Ningún calendario aún seleccionado ──
                         rx.vstack(
                             user_calendar(),
-                            # Mostrar today_box justo bajo el selector si hay eventos de hoy
                             rx.cond(
                                 UserState.today_data.length() > 0,
                                 today_box()
                             ),
                             spacing="1",
+                            align="center"
                         ),
                     ),
 

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import importlib.metadata
 import io
 import re
 import subprocess
@@ -45,6 +46,18 @@ def detect_encoding(filename: Path) -> str | None:
         return None
 
 
+def does_requirements_file_or_pyproject_exist() -> bool:
+    """Check if requirements.txt or pyproject.toml exists.
+
+    Returns:
+        True if either file exists, False otherwise.
+    """
+    return (
+        Path(constants.RequirementsTxt.FILE).exists()
+        or Path(constants.RequirementsTxt.PYPROJECT).exists()
+    )
+
+
 def check_requirements():
     """Check if the requirements.txt needs update based on current environment.
     Throw warnings if too many installed or unused (based on imports) packages in
@@ -55,8 +68,14 @@ def check_requirements():
 
     Raises:
         SystemExit: If no requirements.txt is found.
-
     """
+    if not does_requirements_file_or_pyproject_exist():
+        console.warn("No requirements.txt or pyproject.toml found.")
+        return
+
+    if not Path(constants.RequirementsTxt.FILE).exists():
+        return
+
     # First check the encoding of requirements.txt if applicable. If unable to determine encoding
     # will not proceed to check for requirement updates.
     encoding = "utf-8"
@@ -111,47 +130,13 @@ def check_requirements():
     return
 
 
-def match_reflex_package(package: str) -> str | None:
-    """Match the reflex package in the requirements.txt file.
-
-    Args:
-        package: The package line to match.
-
-    Returns:
-        The reflex version if found, otherwise None.
-
-    """
-    pattern = r"^reflex\s*==\s*([\d\.]+)$"
-    match = re.match(pattern, package)
-    if match:
-        return (match.group(1) or match.group(2) or "").replace(" ", "")
-    return None
-
-
 def get_reflex_version() -> str:
-    """Extract the reflex version from the requirements.txt file.
+    """Get the version of the reflex package.
 
     Returns:
-        The reflex version if found, otherwise the latest version.
-
+        The version of the reflex package.
     """
-    try:
-        requirements_path = Path("requirements.txt")
-        if not requirements_path.exists():
-            console.warn(
-                "requirements.txt file does not exist. Reflex version is unknown."
-            )
-            return "unknown"
-        with requirements_path.open("r") as file:
-            for line in file:
-                if version := match_reflex_package(line):
-                    return version
-            return "unknown"
-    except Exception as ex:
-        console.warn(
-            f"Unable to read reflex version from requirements.txt due to: {ex}. Reflex version is unknown."
-        )
-    return "unknown"
+    return importlib.metadata.version(constants.Reflex.MODULE_NAME)
 
 
 def is_valid_url(url: str) -> bool:

@@ -1228,6 +1228,7 @@ def create_deployment(
     secrets: dict | None,
     client: AuthenticatedClient,
     packages: list | None,
+    strategy: str | None,
 ) -> str:
     """Create a new deployment for an application.
 
@@ -1287,6 +1288,8 @@ def create_deployment(
         payload["secrets"] = json.dumps(secrets)
     if packages:
         payload["packages"] = json.dumps(packages)
+    if strategy:
+        payload["deployment_strategy"] = strategy
 
     response = httpx.post(
         urljoin(constants.Hosting.HOSTING_SERVICE, "/v1/deployments"),

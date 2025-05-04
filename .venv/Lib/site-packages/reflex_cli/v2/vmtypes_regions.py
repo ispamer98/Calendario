@@ -1,7 +1,6 @@
 """VMTypes and Regions commands for the Reflex Cloud CLI."""
 
 import json
-from typing import Optional
 
 import click
 from tabulate import tabulate
@@ -25,14 +24,14 @@ def vm_types_regions_cli():
     help="The log level to use.",
 )
 @click.option(
+    "--json/--no-json",
     "-j",
-    "--json",
     "as_json",
     is_flag=True,
     help="Whether to output the result in json format.",
 )
 def get_vm_types(
-    token: Optional[str],
+    token: str | None,
     loglevel: str,
     as_json: bool,
 ):
@@ -65,8 +64,8 @@ def get_vm_types(
     help="The log level to use.",
 )
 @click.option(
+    "--json/--no-json",
     "-j",
-    "--json",
     "as_json",
     is_flag=True,
     help="Whether to output the result in json format.",
