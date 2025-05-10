@@ -35,9 +35,13 @@ class CalendarState(rx.State):
     show_calendar_sharer: bool = False  # Nuevo estado
     shared_users: list[User] = []
     owner_username: str = ""
+
+
+    
     @rx.event
     async def refresh_page(self):
         """Redirige a /calendar con el ID del calendario actual para recargarlo."""
+        user_state = await self.get_state(UserState)  # Accede al estado de usuario
         if not self.current_calendar:
             # Si no hay calendario seleccionado, no hace nada
             return 
@@ -46,6 +50,7 @@ class CalendarState(rx.State):
             await self.set_current_calendar(self.current_calendar.id)
             await get_days_for_calendar(self.current_calendar.id)
             await self.load_calendars()
+            await get_today_info(user_id=user_state.current_user.id)
             
 
             print("refresh funciona")
@@ -210,11 +215,25 @@ class CalendarState(rx.State):
     async def create_calendar(self):
         try:
             self.loading = True
-            
+
             if UserState.current_user is None:
                 raise Exception("Usuario no autenticado")
 
-            # Convertir mes seleccionado a fechas
+            # Recalcular aquí el rango exacto que usas en el input type="month"
+            today = datetime.today()
+            min_month = today.strftime("%Y-%m")
+            # Máximo: diciembre del año siguiente
+            max_month = datetime(today.year + 1, 12, 1).strftime("%Y-%m")
+
+            # Validación estricta contra esos límites
+            if not (min_month <= self.new_calendar_month <= max_month):
+                # Mostrar error y abortar, manteniendo el nombre ingresado
+                return rx.toast.error(
+                    f"Mes fuera de rango: debe ser entre {min_month} y {max_month}",
+                    position="top-center"
+                )
+
+            # Parseo de fechas de inicio/fin de mes
             start_date = datetime.strptime(self.new_calendar_month, "%Y-%m")
             end_date = (start_date + relativedelta(months=1)) - timedelta(days=1)
 
@@ -229,26 +248,29 @@ class CalendarState(rx.State):
             )
 
             if new_calendar:
+                # Sólo en éxito limpiamos el nombre y añadimos el calendario
                 self.calendars.append(new_calendar)
                 self.current_calendar = new_calendar
-                # Cargar los días del nuevo calendario
                 self.days = await get_days_for_calendar(new_calendar.id)
-                
-                # Actualizar display_days para el nuevo calendario
+
                 first_weekday = start_date.weekday()
                 self.display_days = [None] * first_weekday + self.days
-                
+
                 self.close_calendar_creator()
-                return rx.toast.success(f"Calendario '{self.new_calendar_name}' creado con éxito!", position="top-center")
-        
+                # Limpiar nombre y mes tras éxito
+                self.new_calendar_name = ""
+                self.new_calendar_month = today.strftime("%Y-%m")
+                return rx.toast.success(
+                    f"Calendario '{self.current_calendar.name}' creado con éxito!",
+                    position="top-center"
+                )
+
         except ValueError as ve:
             return rx.toast.error(str(ve), position="top-center")
         except Exception as e:
             return rx.window_alert(f"Error: {str(e)}")
         finally:
             self.loading = False
-            self.new_calendar_name = ""
-            self.new_calendar_month = datetime.today().strftime("%Y-%m")
 
     @rx.event
     async def load_calendars(self):
