@@ -24,6 +24,7 @@ class DayState(rx.State):
     show_comment_input: bool = False
     new_comment_text: str = ""
 
+
     @rx.event
     async def load_day_comments(self, day_id: int):
         self.last_loaded_day_id = day_id
