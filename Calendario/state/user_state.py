@@ -32,11 +32,12 @@ class UserState(rx.State):
     password: str = ""  # Guarda la contraseña ingresada
     current_user: Optional[User] = None  # Mantiene al usuario autenticado
     today_data: list[CalendarInfo] = []
-    @rx.event
+    @rx.event(background=True)
     async def today_info(self):
-        self.today_data = await get_today_info(self.current_user.id) if self.current_user else []
-    
-        print("TODAY DATAAAAAAAAAAAAAAAAA",self.today_data)
+        async with self:
+            if self.current_user:
+                self.today_data = await get_today_info(self.current_user.id)
+            print("TODAY DATAAAAAAAAAAAAAAAAA",self.today_data)
 
     @rx.event
     def press_enter(self, key: str):

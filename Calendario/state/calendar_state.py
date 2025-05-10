@@ -50,10 +50,10 @@ class CalendarState(rx.State):
             await self.set_current_calendar(self.current_calendar.id)
             await get_days_for_calendar(self.current_calendar.id)
             await self.load_calendars()
-            await get_today_info(user_id=user_state.current_user.id)
+            return UserState.today_info()  # Nueva línea para actualizar today_data
+
             
 
-            print("refresh funciona")
 
         
     @rx.event
@@ -301,8 +301,8 @@ class CalendarState(rx.State):
     async def load_days(self, calendar_id: int):
         self.days = await get_days_for_calendar(calendar_id)
 
-
-    def update_day_in_state(self, updated_day: Day):
+    @rx.event
+    async def update_day_in_state(self, updated_day: Day):
         # Actualizar días en el estado
         self.days = [
             updated_day if day.id == updated_day.id else day
@@ -313,6 +313,10 @@ class CalendarState(rx.State):
         start_date = self.current_calendar.start_date
         first_weekday = start_date.weekday()
         self.display_days = [None] * first_weekday + self.days
+
+                # Actualizar today_data
+        user_state = await self.get_state(UserState)
+        await user_state.today_info()
 
 
     @rx.event
