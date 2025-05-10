@@ -50,6 +50,7 @@ class CalendarState(rx.State):
             await self.set_current_calendar(self.current_calendar.id)
             await get_days_for_calendar(self.current_calendar.id)
             await self.load_calendars()
+            print("REFRESCANDOOOOOOOOOOOOOOOOOOOOOOOOOOOO")
             return UserState.today_info()  # Nueva línea para actualizar today_data
 
             
@@ -315,8 +316,10 @@ class CalendarState(rx.State):
         self.display_days = [None] * first_weekday + self.days
 
                 # Actualizar today_data
+        
         user_state = await self.get_state(UserState)
-        await user_state.today_info()
+        return [UserState.today_info,await self.refresh_page()]
+
 
 
     @rx.event
