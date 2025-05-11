@@ -77,7 +77,8 @@ class DayState(rx.State):
                 # Actualizar estado local
                 await self.load_day_comments(day.id)
                 self.toggle_comment_input()
-                return rx.toast.success("Comentario añadido")
+                return [rx.toast.success("Comentario añadido"),
+                        await calendar_state.refresh_page()]
 
         except Exception as e:
             return rx.toast.error(f"Error: {str(e)}")
@@ -98,7 +99,9 @@ class DayState(rx.State):
                 calendar_state = await self.get_state(CalendarState)
                 await calendar_state.update_day_in_state(updated_day)
                 
-                return rx.toast.success("Comentario eliminado correctamente")
+                
+                return [rx.toast.success("Comentario eliminado correctamente"),
+                        await calendar_state.refresh_page()]
             return rx.toast.error("Error al eliminar el comentario")
             
         except Exception as e:
@@ -155,7 +158,10 @@ class DayState(rx.State):
                 updated_day = await get_day_details(self.current_day.id)
                 calendar_state = await self.get_state(CalendarState)
                 await calendar_state.update_day_in_state(updated_day)
+                
                 toast_message = "Día actualizado correctamente"
+                self.show_editor = False
+                return await calendar_state.refresh_page()
             else:
                 toast_message = "No se detectaron cambios"
 

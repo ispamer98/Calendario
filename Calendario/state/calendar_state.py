@@ -37,7 +37,6 @@ class CalendarState(rx.State):
     owner_username: str = ""
 
 
-    
     @rx.event
     async def refresh_page(self):
         """Redirige a /calendar con el ID del calendario actual para recargarlo."""
@@ -54,6 +53,8 @@ class CalendarState(rx.State):
             return UserState.today_info()  # Nueva línea para actualizar today_data
 
             
+
+
 
 
         
@@ -206,6 +207,7 @@ class CalendarState(rx.State):
                     # Crear lista de días con espacios vacíos
                     self.display_days = [None] * first_weekday + self.days
                     self.update_current_date()
+                    UserState.today_info()
                     
                     
                     return

@@ -8,7 +8,7 @@ def today_box() -> rx.Component:
         rx.vstack(
             rx.heading(
                 rx.fragment(
-                    "📅📌 Hoy ",
+                    "📅📍 Hoy ",
                     rx.moment(
                         CalendarState.current_date_str,
                         format="dddd D [de] MMMM [de] YYYY",
@@ -30,21 +30,32 @@ def today_box() -> rx.Component:
                             rx.heading(cal["calendar_name"], size="4", align="center"),
                             rx.cond(
                                 cal["meal"],
-                                rx.text(f"🍽️ Comida: {cal['meal']}", align="center"),
+                                rx.box(
+                                rx.text(f" Comida 🍽️ :",align="center",weight="bold",color="var(--green-9)"),
+                                rx.text(f"· {cal['meal']}", align="center")
+                                )
                             ),
                             rx.cond(
                                 cal["dinner"],
-                                rx.text(f"🌙 Cena: {cal['dinner']}", align="center"),
+                                rx.box(
+                                    rx.text(f" Cena 🌙 :", align="center",weight="bold",color="var(--blue-9)"),
+                                    rx.text(f"· {cal["dinner"]}",align="center"))
                             ),
                             rx.cond(
                                 cal["comments"],
                                 rx.vstack(
-                                    rx.text("💬 Comentarios:", weight="bold", align="center"),
+                                    rx.text(" Comentarios 💬 :", weight="bold", align="center",color="var(--orange-9)"),
                                     rx.foreach(
                                         cal["comments"],
-                                        lambda comment: rx.text(
-                                            f"{comment['username']}: {comment['content']}",
-                                            align="center"
+                                        lambda comment: rx.hstack(
+                                            rx.text(
+                                                f"· {comment['username']} : ",
+                                                align="center",color="var(--accent-9)"
+                                            ),
+                                            rx.text(
+                                                f"{comment['content']}",
+                                                align="center"
+                                            )
                                         )
                                     ),
                                     spacing="1",

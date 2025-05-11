@@ -5,15 +5,16 @@ from email.mime.text import MIMEText
 from email.mime.image import MIMEImage
 import dotenv
 from importlib.resources import files
+import reflex as rx
 
 from Calendario import static
 
 
 dotenv.load_dotenv()
 
-SMTP_SERVER = os.environ.get("SMTP_SERVER")  # O el servidor que uses (ej: smtp.office365.com, etc)
-SMTP_PORT = os.environ.get("SMTP_PORT")
-SMTP_USER = os.environ.get("SMTP_USER")  # Cambiar por tu correo
+SMTP_SERVER = os.environ.get("SMTP_SERVER", "").strip()
+SMTP_PORT   = int(os.environ.get("SMTP_PORT", 587))
+SMTP_USER   = os.environ.get("SMTP_USER")
 SMTP_PASSWORD = os.environ.get("SMTP_PASSWORD")  # Cambiar por tu contraseña o token de app
 def send_welcome_email(email, username):
     # Configuración del servidor SMTP
@@ -166,9 +167,11 @@ def send_password_reset_email(email: str, reset_link: str):
     # 3) Envío SMTP
     try:
         with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as server:
+            server.ehlo()
             server.starttls()
             server.login(SMTP_USER, SMTP_PASSWORD)
             server.sendmail(SMTP_USER, email, msg.as_string())
         print(f"Correo de restablecimiento enviado a {email}")
+        return rx.redirect("/login")
     except Exception as e:
         print(f"Error enviando correo de restablecimiento: {e}")
