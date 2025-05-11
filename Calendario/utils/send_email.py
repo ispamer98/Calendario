@@ -10,12 +10,17 @@ import reflex as rx
 from Calendario import static
 
 
-dotenv.load_dotenv()
+dotenv.load_dotenv(dotenv_path=".env", override=True)
+
 
 SMTP_SERVER = os.environ.get("SMTP_SERVER", "").strip()
 SMTP_PORT   = int(os.environ.get("SMTP_PORT", 587))
 SMTP_USER   = os.environ.get("SMTP_USER")
-SMTP_PASSWORD = os.environ.get("SMTP_PASSWORD")  # Cambiar por tu contraseña o token de app
+SMTP_PASSWORD = os.environ.get("SMTP_PASSWORD")  
+
+print("SMTP_SERVER:", repr(os.environ.get("SMTP_SERVER")))
+print("SMTP_PORT:", repr(os.environ.get("SMTP_PORT")))
+print("SMTP_PASSWORD:", repr(os.environ.get("SMTP_PASSWORD")))
 def send_welcome_email(email, username):
     # Configuración del servidor SMTP
 
@@ -24,8 +29,8 @@ def send_welcome_email(email, username):
     mensaje['From'] = SMTP_USER
     mensaje['To'] = email
     mensaje['Subject'] = "¡Bienvenido a tu Calendario!"
-
-
+    
+    
     # Cuerpo del mensaje en HTML con imagen
     html = f"""
     <html>
@@ -161,6 +166,7 @@ def send_password_reset_email(email: str, reset_link: str):
             img.add_header("Content-ID", "<logo>")
             img.add_header("Content-Disposition", "inline", filename="logo.png")
             msg.attach(img)
+            
     except Exception as e:
         print("Error cargando logo:", e)
 
