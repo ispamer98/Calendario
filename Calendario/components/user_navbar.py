@@ -30,6 +30,14 @@ def user_navbar() -> rx.Component:
                     _hover={"transform": "scale(1.05)",
                             "cursor": "pointer"},
                 ),
+                rx.button(
+                    "Ir a Calendario",
+                    on_click=rx.redirect("/calendar"),
+                    variant="outline",
+                    color_scheme="jade",
+                    size="1",
+                    ml="1em",  # pequeño margen izquierdo
+                ),
                 
                 rx.spacer(),
                 calendar_creator(),
@@ -74,7 +82,8 @@ def user_navbar() -> rx.Component:
                                      ),
                         rx.menu.item("Perfil", 
                                      rx.icon("user"),
-                                     style={"_hover" : { "background " : "#23282b"}}
+                                     style={"_hover" : { "background " : "#23282b"}},
+                                     on_click=rx.redirect("/profile")
                                      ),
                         rx.menu.item("Configuración",
                                       rx.icon("settings"),

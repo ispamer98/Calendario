@@ -12,6 +12,7 @@ from reflex.components.component import Component, ComponentNamespace, Memoizati
 from reflex.components.core.breakpoints import Breakpoints
 from reflex.constants import Dirs
 from reflex.event import CallableEventSpec, EventSpec, EventType
+from reflex.style import Style
 from reflex.utils.imports import ImportVar
 from reflex.vars import VarData
 from reflex.vars.base import Var
@@ -157,6 +158,7 @@ class Upload(MemoizationLeaf):
         no_click: Var[bool] | bool | None = None,
         no_drag: Var[bool] | bool | None = None,
         no_keyboard: Var[bool] | bool | None = None,
+        drag_active_style: Style | None = None,
         style: Sequence[Mapping[str, Any]]
         | Mapping[str, Any]
         | Var[Mapping[str, Any]]
@@ -199,6 +201,7 @@ class Upload(MemoizationLeaf):
             no_drag: Whether to disable drag and drop.
             no_keyboard: Whether to disable using the space/enter keys to upload.
             on_drop: Fired when files are dropped.
+            drag_active_style: Style rules to apply when actively dragging.
             style: The style of the component.
             key: A unique key for the component.
             id: The id for the component.
@@ -227,6 +230,7 @@ class StyledUpload(Upload):
         no_click: Var[bool] | bool | None = None,
         no_drag: Var[bool] | bool | None = None,
         no_keyboard: Var[bool] | bool | None = None,
+        drag_active_style: Style | None = None,
         style: Sequence[Mapping[str, Any]]
         | Mapping[str, Any]
         | Var[Mapping[str, Any]]
@@ -269,6 +273,7 @@ class StyledUpload(Upload):
             no_drag: Whether to disable drag and drop.
             no_keyboard: Whether to disable using the space/enter keys to upload.
             on_drop: Fired when files are dropped.
+            drag_active_style: Style rules to apply when actively dragging.
             style: The style of the component.
             key: A unique key for the component.
             id: The id for the component.
@@ -297,6 +302,7 @@ class UploadNamespace(ComponentNamespace):
         no_click: Var[bool] | bool | None = None,
         no_drag: Var[bool] | bool | None = None,
         no_keyboard: Var[bool] | bool | None = None,
+        drag_active_style: Style | None = None,
         style: Sequence[Mapping[str, Any]]
         | Mapping[str, Any]
         | Var[Mapping[str, Any]]
@@ -339,6 +345,7 @@ class UploadNamespace(ComponentNamespace):
             no_drag: Whether to disable drag and drop.
             no_keyboard: Whether to disable using the space/enter keys to upload.
             on_drop: Fired when files are dropped.
+            drag_active_style: Style rules to apply when actively dragging.
             style: The style of the component.
             key: A unique key for the component.
             id: The id for the component.

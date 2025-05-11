@@ -32,6 +32,25 @@ class UserState(rx.State):
     password: str = ""  # Guarda la contraseña ingresada
     current_user: Optional[User] = None  # Mantiene al usuario autenticado
     today_data: list[CalendarInfo] = []
+    active_tab: str = "profile"
+    new_password: str = ""
+    confirm_password: str = ""
+    timezone: str = "UTC+1"
+    theme: str = "Claro"
+
+    def set_active_tab(self, tab: str):
+        self.active_tab = tab
+
+    def change_password(self, form_data: dict):
+        current = form_data.get("current_password")
+        new = form_data.get("new_password")
+        confirm = form_data.get("confirm_password")
+        
+        if new != confirm:
+            return rx.window_alert("Las contraseñas no coinciden")
+        
+        # Lógica para cambiar contraseña
+        return rx.window_alert("Contraseña actualizada con éxito")
     @rx.event(background=True)
     async def today_info(self):
         async with self:

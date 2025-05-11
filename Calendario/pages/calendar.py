@@ -21,7 +21,7 @@ from Calendario.components.today_box import today_box
         CalendarState.load_meals,
         UserState.check_autenticated,
         CalendarState.update_current_date,
-        UserState.today_info  # Nueva línea para cargar datos iniciales
+        CalendarState.refresh_page
     ],
 )
 def calendar() -> rx.Component:

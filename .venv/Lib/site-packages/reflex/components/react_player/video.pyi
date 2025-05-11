@@ -27,8 +27,6 @@ class Video(ReactPlayer):
         light: Var[bool] | bool | None = None,
         volume: Var[float] | float | None = None,
         muted: Var[bool] | bool | None = None,
-        width: Var[str] | str | None = None,
-        height: Var[str] | str | None = None,
         style: Sequence[Mapping[str, Any]]
         | Mapping[str, Any]
         | Var[Mapping[str, Any]]
@@ -83,8 +81,6 @@ class Video(ReactPlayer):
             light: Set to true to show just the video thumbnail, which loads the full player on click
             volume: Set the volume of the player, between 0 and 1
             muted: Mutes the player
-            width: Set the width of the player: ex:640px
-            height: Set the height of the player: ex:640px
             on_ready: Called when media is loaded and ready to play. If playing is set to true, media will play immediately.
             on_start: Called when media starts playing.
             on_play: Called when media starts or resumes playing after pausing or buffering.
