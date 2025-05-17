@@ -325,30 +325,32 @@ class CalendarState(rx.State):
     @rx.event
     async def reset_calendars(self):
         """Sincroniza sólo las diferencias: añade, elimina y actualiza calendarios."""
-        # 1) Traer la lista actualizada desde la base de datos
-        new_list = await fetch_and_transform_calendars(
-            (await self.get_state(UserState)).current_user.id
-        )
+        user_state= await self.get_state(UserState)
+        if user_state.current_user:
+            # 1) Traer la lista actualizada desde la base de datos
+            new_list = await fetch_and_transform_calendars(
+                user_state.current_user.id
+            )
 
-        # 2) Crear mapas id → calendario para viejo y nuevo
-        old_map = {c.id: c for c in self.calendars}
-        new_map = {c.id: c for c in new_list}
+            # 2) Crear mapas id → calendario para viejo y nuevo
+            old_map = {c.id: c for c in self.calendars}
+            new_map = {c.id: c for c in new_list}
 
-        # 3) Eliminar los que ya no existen
-        removed = set(old_map) - set(new_map)
-        if removed:
-            self.calendars = [c for c in self.calendars if c.id not in removed]
+            # 3) Eliminar los que ya no existen
+            removed = set(old_map) - set(new_map)
+            if removed:
+                self.calendars = [c for c in self.calendars if c.id not in removed]
 
-        # 4) Añadir los nuevos
-        added = set(new_map) - set(old_map)
-        for cid in added:
-            self.calendars.append(new_map[cid])
+            # 4) Añadir los nuevos
+            added = set(new_map) - set(old_map)
+            for cid in added:
+                self.calendars.append(new_map[cid])
 
-        # 5) Actualizar los que cambiaron (si cambian propiedades)
-        for cid in set(new_map) & set(old_map):
-            if new_map[cid] != old_map[cid]:
-                idx = next(i for i, c in enumerate(self.calendars) if c.id == cid)
-                self.calendars[idx] = new_map[cid]
+            # 5) Actualizar los que cambiaron (si cambian propiedades)
+            for cid in set(new_map) & set(old_map):
+                if new_map[cid] != old_map[cid]:
+                    idx = next(i for i, c in enumerate(self.calendars) if c.id == cid)
+                    self.calendars[idx] = new_map[cid]
     @rx.event
     def clean(self):
         self.meals = []  # Reset to empty list

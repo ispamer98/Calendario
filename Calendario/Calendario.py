@@ -1,5 +1,6 @@
 """Welcome to Reflex! This file outlines the steps to create a basic app."""
 
+from re import I
 from Calendario.pages.index import index
 from Calendario.pages.login import login
 from Calendario.pages.register import register
@@ -7,7 +8,7 @@ from Calendario.pages.calendar import calendar
 from Calendario.pages.forgot_pasword import forgot_password
 from Calendario.pages.reset_pasword import reset_password
 from Calendario.pages.profile import profile
-
+from Calendario.pages.security import security
 
 import reflex as rx
 

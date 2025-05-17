@@ -1,5 +1,6 @@
 #user_state.py
 
+import bcrypt
 import reflex as rx
 import time
 from typing import Optional,Any
@@ -37,19 +38,31 @@ class UserState(rx.State):
     confirm_password: str = ""
     timezone: str = "UTC+1"
     theme: str = "Claro"
+    current_password : str = ""
 
     def set_active_tab(self, tab: str):
         self.active_tab = tab
+    def change_password(self):
+        # 1. Convertir cadenas a bytes
+        current_pw_bytes = self.current_password.encode('utf-8')
+        stored_hash_bytes = self.current_user.pasw.encode('utf-8')
 
-    def change_password(self, form_data: dict):
-        current = form_data.get("current_password")
-        new = form_data.get("new_password")
-        confirm = form_data.get("confirm_password")
+        # 2. Verificar la contraseña actual con bcrypt
+        if not bcrypt.checkpw(current_pw_bytes, stored_hash_bytes):
+            return rx.window_alert("La contraseña actual no coincide")
+
+        # 3. Verificar que la nueva contraseña y su confirmación coincidan
+        if self.new_password != self.confirm_password:
+            return rx.window_alert("La nueva contraseña y su confirmación no coinciden")
         
-        if new != confirm:
-            return rx.window_alert("Las contraseñas no coinciden")
+        # 4. Lógica para cambiar la contraseña:
+        #    - Hashear la nueva contraseña
+        #    - Almacenar el nuevo hash en self.current_user.pasw
+        #    - Persistir en la base de datos
+        nueva_hash = bcrypt.hashpw(self.new_password.encode('utf-8'), bcrypt.gensalt())
+        self.current_user.pasw = nueva_hash.decode('utf-8')
+        # aquí tu lógica de guardado…
         
-        # Lógica para cambiar contraseña
         return rx.window_alert("Contraseña actualizada con éxito")
     @rx.event(background=True)
     async def today_info(self):
@@ -82,6 +95,24 @@ class UserState(rx.State):
         """
         self.password = password
         print(f"Password actualizado: {self.password}")
+
+
+    @rx.event
+    def set_confirm_password(self, password: str):
+        """
+        Actualiza la contraseña en el estado.
+        """
+        self.password = password
+        print(f"Password actualizado: {self.password}")
+
+    @rx.event
+    def set_current_password(self, password: str):
+        """
+        Actualiza la contraseña en el estado.
+        """
+        self.password = password
+        print(f"Password actualizado: {self.password}")
+
 
 
 

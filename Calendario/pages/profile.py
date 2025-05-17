@@ -1,20 +1,31 @@
-# File: Calendario/pages/calendar.py
-
+# Calendario/pages/profile.py
 import reflex as rx
-from Calendario.components.footer import footer
-from Calendario.components.meal_editor import meal_editor
-from Calendario.components.calendar_creator import calendar_creator
-from Calendario.components.user_calendar import user_calendar
-from Calendario.state.calendar_state import CalendarState
-from Calendario.components.user_navbar import user_navbar
-from Calendario.state.user_state import UserState
-from Calendario.components.today_box import today_box
 
+from Calendario.state.user_state import UserState
 
 @rx.page(
+        
     route="/profile",
-    title="Calendario | CalendPy",
+    title="Perfil | Calendario",
+    on_load=[UserState.on_load, UserState.check_autenticated],
 )
 def profile() -> rx.Component:
-    return rx.vstack(
+    from Calendario.components.sidebar import sidebar
+
+
+    return rx.hstack(
+        
+        sidebar(),
+        rx.container(
+            rx.heading("Perfil de Usuario", size="2", margin_bottom="1em"),
+            rx.text(
+                f"Usuario: {UserState.current_user.username}",
+                size="2",
+                color="gray.200",
+            ),
+            # Aquí puedes añadir más campos o formularios para editar el perfil
+            padding="2em",
+            flex="1",
+        ),
+        height="100vh",
     )
