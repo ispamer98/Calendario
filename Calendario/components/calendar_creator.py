@@ -5,10 +5,9 @@ from datetime import datetime
 from dateutil.relativedelta import relativedelta
 
 def calendar_creator() -> rx.Component:
-    # Obtener fecha actual
-    today = datetime.today()
-    
-    # Calcular rango permitido (mes actual hasta 12 meses en el futuro)
+    today = datetime.today()    # Obtener fecha actual
+
+    # Calcular rango permitido (mes actual hasta 12 meses en el futuro) 
     min_date = today.strftime("%Y-%m")
     max_date = datetime(today.year + 1, 12, 1).strftime("%Y-%m")
 

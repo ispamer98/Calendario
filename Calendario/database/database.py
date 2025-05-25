@@ -12,7 +12,6 @@ from Calendario.model.model import Calendar,Day,Meal,Comment,User
 from datetime import datetime, timedelta
 
 
-logging.basicConfig(level=logging.INFO)
 
 class SupabaseAPI:
 
@@ -41,12 +40,22 @@ class SupabaseAPI:
             if response.data:
                 user = response.data[0]
                 if bcrypt.checkpw(password.encode('utf-8'), user["pasw"].encode('utf-8')):
-                    logging.info(f"Usuario autenticado: {username}")
                     return user
         except Exception as e:
             logging.error(f"Error autenticando al usuario: {e}")
         return None
     
+    def change_pasw(self,username: str, password: str):
+        response = self.supabase.from_("user").select("*").ilike("username", username).execute()
+        if response.data:
+            user = response.data[0]
+            update_response = self.supabase.from_("user").update({"pasw": password}).eq("id", user["id"]).execute()
+
+            if update_response:
+                return True
+            else:
+                return False
+
 
     def check_existing_user(self,username: str, email: str) -> dict:
         """

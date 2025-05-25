@@ -1,12 +1,13 @@
 # Calendario/pages/profile.py
 import reflex as rx
 
+from Calendario.components.user_navbar import user_navbar
 from Calendario.state.user_state import UserState
 
 @rx.page(
         
     route="/profile",
-    title="Perfil | Calendario",
+    title="Perfil | CalendPy",
     on_load=[UserState.on_load, UserState.check_autenticated],
 )
 def profile() -> rx.Component:
@@ -14,7 +15,7 @@ def profile() -> rx.Component:
 
 
     return rx.hstack(
-        
+        user_navbar(),
         sidebar(),
         rx.container(
             rx.heading("Perfil de Usuario", size="2", margin_bottom="1em"),

@@ -1,13 +1,243 @@
-from fastapi import background
 import reflex as rx
 from Calendario.components.calendar_creator import calendar_creator
 from Calendario.state.user_state import UserState
 from Calendario.state.calendar_state import CalendarState
 
+
+class DrawerState(rx.State):
+    is_open: bool = False
+    show_profile_submenu: bool = False
+    show_calendar_submenu: bool = False
+
+    @rx.event
+    def open_drawer(self):
+        self.is_open = True
+
+    @rx.event
+    def close_drawer(self):
+        self.is_open = False
+        self.show_profile_submenu = False
+        self.show_calendar_submenu = False
+
+    @rx.event
+    def toggle_profile_submenu(self):
+        self.show_profile_submenu = not self.show_profile_submenu
+
+    @rx.event
+    def toggle_calendar_submenu(self):
+        self.show_calendar_submenu = not self.show_calendar_submenu
+
+def drawer_menu():
+    NAVBAR_HEIGHT = "65px"
+
+    return rx.drawer.root(
+        rx.drawer.trigger(),
+        rx.drawer.overlay(
+            background="rgba(0, 0, 0, 0.6)",
+            style={"top": NAVBAR_HEIGHT},
+            on_click=DrawerState.close_drawer,
+        ),
+        rx.drawer.portal(
+            rx.drawer.content(
+                rx.flex(
+                    rx.drawer.close(
+                        rx.button(
+                            "×",
+                            on_click=DrawerState.close_drawer,
+                            variant="ghost",
+                            font_size="2.5em",
+                            font_weight="bold",
+                            color="white",
+                            position="absolute",
+                            top="20px",
+                            right="20px",
+                            padding="0",
+                            width="auto",
+                            height="auto",
+                            min_width="auto",
+                            background="transparent",
+                            _hover={
+                                "color": "#EF4444",
+                                "transform": "scale(1.5)",
+                                "cursor": "pointer",
+                                "transition": "all 0.2s ease-in-out",
+                            },
+                            _focus={"boxShadow": "none"},
+                        ),
+                    ),
+
+                    # Calendario
+                    rx.box(
+                        rx.button(
+                            rx.hstack(
+                                rx.icon("calendar"),
+                                rx.text("Calendario"),
+                                rx.icon("chevron-down"),
+                                spacing="2",
+                                align="center",
+                                color="white",
+                                width="100%",
+                            ),
+                            variant="ghost",
+                            width="100%",
+                            justify_content="flex-start",
+                            font_size="lg",
+                            font_weight="600",
+                            background="transparent",
+                            padding_y="0.5em",
+                            margin_top="4em",
+                            _hover={
+                                "background": "#23282b",
+                                "cursor": "pointer",
+                                "transition": "all 0.2s ease-in-out",
+                                "display": "block",
+                                "width": "200%",
+                                "max_width" : "200px",
+                                "padding_left": "0.5em",
+                            },
+                            on_click=DrawerState.toggle_calendar_submenu,
+                            
+                        ),
+                        rx.cond(
+                            DrawerState.show_calendar_submenu,
+                            rx.vstack(
+                                rx.separator(margin_top="1em",margin_bottom="1em"),
+                                rx.button(
+                                    rx.icon("arrow-big-right"),
+                                    "Visualizar calendario",
+                                    variant="ghost",
+                                    justify_content="flex-start",
+                                    width="100%",
+                                    font_size="md",
+                                    color="white",
+                                    padding_left="1.5em",
+                                    _hover={
+                                        "background": "#23282b",
+                                        "color": "#309DCF",
+                                    },
+                                    on_click=[DrawerState.close_drawer, UserState.go_calendar_page],
+                                ),
+                                rx.button(
+                                    rx.icon("arrow-big-right"),
+                                    "Crear Calendario",
+                                    variant="ghost",
+                                    justify_content="flex-start",
+                                    width="100%",
+                                    font_size="md",
+                                    color="white",
+                                    padding_left="1.5em",
+                                    _hover={
+                                        "background": "#23282b",
+                                        "color": "#309DCF",
+                                    },
+                                    on_click=[DrawerState.close_drawer, CalendarState.open_calendar_creator],
+                                ),
+                                spacing="1",
+                                align_items="start",
+                                width="100%"
+                            )
+                        )
+                    ),
+
+                    # Perfil - botón principal
+                    rx.box(
+                        rx.button(
+                            rx.hstack(
+                                rx.icon("settings"),
+                                rx.text("Perfil"),
+                                rx.icon("chevron-down"),
+                                spacing="2",
+                                align="center",
+                                color="white",
+                                width="100%",
+                            ),
+                            variant="ghost",
+                            width="100%",
+                            justify_content="flex-start",
+                            font_size="lg",
+                            font_weight="600",
+                            background="transparent",
+                            padding_y="0.5em",
+                            _hover={
+                                "background": "#23282b",
+                                "cursor": "pointer",
+                                "transition": "all 0.2s ease-in-out",
+                                "display": "block",
+                                "width": "200%",
+                                "max_width" : "200px",
+                                "padding_left": "0.5em",
+                            },
+                            on_click=DrawerState.toggle_profile_submenu,
+                        ),
+                        rx.cond(
+                            DrawerState.show_profile_submenu,
+                            rx.vstack(
+                                rx.separator(margin_top="1em",margin_bottom="1em"),
+                                rx.button(
+                                    rx.icon("arrow-big-right"),
+                                    "Datos de usuario",
+                                    variant="ghost",
+                                    justify_content="flex-start",
+                                    width="100%",
+                                    font_size="md",
+                                    color="white",
+                                    padding_left="1.5em",
+                                    _hover={
+                                        "background": "#23282b",
+                                        "color": "#309DCF",
+                                    },
+                                    on_click=[DrawerState.close_drawer, UserState.go_profile_page],
+                                ),
+                                rx.button(
+                                    rx.icon("arrow-big-right"),
+                                    "Seguridad",
+                                    variant="ghost",
+                                    justify_content="flex-start",
+                                    width="100%",
+                                    font_size="md",
+                                    color="white",
+                                    padding_left="1.5em",
+                                    _hover={
+                                        "background": "#23282b",
+                                        "color": "#309DCF",
+                                    },
+                                    on_click=[DrawerState.close_drawer, UserState.go_security_page],
+                                ),
+                                spacing="1",
+                                align_items="start",
+                                width="100%"
+                            )
+                        )
+                    ),
+
+                    direction="column",
+                    align_items="start",
+                    gap="1.5em",
+                    height="100%",
+                    padding_x="2em",
+                ),
+                height=f"calc(100vh - {NAVBAR_HEIGHT})",
+                width="18em",
+                background_color="#1e1e1e",
+                box_shadow="rgba(0, 0, 0, 0.8) 0px 4px 20px",
+                border_radius="0 20px 20px 0",
+                position="fixed",
+                top=NAVBAR_HEIGHT,
+                left="0",
+                z_index="1200",
+            )
+        ),
+        open=DrawerState.is_open,
+        placement="left",
+        modal=True,
+    )
+
+
 def user_navbar() -> rx.Component:
     return rx.box(
         rx.box(
             rx.hstack(
+                drawer_menu(),
                 
                 # Logo/Texto con efecto gradiente
                 rx.heading(
@@ -26,17 +256,9 @@ def user_navbar() -> rx.Component:
                     font_weight="800",
                     font_size="1em",
                     user_select="none",
-                    on_click=rx.redirect("/calendar"),
+                    on_click=DrawerState.open_drawer,
                     _hover={"transform": "scale(1.05)",
                             "cursor": "pointer"},
-                ),
-                rx.button(
-                    "Ir a Calendario",
-                    on_click=rx.redirect("/calendar"),
-                    variant="outline",
-                    color_scheme="jade",
-                    size="1",
-                    ml="1em",  # pequeño margen izquierdo
                 ),
                 
                 rx.spacer(),
@@ -75,20 +297,11 @@ def user_navbar() -> rx.Component:
                         )
                     ),
                     rx.menu.content(
-                        rx.menu.item("Crear Calendario",
-                                     rx.icon("calendar-plus"),
-                                     style={"_hover" : { "background " : "#23282b"}},
-                                     on_click=CalendarState.open_calendar_creator()
-                                     ),
                         rx.menu.item("Perfil", 
-                                     rx.icon("user"),
+                                     rx.icon("settings"),
                                      style={"_hover" : { "background " : "#23282b"}},
                                      on_click=rx.redirect("/profile")
                                      ),
-                        rx.menu.item("Configuración",
-                                      rx.icon("settings"),
-                                      style={"_hover" : { "background " : "#23282b"}}
-                                      ), 
                         rx.menu.separator(),
                         rx.menu.item(
                             "Cerrar sesión",

@@ -38,7 +38,9 @@ class CalendarState(rx.State):
 
 
     @rx.event
+
     async def refresh_page(self):
+        from Calendario.state.day_state import DayState
         """Redirige a /calendar con el ID del calendario actual para recargarlo."""
         user_state = await self.get_state(UserState)  # Accede al estado de usuario
         if not self.current_calendar:
@@ -296,10 +298,6 @@ class CalendarState(rx.State):
 
 
 
-
-    async def load_days(self, calendar_id: int):
-        self.days = await get_days_for_calendar(calendar_id)
-
     @rx.event
     async def update_day_in_state(self, updated_day: Day):
         # Actualizar días en el estado
@@ -313,15 +311,7 @@ class CalendarState(rx.State):
         first_weekday = start_date.weekday()
         self.display_days = [None] * first_weekday + self.days
 
-                # Actualizar today_data
         
-        user_state = await self.get_state(UserState)
-        
-
-
-
-
-
     @rx.event
     async def reset_calendars(self):
         """Sincroniza sólo las diferencias: añade, elimina y actualiza calendarios."""

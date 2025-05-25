@@ -23,3 +23,13 @@ def show_pasw_switch_register() -> rx.Component:
         padding_top="0.5em",
     )
 
+def show_pasw_switch_security() -> rx.Component:
+    return rx.hstack(
+        rx.switch(
+            on_change=UserState.swith_on,
+            is_checked=UserState.show_new_pasw,
+            color_scheme="jade"  # Pasar el estado del switch
+        ),
+        rx.text("Mostrar contraseña"),
+        padding_top="0.5em",
+    )

@@ -32,6 +32,9 @@ async def register_user(username: str, password: str, email: str, birthday: str)
     except Exception as e:
         print(f"Error registrando usuario: {str(e)}")
         return False
+    
+async def change_pasw(username : str, password : str) -> bool:
+    return SUPABASE_API.change_pasw(username,password)
 
 # ---------------------- Calendarios ----------------------
 async def fetch_and_transform_calendars(user_id: int) -> List[Calendar]:

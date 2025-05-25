@@ -100,9 +100,14 @@ def calendar() -> rx.Component:
                     # ❌ No tienes calendarios
                     rx.vstack(
                         rx.text("No tienes ningún calendario", color="gray.600"),
+                        rx.separator(margin_top="1em",width="250px"),
                         rx.button(
-                            "Crear Calendario",
-                            on_click=CalendarState.open_calendar_creator
+                            rx.icon("calendar-plus"),
+                            rx.text("Añadir calendario", margin_left="0.5em"),
+                            color_scheme="green",
+                            on_click=CalendarState.open_calendar_creator,
+                            align_items="center",
+                            margin_top="1em"
                         ),
                         align_items="center",
                         spacing="1"

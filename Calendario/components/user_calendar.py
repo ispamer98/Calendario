@@ -71,6 +71,19 @@ def user_calendar() -> rx.Component:
                     CalendarState.calendars.length() > 0,
                     rx.vstack(
                         rx.hstack(
+                                rx.button(
+                                    rx.icon("calendar-plus"),
+                                    rx.text("Añadir calendario", margin_left="0.5em"),
+                                    color_scheme="green",
+                                    on_click=CalendarState.open_calendar_creator,
+                                    align_items="center",
+                                ),
+                            
+                            justify_content="center",
+                            width="100%",
+                            padding_bottom="1em",
+                        ),
+                        rx.hstack(
                             rx.select.root(
                                 rx.select.trigger(
                                     placeholder="Selecciona un calendario",

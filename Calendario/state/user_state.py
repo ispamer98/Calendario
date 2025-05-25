@@ -3,9 +3,10 @@
 import bcrypt
 import reflex as rx
 import time
+import re
 from typing import Optional,Any
 from Calendario.model.model import User
-from Calendario.utils.api import authenticate_user,get_today_info
+from Calendario.utils.api import authenticate_user,get_today_info,change_pasw
 from datetime import datetime
 import json
 
@@ -33,44 +34,76 @@ class UserState(rx.State):
     password: str = ""  # Guarda la contraseña ingresada
     current_user: Optional[User] = None  # Mantiene al usuario autenticado
     today_data: list[CalendarInfo] = []
-    active_tab: str = "profile"
     new_password: str = ""
     confirm_password: str = ""
     timezone: str = "UTC+1"
-    theme: str = "Claro"
     current_password : str = ""
+    current_page : str = "calendar"
+    show_new_pasw: bool = False
 
-    def set_active_tab(self, tab: str):
-        self.active_tab = tab
-    def change_password(self):
-        # 1. Convertir cadenas a bytes
-        current_pw_bytes = self.current_password.encode('utf-8')
-        stored_hash_bytes = self.current_user.pasw.encode('utf-8')
 
-        # 2. Verificar la contraseña actual con bcrypt
-        if not bcrypt.checkpw(current_pw_bytes, stored_hash_bytes):
-            return rx.window_alert("La contraseña actual no coincide")
+    @rx.event
+    def reset_security(self):
+        self.new_password = ""
+        self.confirm_password = ""
+        self. current_password = ""
+    @rx.event
+    def swith_on(self, value: bool = True):
+        """Controla la visibilidad de la contraseña."""
+        self.show_new_pasw = value
 
-        # 3. Verificar que la nueva contraseña y su confirmación coincidan
+    @rx.event
+    def swith_off(self, value: bool = False):
+        """Controla la visibilidad de la contraseña."""
+        self.show_new_pasw = value
+
+    @rx.event
+    def reset_switch(self):
+        """Reinicia el estado del switch a False."""
+        self.show_new_pasw = False
+
+    async def change_password(self):
+        # Validación de la nueva contraseña
+        if not self.new_password:
+            return rx.toast.error("Contraseña nueva requerida")
+
+        pattern = r'^(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$'
+        if not re.match(pattern, self.new_password):
+            self.new_password = ""
+            self.confirm_password = ""
+            self.current_password = ""
+
+            return rx.toast.error("La contraseña debe tener mínimo 8 caracteres, al menos 1 mayúscula, 1 número y 1 carácter especial")
+
         if self.new_password != self.confirm_password:
-            return rx.window_alert("La nueva contraseña y su confirmación no coinciden")
-        
-        # 4. Lógica para cambiar la contraseña:
-        #    - Hashear la nueva contraseña
-        #    - Almacenar el nuevo hash en self.current_user.pasw
-        #    - Persistir en la base de datos
-        nueva_hash = bcrypt.hashpw(self.new_password.encode('utf-8'), bcrypt.gensalt())
-        self.current_user.pasw = nueva_hash.decode('utf-8')
-        # aquí tu lógica de guardado…
-        
-        return rx.window_alert("Contraseña actualizada con éxito")
+            self.new_password = ""
+            self.confirm_password = ""
+            self.current_password = ""
+            return rx.toast.error("Las contraseñas no coinciden")
+
+        # Verificar la contraseña actual
+        if not bcrypt.checkpw(self.current_password.encode('utf-8'), self.current_user.pasw.encode('utf-8')):
+            self.new_password = ""
+            self.confirm_password = ""
+            self.current_password = ""
+            return rx.toast.error("La contraseña actual no coincide")
+
+        # Hashear la nueva contraseña
+        new_pasw_hash = bcrypt.hashpw(self.new_password.encode(), bcrypt.gensalt()).decode()
+
+        # Actualizar en base de datos
+        response = await change_pasw(self.current_user.username, new_pasw_hash)
+
+        if response == True:
+            return rx.toast.success(f"Contraseña actualizada para {self.current_user.username}")
+        else:
+            return rx.toast.error("No ha sido posible actualizar la contraseña")
+
     @rx.event(background=True)
     async def today_info(self):
         async with self:
             if self.current_user:
                 self.today_data = await get_today_info(self.current_user.id)
-            print("TODAY DATAAAAAAAAAAAAAAAAA",self.today_data)
-
     @rx.event
     def press_enter(self, key: str):
         if key == "Enter":
@@ -96,22 +129,30 @@ class UserState(rx.State):
         self.password = password
         print(f"Password actualizado: {self.password}")
 
+    @rx.event
+    def set_new_password(self, password: str):
+        """
+        Actualiza la contraseña en el estado.
+        """
+        self.new_password = password
+        print(f"Password actualizado: {self.new_password}")
+
 
     @rx.event
     def set_confirm_password(self, password: str):
         """
         Actualiza la contraseña en el estado.
         """
-        self.password = password
-        print(f"Password actualizado: {self.password}")
+        self.confirm_password = password
+        print(f"Password actualizado: {self.confirm_password}")
 
     @rx.event
     def set_current_password(self, password: str):
         """
         Actualiza la contraseña en el estado.
         """
-        self.password = password
-        print(f"Password actualizado: {self.password}")
+        self.current_password = password
+        print(f"Password actualizado: {self.current_password}")
 
 
 
@@ -161,8 +202,6 @@ class UserState(rx.State):
         self._load_user_from_storage()
 
 
-
-
     @rx.event
     async def login(self):
 
@@ -171,8 +210,6 @@ class UserState(rx.State):
 
         try:
             user_data = await authenticate_user(self.username.lower(), self.password)
-            
-
             
             if user_data:
                 self.current_user = user_data
@@ -212,6 +249,7 @@ class UserState(rx.State):
         calendar_state.clean()
         
         # 3. Eliminar datos de almacenamiento
+        self.current_page="profile"
         self._clear_storage()
         return [
             rx.remove_local_storage("user_state.user_storage"),
@@ -221,3 +259,19 @@ class UserState(rx.State):
     @rx.event
     def restart_pasw(self):
         self.password=""
+
+
+    @rx.event
+    def go_security_page(self):
+        self.current_page="security"
+        return rx.redirect("/security")
+    
+    @rx.event
+    def go_profile_page(self):
+        self.current_page="profile"
+        return rx.redirect("/profile")
+    
+    @rx.event
+    def go_calendar_page(self):
+        self.current_page="calendar"
+        return rx.redirect("/calendar")
