@@ -160,6 +160,7 @@ class UserState(rx.State):
     @rx.event
     def check_autenticated(self):
         if self.current_user == None:
+            print("NO HAY USUARIO")
             return rx.redirect("/")
 
     @rx.var
@@ -249,7 +250,6 @@ class UserState(rx.State):
         calendar_state.clean()
         
         # 3. Eliminar datos de almacenamiento
-        self.current_page="profile"
         self._clear_storage()
         return [
             rx.remove_local_storage("user_state.user_storage"),

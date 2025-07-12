@@ -25,6 +25,12 @@ app = rx.App(
         "https://fonts.googleapis.com/css2?family=Sarina&display=swap",
         ],
         ),
-        head_components=[rx.el.link(rel="manifest", href="/manifest.json")]
+        head_components=[rx.el.link(rel="manifest", href="/manifest.json")],
+        style={
+            "@keyframes spin": {
+                "0%": {"transform": "rotate(0deg)"},
+                "100%": {"transform": "rotate(360deg)"}
+                }
+        }
         
 )

@@ -1,19 +1,25 @@
 # Calendario/pages/index.py
+
 import reflex as rx
 from Calendario.components.footer import footer
 from Calendario.state.user_state import UserState
 
+#Función que redirije a la página de calendario
 def redirect_to_calendar():
     return rx.vstack(rx.script("window.location.href = '/calendar'"))
 
-@rx.page(route="/", title="CalendPy", on_load=UserState.on_load)
-@footer
+#Página indice/principal
+@rx.page( #Decorador indicando página
+        route="/",
+        title="CalendPy",
+        on_load=[UserState.on_load,]) #Comprobaciones al cargar página
+@footer #Insertamos el pie de página
 def index() -> rx.Component:
-    return rx.cond(
+    return rx.cond( #Comprueba el estado de usuario, y si hay usuario, redirije directamente al calendario
         UserState.current_user,
         redirect_to_calendar(),
-        rx.container(
-            rx.vstack(
+        rx.container( #Si no hay usuario, muestra la página de inicio
+            rx.vstack( #Stack vertical que muestra icono y mensaje de bienvenida
                 rx.image("/favicon.ico",width="300px", height="220px"),
                 rx.heading(
                     "¡Bienvenido a CalendPy!",
@@ -22,7 +28,8 @@ def index() -> rx.Component:
                     background_image="linear-gradient(45deg, #4F46E5, #3B82F6)",
                     background_clip="text",
                     padding_bottom="0.5em"
-                ),
+                ), 
+                #Info sobre el proyecto
                 rx.text(
                     "Organiza tus comidas de manera eficiente ",
                     size=rx.breakpoints(initial="4", md="5", lg="6"),
@@ -47,11 +54,11 @@ def index() -> rx.Component:
                     color="gray.400",
                     text_align="center"
                 ),
-                rx.box(
-                    rx.mobile_only(
+                rx.box( #Botones de acción de inicio
+                    rx.mobile_only( #Vista de movil
                         rx.vstack(
                             rx.link(
-                                rx.button(
+                                rx.button( #Botón para iniciar sesión
                                     rx.icon("user-check",size=18),
                                     "Iniciar Sesión",
                                     size=rx.breakpoints(initial="3", md="4"),
@@ -62,10 +69,10 @@ def index() -> rx.Component:
                                     padding_y="1em",
                                     variant="surface"
                                 ),
-                                href="/login",
+                                href="/login", #Regirije a la página de login
                             ),
                             rx.link(
-                                rx.button(
+                                rx.button( #Botón para registrar usuario
                                     rx.icon("user-plus",size=18),
                                     "Registrarse",
                                     size=rx.breakpoints(initial="3", md="4"),
@@ -78,17 +85,17 @@ def index() -> rx.Component:
 
                                     
                                 ),
-                                href="/register",
+                                href="/register", #Redirige a la página de registro
                             ),
                             spacing="3",
                             width="100%",
                             align="center"
                         )
                     ),
-                    rx.tablet_and_desktop(
+                    rx.tablet_and_desktop( #Vista de escritorio
                         rx.hstack(
                             rx.link(
-                                rx.button(
+                                rx.button( #Botón de inicio de sesión
                                     rx.icon("user-check",size=18),
                                     "Iniciar Sesión",
                                     size=rx.breakpoints(initial="3", md="4"),
@@ -99,10 +106,10 @@ def index() -> rx.Component:
                                     padding_y="1em",
                                     variant="surface"
                                 ),
-                                href="/login"
+                                href="/login" #Regirije a la página de login
                             ),
                             rx.link(
-                                rx.button(
+                                rx.button( #Botón para registrar usuario
                                     rx.icon("user-plus",size=18),
                                     "Registrarse",
                                     size=rx.breakpoints(initial="3", md="4"),
@@ -114,7 +121,7 @@ def index() -> rx.Component:
                                     _hover={"transform": "scale(1.05)"},
 
                                 ),
-                                href="/register"
+                                href="/register" #Redirige a la página de registro
                             ),
                             spacing="4",
                             margin_top="2em",

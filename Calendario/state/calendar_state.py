@@ -11,59 +11,66 @@ from datetime import datetime
 from dateutil.relativedelta import relativedelta
 import pytz
 
-
+#Estado que maneja la lógica del calendario
 class CalendarState(rx.State):
-    """
-    Manejador de estado para un calendario.
-    """
-    meals: List[Meal] = []  # Lista de opciones de comidas
-    comments: List[Comment] = []  # Lista de comentarios para el día seleccionado
-    calendars: List[Calendar] = []  # Almacena todos los calendarios del usuario
-    toast_info: Optional[str] = None
-    new_calendar_name : str = ""
-    new_calendar_month: str = datetime.today().strftime("%Y-%m")
-    loading : bool = False
-    show_calendar_creator: bool = False
-    error_message : Optional[str] = None 
-    current_calendar: Optional[Calendar] = None
-    days : List[Day] = [] 
-    hovered_day: Optional[int] = None
-    display_days: list[Optional[Day]] = []
-    current_date_str: str
-    loading: bool = True
-    username_to_share: str = ""  # Nombre de usuario con quien compartir
-    show_calendar_sharer: bool = False  # Nuevo estado
-    shared_users: list[User] = []
-    owner_username: str = ""
+    meals: List[Meal] = []  #Lista de comidas en bd
+    comments: List[Comment] = []  #Lista de comentarios para el día seleccionado
+    calendars: List[Calendar] = []  # Lista de los calendarios del usuario
+    toast_info: Optional[str] = None #Mensaje de información
+    new_calendar_name : str = "" #Nombre para nuevo calendario
+    new_calendar_month: str = datetime.today().strftime("%Y-%m") #Mes/año del nuevo calendario
+    loading : bool = False #Manejador de carga
+    show_calendar_creator: bool = False #Manejador para mostrar el creador de calendario
+    error_message : Optional[str] = None #Mensaje de error para inputs
+    current_calendar: Optional[Calendar] = None #Calendario actual
+    days : List[Day] = [] #Lista de días del calendario seleccionado
+    hovered_day: Optional[int] = None #Día seleccionado
+    display_days: list[Optional[Day]] = [] #Días para mostrar en el calendario
+    current_date_str: str #Fecha del día actual
+    username_to_share: str = ""  #Nombre de usuario con quien compartir
+    show_calendar_sharer: bool = False  #Manejador para mostrar compartir calendario
+    shared_users: list[User] = [] #Lista de usuarios con acceso al calendario
+    owner_username: str = "" #Nombre del dueño del calendario
 
 
+    #Recarga los datos de la página
     @rx.event
-
     async def refresh_page(self):
-        from Calendario.state.day_state import DayState
-        """Redirige a /calendar con el ID del calendario actual para recargarlo."""
-        user_state = await self.get_state(UserState)  # Accede al estado de usuario
+        #Si no existe calendario seleccionado, no recarga información
         if not self.current_calendar:
-            # Si no hay calendario seleccionado, no hace nada
             return 
-        # Redirige a /calendar pasando el parámetro calendar_id
+        #Si existe calendario seleccionado:
         else: 
+            #Recarga el calendario actual
             await self.set_current_calendar(self.current_calendar.id)
+            #Obtiene los días del calendario
             await get_days_for_calendar(self.current_calendar.id)
+            #Carga todos los calendarios
             await self.load_calendars()
-            print("REFRESCANDOOOOOOOOOOOOOOOOOOOOOOOOOOOO")
-            return UserState.today_info()  # Nueva línea para actualizar today_data
+            #Devuelve la información del día en curso
+            return UserState.today_info()
 
             
-
+    #Elimina el calendario actual
     @rx.event
+    #Pasamnos la id del calendario como parámetro
     async def delete_calendar(self, calendar_id: int):
         try:
+            #Eliminamos registros de calendario en base de datos
             success = await delete_calendar_and_days(calendar_id)
             
+            #Si la acción se completa
             if success:
-                # Actualizar lista de calendarios
-                self.calendars = [cal for cal in self.calendars if cal.id != calendar_id]
+                #Creamos una lista de calendarios vacios
+                current_calendars = []
+                #Iteramos sobre los calendarios del usuario
+                for cal in self.calendars:
+                    #Comprobamos la id con la del calendario del parámetro
+                    if cal.id != calendar_id:
+                        #Si la id es distinta, añadimos el calendario a la lista
+                        current_calendars.append(cal)
+                #Reemplazamos la lista de calendarios por la nueva
+                self.calendars = current_calendars
                 
                 # Resetear calendario actual si era el eliminado
                 if self.current_calendar and self.current_calendar.id == calendar_id:
@@ -349,6 +356,7 @@ class CalendarState(rx.State):
         self.toast_info = None
         self.new_calendar_name = ""
         self.new_calendar_month = datetime.today().strftime("%Y-%m")
+        self.current_calendar = None
         self.loading = False
         self.show_calendar_creator = False
         self.error_message = None

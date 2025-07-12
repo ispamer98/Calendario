@@ -1,3 +1,5 @@
+# Calendario/components/user_navbar.py
+
 import reflex as rx
 from Calendario.components.calendar_creator import calendar_creator
 from Calendario.state.user_state import UserState
@@ -5,43 +7,44 @@ from Calendario.state.calendar_state import CalendarState
 
 
 class DrawerState(rx.State):
-    is_open: bool = False
-    show_profile_submenu: bool = False
-    show_calendar_submenu: bool = False
+    is_open: bool = False #Variable que controla la apertura del drawer
+    show_profile_submenu: bool = False #Variable que controla la apertura del submenu de perfil
+    show_calendar_submenu: bool = False #Variable que controla la apertura del submenu de calendario
 
     @rx.event
     def open_drawer(self):
-        self.is_open = True
+        self.is_open = True #Si se ejecuta, abre el drawer
 
     @rx.event
-    def close_drawer(self):
-        self.is_open = False
-        self.show_profile_submenu = False
-        self.show_calendar_submenu = False
+    def close_drawer(self): 
+        self.is_open = False #Si se ejecuta, cierra el drawer
+        self.show_profile_submenu = False #Cierra el submenu de perfil
+        self.show_calendar_submenu = False #Cierra el submenu de calendario
 
     @rx.event
     def toggle_profile_submenu(self):
-        self.show_profile_submenu = not self.show_profile_submenu
+        self.show_profile_submenu = not self.show_profile_submenu #Alterna la apertura del submenu de perfil
 
     @rx.event
     def toggle_calendar_submenu(self):
-        self.show_calendar_submenu = not self.show_calendar_submenu
+        self.show_calendar_submenu = not self.show_calendar_submenu #Alterna la apertura del submenu de calendario
 
 def drawer_menu():
-    NAVBAR_HEIGHT = "65px"
+    NAVBAR_HEIGHT = "65px" #Alto de la navbar
 
-    return rx.drawer.root(
+    return rx.drawer.root( #Drawer vertical para los submenus
         rx.drawer.trigger(),
         rx.drawer.overlay(
+            #Fondo fuera del drawer, al hacer click fuera, lo cierra
             background="rgba(0, 0, 0, 0.6)",
             style={"top": NAVBAR_HEIGHT},
-            on_click=DrawerState.close_drawer,
+            on_click=DrawerState.close_drawer, 
         ),
         rx.drawer.portal(
             rx.drawer.content(
                 rx.flex(
                     rx.drawer.close(
-                        rx.button(
+                        rx.button( #Boton de cerrar "X"
                             "×",
                             on_click=DrawerState.close_drawer,
                             variant="ghost",
@@ -66,7 +69,7 @@ def drawer_menu():
                         ),
                     ),
 
-                    # Calendario
+                    # Submenu de calendario
                     rx.box(
                         rx.button(
                             rx.hstack(
@@ -95,14 +98,14 @@ def drawer_menu():
                                 "max_width" : "200px",
                                 "padding_left": "0.5em",
                             },
-                            on_click=DrawerState.toggle_calendar_submenu,
+                            on_click=DrawerState.toggle_calendar_submenu, #Al hacer click, abre el submenu
                             
                         ),
-                        rx.cond(
+                        rx.cond( #Si el submenú está en estado abierto
                             DrawerState.show_calendar_submenu,
-                            rx.vstack(
+                            rx.vstack( #Muestra su contenido
                                 rx.separator(margin_top="1em",margin_bottom="1em"),
-                                rx.button(
+                                rx.button( #Botón que redirige a la pagina de calendario
                                     rx.icon("arrow-big-right"),
                                     "Visualizar calendario",
                                     variant="ghost",
@@ -115,9 +118,10 @@ def drawer_menu():
                                         "background": "#23282b",
                                         "color": "#309DCF",
                                     },
+                                    #Cierra el drawer y muestra el calendario
                                     on_click=[DrawerState.close_drawer, UserState.go_calendar_page],
                                 ),
-                                rx.button(
+                                rx.button( #Boton que abre el creador de calendario
                                     rx.icon("arrow-big-right"),
                                     "Crear Calendario",
                                     variant="ghost",
@@ -130,6 +134,7 @@ def drawer_menu():
                                         "background": "#23282b",
                                         "color": "#309DCF",
                                     },
+                                    #Cierra el drawer y muestra el creador de calendario
                                     on_click=[DrawerState.close_drawer, CalendarState.open_calendar_creator],
                                 ),
                                 spacing="1",
@@ -139,7 +144,7 @@ def drawer_menu():
                         )
                     ),
 
-                    # Perfil - botón principal
+                    #Submenu de perfil
                     rx.box(
                         rx.button(
                             rx.hstack(
@@ -167,13 +172,14 @@ def drawer_menu():
                                 "max_width" : "200px",
                                 "padding_left": "0.5em",
                             },
+                            #Al hacer click, abre el submenu
                             on_click=DrawerState.toggle_profile_submenu,
                         ),
-                        rx.cond(
+                        rx.cond( #Si el submenu está en estado abierto
                             DrawerState.show_profile_submenu,
-                            rx.vstack(
+                            rx.vstack( #Muestra su contenido
                                 rx.separator(margin_top="1em",margin_bottom="1em"),
-                                rx.button(
+                                rx.button( #Boton que muestra la información del usuario
                                     rx.icon("arrow-big-right"),
                                     "Datos de usuario",
                                     variant="ghost",
@@ -186,9 +192,10 @@ def drawer_menu():
                                         "background": "#23282b",
                                         "color": "#309DCF",
                                     },
+                                    #Cierra el drawer y redirige a la pagina de información de usuario
                                     on_click=[DrawerState.close_drawer, UserState.go_profile_page],
                                 ),
-                                rx.button(
+                                rx.button( #Botón que redirige al cambio de contraseña
                                     rx.icon("arrow-big-right"),
                                     "Seguridad",
                                     variant="ghost",
@@ -201,6 +208,7 @@ def drawer_menu():
                                         "background": "#23282b",
                                         "color": "#309DCF",
                                     },
+                                    #Cierra el drawer y redirige a la pagina de seguridad 
                                     on_click=[DrawerState.close_drawer, UserState.go_security_page],
                                 ),
                                 spacing="1",
@@ -227,19 +235,19 @@ def drawer_menu():
                 z_index="1200",
             )
         ),
-        open=DrawerState.is_open,
+        open=DrawerState.is_open, #Al abrir, actualzia el estado
         placement="left",
         modal=True,
     )
 
-
+#Componente de navbar ( barra superior de navegación )
 def user_navbar() -> rx.Component:
     return rx.box(
         rx.box(
-            rx.hstack(
+            rx.hstack( #Incluimos el drawer de lo submenus
                 drawer_menu(),
                 
-                # Logo/Texto con efecto gradiente
+                #Logo de la aplicación + Nombre de la misma
                 rx.heading(
                     rx.hstack(
                         rx.image(
@@ -256,29 +264,29 @@ def user_navbar() -> rx.Component:
                     font_weight="800",
                     font_size="1em",
                     user_select="none",
-                    on_click=DrawerState.open_drawer,
+                    on_click=DrawerState.open_drawer, #Al hacer click en la cabecera, se abre el drawer
                     _hover={"transform": "scale(1.05)",
                             "cursor": "pointer"},
                 ),
                 
                 rx.spacer(),
-                calendar_creator(),
+                calendar_creator(), #Incluimos el creador de calendario, para poder lanzarlo desde el submenu
                 # Menú de usuario
-                rx.menu.root(
+                rx.menu.root( #Creamos un "menu", boton visual con el nombre de usuario
                     rx.menu.trigger(
                         rx.button(
                             rx.hstack(
                                 rx.spacer(" "),
                                 rx.icon("user"),
-                                rx.cond(
+                                rx.cond( #Si el usuario está loggeado 
                                     UserState.current_user,
-                                    rx.text(UserState.current_user.username),
-                                    rx.text("Usuario")
+                                    rx.text(UserState.current_user.username), #Muestra su nombre
+                                    rx.text("Usuario") #Hasta que carga la info, muestra un usuario generico
                                 ),
                                 rx.icon("chevron-down"),
                                 spacing="2",
                                 align="center",
-                                color="white",  # Color del texto en blanco
+                                color="white",
                                 
                             ),
                             variant="ghost",
@@ -286,8 +294,8 @@ def user_navbar() -> rx.Component:
                             background="#23282b",
                             style={
                                 "background": "transparent",
-                                "color": "white",  # Color del texto en blanco
-                                "border": "1px solid rgba(255, 255, 255, 0.3)",  # Borde gris claro semi-transparente
+                                "color": "white",
+                                "border": "1px solid rgba(255, 255, 255, 0.3)",
                                 "_hover": {
                                     "background": "rgba(0, 0, 0, 0.2)",
                                     "cursor": "pointer",
@@ -296,17 +304,17 @@ def user_navbar() -> rx.Component:
                             }
                         )
                     ),
-                    rx.menu.content(
-                        rx.menu.item("Perfil", 
+                    rx.menu.content( #Opciones del menú
+                        rx.menu.item("Perfil", #Redirige a la información de usuario
                                      rx.icon("settings"),
                                      style={"_hover" : { "background " : "#23282b"}},
                                      on_click=rx.redirect("/profile")
                                      ),
-                        rx.menu.separator(),
-                        rx.menu.item(
+                        rx.menu.separator(), #Separador visual
+                        rx.menu.item( #Botón de cerrar sesión en rojo
                             "Cerrar sesión",
                             rx.icon("log-out"), 
-                            on_click=UserState.logout,
+                            on_click=UserState.logout, #Función que cierra sesión
                             color="#EF4444",
                             style={"_hover" : { "background " : "#23282b"}}
                         ),

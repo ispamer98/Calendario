@@ -177,6 +177,7 @@ class RegisterState(rx.State):
     @rx.event
     async def check_aviable_username(self):
         if not self.username:
+            self.username_valid = None
             return
         
         try:
@@ -263,8 +264,10 @@ class RegisterState(rx.State):
 
     @rx.event
     def load_page(self):
+        self.username = ""
         self.password = ""
         self.confirm_password = ""
+        self.email = ""
         self.confirm_email = ""
         self.birthday = ""
         self.reset_errors()

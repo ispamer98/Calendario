@@ -18,9 +18,12 @@ class PasswordResetState(rx.State):
     success_message: str = ""
 
     def on_load(self):
-        # Obtener token de la URL
+        self.new_password = ""
+        self.confirm_password = ""
         self.token = self.router.page.params.get("token", "")
-
+        if not self.token:
+            # Redirigir si no hay token
+            return rx.redirect("/")  # o a otra ruta, como "/"
     @rx.event
     async def send_reset_link(self):
         self.general_error = ""

@@ -1,16 +1,25 @@
+#Calendario/pages/forgot_pasword.py
+
 import reflex as rx
 from Calendario.components.footer import footer
 from Calendario.state.password_reset_state import PasswordResetState
+from Calendario.state.user_state import UserState
 
-# Forgot Password Page
-@rx.page(route="/forgot_password", title="Recuperar contraseña | CalendPy", on_load=PasswordResetState.on_load)
-@footer
-def forgot_password() -> rx.Component:
+#Página de contraseña olvidada
+@rx.page( #Decorador indicando componente de página
+        route="/forgot_password",
+        title="Recuperar contraseña | CalendPy",
+        on_load=[PasswordResetState.on_load,]) #Acción al cargar la página
+
+@footer #Insertamos el pie de página
+
+def forgot_password() -> rx.Component: 
+    #Estructura principal de la página
     return rx.center(
         rx.container(
-            rx.box(
+            rx.box( #Visión en movil
                 rx.mobile_only(
-                    rx.button(
+                    rx.button( #Botón que redirige al inicio
                         rx.icon("arrow-left", size=18),
                         on_click=rx.redirect("/"),
                         variant="soft",
@@ -20,9 +29,9 @@ def forgot_password() -> rx.Component:
                         _hover={"transform": "scale(1.05)"},
                         style={"position": "fixed", "left": "1.5rem", "top": "1.5rem"},
                     )
-                ),
+                ), #Visión en escritorio
                 rx.tablet_and_desktop(
-                    rx.button(
+                    rx.button( #Botón que redirige al inicio
                         rx.icon("arrow-left", size=18),
                         "Inicio",
                         on_click=rx.redirect("/"),
@@ -37,10 +46,9 @@ def forgot_password() -> rx.Component:
                 z_index="1000",
             ),
 
-            rx.vstack(
-                # Heading
+            rx.vstack( #Componente principal
                 rx.center(
-                    rx.heading(
+                    rx.heading( #Cabecera de página
                         "Restablecer contraseña",
                         size="6",
                         as_="h2",
@@ -51,10 +59,9 @@ def forgot_password() -> rx.Component:
                     spacing="5",
                     width="100%",
                 ),
-
-                # Email input
                 rx.vstack(
-                    rx.text(
+                    #Introducir email
+                    rx.text( 
                         "Correo electrónico",
                         size="3",
                         weight="medium",
@@ -68,14 +75,15 @@ def forgot_password() -> rx.Component:
                         size="3",
                         width="100%",
                         required=True,
-                        value=PasswordResetState.email,
+                        #Se envía el email introducido al estado
+                        value=PasswordResetState.email, 
                         on_change=PasswordResetState.set_email,
                     ),
                     spacing="2",
                     width="100%",
                 ),
 
-                # Submit button
+                #Botón de acción
                 rx.button(
                     rx.icon("send", size=18),
                     "Enviar enlace",
@@ -84,12 +92,13 @@ def forgot_password() -> rx.Component:
                     color_scheme="blue",
                     radius="full",
                     _hover={"transform": "scale(1.05)"},
+                    #Acción de envío, link de reset de contraseña
                     on_click=PasswordResetState.send_reset_link,
                     is_loading=PasswordResetState.loading,
                     width="100%",
                 ),
 
-                # Link to login
+                #Botón de vuelta a login
                 rx.center(
                     rx.vstack(
                         rx.hstack(

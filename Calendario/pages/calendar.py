@@ -1,20 +1,18 @@
-# File: Calendario/pages/calendar.py
+#Calendario/pages/calendar.py
 
 import reflex as rx
-from Calendario.components.footer import footer
 from Calendario.components.meal_editor import meal_editor
-from Calendario.components.calendar_creator import calendar_creator
 from Calendario.components.user_calendar import user_calendar
 from Calendario.state.calendar_state import CalendarState
 from Calendario.components.user_navbar import user_navbar
 from Calendario.state.user_state import UserState
 from Calendario.components.today_box import today_box
 
-
-@rx.page(
+#Página de calendario
+@rx.page( #Decorador indicando componente página
     route="/calendar",
     title="Calendario | CalendPy",
-    on_load=[
+    on_load=[ #Acciones al cargar la página
         CalendarState.reset_calendars,
         CalendarState.clean,
         UserState.on_load,
@@ -25,87 +23,62 @@ from Calendario.components.today_box import today_box
     ],
 )
 def calendar() -> rx.Component:
+    # Estructura del componente global como Stack Vertical
     return rx.vstack(
-        # ─── Navbar superior y editor de comidas ───
-        user_navbar(),
-        meal_editor(),
-
-        # ─── Contenedor principal ───
-        rx.container(
+        user_navbar(),  # Incluimos la navbar
+        meal_editor(),  # Y el editor de comidas para que pueda lanzarse
+        rx.container(  # Contenedor principal
             rx.cond(
-                # 1) Usuario autenticado
-                UserState.current_user,
-
-                # 2) Tienes calendarios creados
+                UserState.current_user,  # Si existe registro de usuario loggeado
                 rx.cond(
-                    CalendarState.calendars.length() > 0,
-
-                    # 3) Hay un calendario seleccionado
-                    rx.cond(
-                        CalendarState.current_calendar,
-
-                        # ── Layout cuando hay calendario seleccionado ──
-                        rx.fragment(
-                            # 🖥️ Desktop: calendario + today_box a la derecha
-                            rx.tablet_and_desktop(
-                                rx.hstack(
-                                    user_calendar(),
-                                    rx.cond(
-                                        UserState.today_data.length() > 0,
-                                        rx.box(
-                                            today_box(),
-                                            margin_left="5em",   # Ajusta para separar más a la derecha
-                                            margin_top="2em",    # Ajusta para más espacio arriba
-                                        )
-                                    ),
-                                    spacing="4",
-                                    align_items="flex-start",
-                                )
-                            ),
-                            # 📱 Móvil: calendario  + botones (ya dentro de user_calendar) y luego today_box debajo
-                            rx.mobile_only(
-                                rx.vstack(
+                    CalendarState.calendars.length() > 0,  # Si el usuario tiene calendarios creados
+                    rx.fragment(
+                        rx.tablet_and_desktop(  # Creamos la vista de escritorio
+                            rx.hstack(  # Stack horizontal
+                                user_calendar(),  # Lanzamos el calendario
+                                rx.cond(
+                                    UserState.today_data.length() > 0,  # Si existen registros en el día de hoy
                                     rx.box(
-                                        user_calendar(),
-                                        margin_left="-1em",  # O ajusta el valor según lo que necesites
-                                        margin_rigth="1em"
-                                    ),
-                                    rx.box(
-                                        rx.divider(),
-                                        width="100%",  # asegura que ocupe todo el ancho
-                                        margin_bottom="1em"
-                                    ),
-                                    rx.cond(
-                                        UserState.today_data.length() > 0,
-                                        today_box()
-                                    ),
-                                    align_items="flex-start",
-                                    spacing="2",
-                                )
-                            ),
+                                        today_box(),  # Mostramos la box con la info de hoy
+                                        margin_left="5em",
+                                        margin_top="2em",
+                                    )
+                                ),
+                                spacing="4",
+                                align_items="flex-start",
+                            )
                         ),
-
-                        # ── Ningún calendario aún seleccionado ──
-                        rx.vstack(
-                            user_calendar(),
-                            rx.cond(
-                                UserState.today_data.length() > 0,
-                                today_box()
-                            ),
-                            spacing="1",
-                            align="center"
+                        rx.mobile_only(  # Creamos la vista para móvil
+                            rx.vstack(  # Stack vertical
+                                rx.box(
+                                    user_calendar(),  # Lanzamos el calendario
+                                    margin_left="-1em",
+                                    margin_rigth="1em"
+                                ),
+                                rx.box(  # Divisor
+                                    rx.divider(),
+                                    width="100%",
+                                    margin_bottom="1em"
+                                ),
+                                rx.cond(
+                                    UserState.today_data.length() > 0,  # Si hay registros del día de hoy
+                                    today_box()  # Mostramos la info de hoy
+                                ),
+                                align_items="flex-start",
+                                spacing="2",
+                            )
                         ),
                     ),
 
-                    # ❌ No tienes calendarios
+                    #Si no existen calendarios registrados
                     rx.vstack(
-                        rx.text("No tienes ningún calendario", color="gray.600"),
-                        rx.separator(margin_top="1em",width="250px"),
-                        rx.button(
+                        rx.text("No tienes ningún calendario", color="gray.600"), #Texto informativo
+                        rx.separator(margin_top="1em", width="250px"),
+                        rx.button( #Botón que dispara el creador de calendario
                             rx.icon("calendar-plus"),
                             rx.text("Añadir calendario", margin_left="0.5em"),
                             color_scheme="green",
-                            on_click=CalendarState.open_calendar_creator,
+                            on_click=CalendarState.open_calendar_creator, #Acción que abre el creador de calendario
                             align_items="center",
                             margin_top="1em"
                         ),
@@ -114,18 +87,19 @@ def calendar() -> rx.Component:
                     ),
                 ),
 
-                # 🔄 Cargando usuario o datos
+                #Si no se ha cargado la información del usuario loggeado todavia
                 rx.vstack(
-                    rx.box(
+                    rx.box( #Se muestra un efecto de spinner
                         style={
                             "border": "8px solid #f3f3f3",
                             "borderTop": "8px solid #3182ce",
                             "borderRadius": "50%",
                             "width": "60px",
                             "height": "60px",
-                        },
+                            "animation": "spin 1s linear infinite"
+                        }
                     ),
-                    rx.text("Cargando...", margin_top="1em"),
+                    rx.text("Cargando...", margin_top="1em"), #Texto de la animación
                     align_items="center",
                     spacing="1"
                 ),

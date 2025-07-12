@@ -6,12 +6,13 @@ from Calendario.state.login_state import Login_state
 from Calendario.components.show_pasw_switch import show_pasw_switch_login
 
 def login_form() -> rx.Component:
-    """Componente del formulario de inicio de sesión."""
-    return rx.center(  # Centra horizontalmente
+    #Formulario de inicio de sesión
+    return rx.center( 
         rx.container(
             rx.box(
+                #Formato para movil
                 rx.mobile_only(
-                    rx.button(
+                    rx.button( #Botón de atrás
                         rx.icon("arrow-left", size=18),
                         on_click=rx.redirect("/"),
                         variant="soft",
@@ -22,8 +23,9 @@ def login_form() -> rx.Component:
                         style={"position": "fixed", "left": "1.5rem", "top": "1.5rem"}
                     )
                 ),
+                #Formato para tablet/escritorio
                 rx.tablet_and_desktop(
-                    rx.button(
+                    rx.button( #Botón de atrás
                         rx.icon("arrow-left", size=18),
                         "Inicio",
                         on_click=rx.redirect("/"),
@@ -37,13 +39,8 @@ def login_form() -> rx.Component:
                 ),
                 z_index="1000"
             ),
-            rx.vstack(
+            rx.vstack( #Estilo del formulario de login
                 rx.center(
-                    rx.image(
-                        width="2.5em",
-                        height="auto",
-                        border_radius="25%",
-                    ),
                     rx.heading(
                         "Accede a tu usuario",
                         size="6",
@@ -93,7 +90,7 @@ def login_form() -> rx.Component:
                         rx.input.slot(rx.icon("lock")),
                         name="password",
                         placeholder="Contraseña",
-                        type=rx.cond(Login_state.show_pasw, "text", "password"),
+                        type=rx.cond(Login_state.show_pasw, "text", "password"), #Alterla el tipo de texto
                         size="3",
                         width="100%",
                         required=True,
@@ -101,11 +98,11 @@ def login_form() -> rx.Component:
                         on_change=UserState.set_password,
                         on_key_down=UserState.press_enter,
                     ),
-                    show_pasw_switch_login(),
+                    show_pasw_switch_login(), #Componente para visualizar la contraseña
                     spacing="2",
                     width="100%",
                 ),
-                rx.button(
+                rx.button( #Botón de login
                     rx.icon("user-check",size=18),
                     "Iniciar Sesión",
                     size="3",
@@ -113,13 +110,13 @@ def login_form() -> rx.Component:
                     color_scheme="blue",
                     radius="full",
                     _hover={"transform": "scale(1.05)"},
-                    on_click=UserState.login,
+                    on_click=UserState.login, #Función que realiza el login
                     width="100%",
 
                 ),
                 rx.center(
                     rx.vstack(
-                        rx.hstack(
+                        rx.hstack( #Redirige al registro de usuario
                             rx.text("¿No tienes cuenta?", size="3"),
                             rx.link(
                                 "Registrate",
@@ -127,7 +124,7 @@ def login_form() -> rx.Component:
                                 size="3",
                             ),
                         ),
-                        rx.link(
+                        rx.link( #Redirige al formulario de recuperación de contraseña
                             "¿Has olvidado la contraseña?",
                             href="/forgot_password",
                             size="3",
@@ -142,9 +139,9 @@ def login_form() -> rx.Component:
                 width="100%",
             ),
             max_width="28em",
-            padding="2em",  # Puedes añadir algo de padding para más consistencia visual
+            padding="2em",  
         ),
-        width="100%",  # Asegura que el centro ocupa el ancho completo
-        padding_top="4em",  # Aumentamos padding superior para no solapar con el botón
+        width="100%",  
+        padding_top="4em",
 
     )

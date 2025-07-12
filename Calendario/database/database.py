@@ -529,6 +529,7 @@ class SupabaseAPI:
                         .execute()
                     )
 
+                    # Si hay datos, construir objeto día con comida, cena y comentarios
                     if day_response.data:
                         day_data = day_response.data[0]
                         day = Day(
@@ -540,18 +541,28 @@ class SupabaseAPI:
                             comments=day_data['comments']
                         )
 
-                        # Obtener comentarios
                         comments = self.get_comments_for_day(day.id)
 
-                        results.append({
-                            "calendar_name": calendar.name,
-                            "meal": day.meal,
-                            "dinner": day.dinner,
-                            "comments": [{
-                                "content": c.content,
-                                "username": c.user.username
-                            } for c in comments]
-                        })
+                        comments_formatted = [{
+                            "content": c.content,
+                            "username": c.user.username
+                        } for c in comments]
+
+                        meal = day.meal
+                        dinner = day.dinner
+                    else:
+                        # Si no hay datos, usar valores vacíos por defecto
+                        comments_formatted = []
+                        meal = ""
+                        dinner = ""
+
+                    # Agregar resultado para este calendario, con o sin datos
+                    results.append({
+                        "calendar_name": calendar.name,
+                        "meal": meal,
+                        "dinner": dinner,
+                        "comments": comments_formatted
+                    })
 
             return results
 

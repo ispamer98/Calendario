@@ -1,11 +1,13 @@
+#Calendario/model/model.py
+
 from typing import Optional
 import reflex as rx
 from datetime import datetime
 
+#Modelos de objetos que se crearán en la app a partir de los registros en base de datos
+
 class User(rx.Base):
-    """
-    Modelo para usuarios.
-    """
+    #Modelo para el usuario
     id: int
     username: str
     pasw: Optional[str] = None
@@ -15,28 +17,25 @@ class User(rx.Base):
 
 
 class Calendar(rx.Base):
-    """
-    Modelo para calendarios.
-    """
+    #Modelo para el calendario
     id: int
     name: str
-    owner_id: int  # Relación con el usuario propietario
-    shared_with: Optional[list[int]] = []  # Permite None pero inicializa como lista vacía
+    owner_id: int
+    shared_with: Optional[list[int]] = []
     created_at: datetime
     start_date : datetime
     end_date : datetime
 
 
 class Meal(rx.Base):
-    """
-    Modelo para opciones de comidas y cenas.
-    """
+    #Modelo para las comidas
     id: int
-    name: str  # Nombre de la comida o cena (ejemplo: "Pizza", "Ensalada")
-    description: str = None  # Descripción opcional (ejemplo: ingredientes)
+    name: str 
+    description: str = None
 
 
 class Day(rx.Base):
+    #Modelo para cada dia en el calendario
     id: int
     calendar_id: int
     date: datetime
@@ -46,12 +45,10 @@ class Day(rx.Base):
 
 
 class Comment(rx.Base):
-    """
-    Modelo para comentarios asociados a un día.
-    """
+    #Modelo para los comentarios
     id: int
-    day_id: int  # Relación con el día
-    content: str  # Contenido del comentario
-    owner_id: int  # Usuario que hizo el comentario
+    day_id: int  
+    content: str 
+    owner_id: int 
     created_at: datetime
     user: User
