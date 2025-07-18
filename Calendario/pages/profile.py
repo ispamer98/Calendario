@@ -1,5 +1,6 @@
 # Calendario/pages/profile.py
 
+import asyncio
 import reflex as rx
 from Calendario.components.user_navbar import user_navbar
 from Calendario.state.user_state import UserState
@@ -9,7 +10,9 @@ class IconState(rx.State):
     rotating: bool = False
     @rx.event
     def start_rotate(self):
+        print("🔄 Rotación iniciada")
         self.rotating = True
+
 
 
 #Página de información del usuario
@@ -18,7 +21,8 @@ class IconState(rx.State):
     title="Perfil | CalendPy",
     on_load=[ #Funciones al cargar la página
         UserState.on_load, 
-        UserState.check_autenticated
+        UserState.check_autenticated,
+        IconState.start_rotate
         ]
     
 )
@@ -104,6 +108,5 @@ def profile() -> rx.Component:
             padding_x="1em",
         ),
         padding_top="3em",
-
-
+        on_mount=IconState.start_rotate
     )

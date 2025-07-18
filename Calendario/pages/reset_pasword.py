@@ -8,7 +8,7 @@ from Calendario.state.password_reset_state import PasswordResetState
 @rx.page( #Decorador que indica componente de página
         route="/reset_password",
         title="Crear nueva contraseña | CalendPy",
-        on_load=PasswordResetState.on_load) #Funciones al cargar la página
+        on_load=PasswordResetState.on_load_reset_password) #Funciones al cargar la página
 
 @footer #Insertamos el pie de página
 

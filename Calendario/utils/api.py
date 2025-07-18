@@ -5,9 +5,18 @@ from typing import Union, List, Optional, Dict
 from Calendario.database.database import SupabaseAPI
 from Calendario.model.model import User, Calendar, Day, Meal, Comment
 
+
+"""
+Actua de como intermediario, entre la base de datos y 
+el estado de la aplicación.
+Habla con la hoja database.py, le entrega la información
+y recibe el resultado, luego retornamos ese resultado al frontend.
+"""
+
+#Llamamos a supabase
 SUPABASE_API = SupabaseAPI()
 
-# ---------------------- Autenticación de usuario ----------------------
+# ---------------------- Autenticación de usuario ---------------------
 async def authenticate_user(username: str, password: str) -> Union[User, None]:
     user_data = SUPABASE_API.authenticate_user(username, password)
     return User(**user_data) if user_data else None
@@ -19,20 +28,8 @@ async def check_existing_username(username: str) -> bool:
     return SUPABASE_API.check_existing_username(username)
 
 async def register_user(username: str, password: str, email: str, birthday: str) -> bool:
-    try:
-        hashed_password = bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
-        user_data = {
-            "username": username,
-            "pasw": hashed_password,
-            "email": email,
-            "birthday": birthday
-        }
-        response = SUPABASE_API.supabase.table("user").insert(user_data).execute()
-        return bool(response.data)
-    except Exception as e:
-        print(f"Error registrando usuario: {str(e)}")
-        return False
-    
+    return SUPABASE_API.register_user(username, password, email, birthday)
+
 async def change_pasw(username : str, password : str) -> bool:
     return SUPABASE_API.change_pasw(username,password)
 
@@ -40,12 +37,7 @@ async def change_pasw(username : str, password : str) -> bool:
 async def fetch_and_transform_calendars(user_id: int) -> List[Calendar]:
     return SUPABASE_API.get_calendars(user_id) or []
 
-async def create_calendar(
-    user_id: int, 
-    name: str, 
-    start_date: datetime, 
-    end_date: datetime
-) -> Union[Calendar, None]:
+async def create_calendar(user_id: int, name: str, start_date: datetime, end_date: datetime) -> Union[Calendar, None]:
     return SUPABASE_API.create_calendar_with_days(user_id, name, start_date, end_date)
 
 async def share_calendar_with_user(calendar: Calendar, username: str) -> bool:
@@ -72,11 +64,7 @@ async def get_all_meals() -> List[Meal]:
 async def get_day_comments(day_id: int) -> List[Comment]:
     return SUPABASE_API.get_comments_for_day(day_id) or []
 
-async def add_comment_to_day(
-    day_id: int, 
-    user_id: int, 
-    content: str
-) -> Union[Comment, None]:
+async def add_comment_to_day(day_id: int, user_id: int, content: str) -> Union[Comment, None]:
     comment = SUPABASE_API.add_comment(day_id, user_id, content)
     if comment:
         SUPABASE_API.update_day_comments_flag(day_id)

@@ -9,7 +9,7 @@ from Calendario.state.user_state import UserState
 @rx.page( #Decorador indicando componente de página
         route="/forgot_password",
         title="Recuperar contraseña | CalendPy",
-        on_load=[PasswordResetState.on_load,]) #Acción al cargar la página
+        on_load=[PasswordResetState.on_load_forgot_password,]) #Acción al cargar la página
 
 @footer #Insertamos el pie de página
 
