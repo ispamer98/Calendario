@@ -1,6 +1,5 @@
 #user_state.py
 
-from turtle import position
 import bcrypt
 import reflex as rx
 import re

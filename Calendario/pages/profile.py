@@ -1,6 +1,5 @@
 # Calendario/pages/profile.py
 
-import asyncio
 import reflex as rx
 from Calendario.components.user_navbar import user_navbar
 from Calendario.state.user_state import UserState
@@ -10,7 +9,6 @@ class IconState(rx.State):
     rotating: bool = False
     @rx.event
     def start_rotate(self):
-        print("🔄 Rotación iniciada")
         self.rotating = True
 
 
