@@ -25,7 +25,7 @@ class CalendarInfo(TypedDict):
 #Clase para manejar el estado del usuario
 class UserState(rx.State):
 
-    user_storage: str = rx.LocalStorage("")  # 1Almacena en local el login de usuario
+    user_storage: str = rx.LocalStorage("")  #Almacena en local el login de usuario
     username: str = ""  #Guarda el nombre del usuario
     password: str = ""  #Guarda la contraseña
     current_user: Optional[User] = None  #Información sobre el usuario loggeado
