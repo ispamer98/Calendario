@@ -57,60 +57,76 @@ class ASGIWorker:
     def __new__(
         cls,
         worker_id: int,
-        socket_fd: int,
+        sock: Any,
         threads: int,
         blocking_threads: int,
+        py_threads: int,
+        py_threads_idle_timeout: int,
         backpressure: int,
         http_mode: str,
         http1_opts: Optional[HTTP1Settings],
         http2_opts: Optional[HTTP2Settings],
         websockets_enabled: bool,
-        opt_enabled: bool,
+        static_files: Optional[Tuple[str, str, str]],
         ssl_enabled: bool,
         ssl_cert: Optional[str],
         ssl_key: Optional[str],
+        ssl_ca: Optional[str],
+        ssl_crl: List[str],
+        ssl_client_verify: bool,
     ) -> ASGIWorker: ...
 
 class WSGIWorker:
     def __new__(
         cls,
         worker_id: int,
-        socket_fd: int,
+        sock: Any,
         threads: int,
         blocking_threads: int,
+        py_threads: int,
+        py_threads_idle_timeout: int,
         backpressure: int,
         http_mode: str,
         http1_opts: Optional[HTTP1Settings],
         http2_opts: Optional[HTTP2Settings],
+        static_files: Optional[Tuple[str, str, str]],
         ssl_enabled: bool,
         ssl_cert: Optional[str],
         ssl_key: Optional[str],
+        ssl_ca: Optional[str],
+        ssl_crl: List[str],
+        ssl_client_verify: bool,
     ) -> WSGIWorker: ...
 
 class RSGIWorker:
     def __new__(
         cls,
         worker_id: int,
-        socket_fd: int,
+        sock: Any,
         threads: int,
         blocking_threads: int,
+        py_threads: int,
+        py_threads_idle_timeout: int,
         backpressure: int,
         http_mode: str,
         http1_opts: Optional[HTTP1Settings],
         http2_opts: Optional[HTTP2Settings],
         websockets_enabled: bool,
-        opt_enabled: bool,
+        static_files: Optional[Tuple[str, str, str]],
         ssl_enabled: bool,
         ssl_cert: Optional[str],
         ssl_key: Optional[str],
+        ssl_ca: Optional[str],
+        ssl_crl: List[str],
+        ssl_client_verify: bool,
     ) -> RSGIWorker: ...
 
-class ListenerHolder:
+class SocketHolder:
     def get_fd(self) -> Any: ...
 
 class ListenerSpec:
     def __new__(cls, host: str, port: int, backlog: int) -> ListenerSpec: ...
-    def share(self) -> Optional[ListenerHolder]: ...
+    def build(self) -> SocketHolder: ...
 
 class CallbackScheduler:
     _loop: Any

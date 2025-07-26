@@ -80,7 +80,7 @@ def footer(page: Callable[[], rx.Component]) -> rx.Component:
                 rx.divider(margin_y="4", color="gray.700"), # separador visual
                 rx.center( #Texto de copyright centrado
                     rx.text(
-                        "© 2024/25 Calendario. Todos los derechos reservados.",
+                        "© 2025 CalendPy. Todos los derechos reservados.",
                         color="gray.500",
                         size=rx.breakpoints(initial="1", md="2"),
                     ),

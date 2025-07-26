@@ -7,7 +7,6 @@ from importlib.util import find_spec
 from typing import TYPE_CHECKING
 
 import click
-import httpx
 from packaging import version
 
 from reflex_cli import constants
@@ -124,6 +123,8 @@ def check_version():
         Exit: If a newer version is available, prompting the user to upgrade.
 
     """
+    import httpx
+
     package_name = constants.ReflexHostingCli.MODULE_NAME
     try:
         installed_version = importlib.metadata.version(package_name)

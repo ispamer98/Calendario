@@ -6,6 +6,7 @@ from typing import Any, Callable, Dict, Optional, Tuple
 from .._futures import _future_watcher_wrapper, _new_cbscheduler
 from .._granian import ASGIWorker, RSGIWorker, WorkerSignal, WorkerSignalSync, WSGIWorker
 from .._loops import loops
+from .._types import SSLCtx
 from ..asgi import LifespanProtocol, _callback_wrapper as _asgi_call_wrap
 from ..errors import ConfigurationError, FatalError
 from ..rsgi import _callback_wrapper as _rsgi_call_wrap, _callbacks_from_target as _rsgi_cbs_from_target
@@ -85,8 +86,9 @@ class MTServer(AbstractServer[WorkerThread]):
         http1_settings: Optional[HTTP1Settings],
         http2_settings: Optional[HTTP2Settings],
         websockets: bool,
+        static_path: Optional[Tuple[str, str, str]],
         log_access_fmt: Optional[str],
-        ssl_ctx: Tuple[bool, Optional[str], Optional[str], Optional[str]],
+        ssl_ctx: SSLCtx,
         scope_opts: Dict[str, Any],
     ):
         wcallback = _future_watcher_wrapper(_asgi_call_wrap(callback, scope_opts, {}, log_access_fmt))
@@ -103,6 +105,7 @@ class MTServer(AbstractServer[WorkerThread]):
             http1_settings,
             http2_settings,
             websockets,
+            static_path,
             *ssl_ctx,
         )
         serve = getattr(worker, {RuntimeModes.mt: 'serve_mtr', RuntimeModes.st: 'serve_str'}[runtime_mode])
@@ -128,8 +131,9 @@ class MTServer(AbstractServer[WorkerThread]):
         http1_settings: Optional[HTTP1Settings],
         http2_settings: Optional[HTTP2Settings],
         websockets: bool,
+        static_path: Optional[Tuple[str, str, str]],
         log_access_fmt: Optional[str],
-        ssl_ctx: Tuple[bool, Optional[str], Optional[str], Optional[str]],
+        ssl_ctx: SSLCtx,
         scope_opts: Dict[str, Any],
     ):
         lifespan_handler = LifespanProtocol(callback)
@@ -154,6 +158,7 @@ class MTServer(AbstractServer[WorkerThread]):
             http1_settings,
             http2_settings,
             websockets,
+            static_path,
             *ssl_ctx,
         )
         serve = getattr(worker, {RuntimeModes.mt: 'serve_mtr', RuntimeModes.st: 'serve_str'}[runtime_mode])
@@ -180,8 +185,9 @@ class MTServer(AbstractServer[WorkerThread]):
         http1_settings: Optional[HTTP1Settings],
         http2_settings: Optional[HTTP2Settings],
         websockets: bool,
+        static_path: Optional[Tuple[str, str, str]],
         log_access_fmt: Optional[str],
-        ssl_ctx: Tuple[bool, Optional[str], Optional[str], Optional[str]],
+        ssl_ctx: SSLCtx,
         scope_opts: Dict[str, Any],
     ):
         callback, callback_init, callback_del = _rsgi_cbs_from_target(callback)
@@ -200,6 +206,7 @@ class MTServer(AbstractServer[WorkerThread]):
             http1_settings,
             http2_settings,
             websockets,
+            static_path,
             *ssl_ctx,
         )
         serve = getattr(worker, {RuntimeModes.mt: 'serve_mtr', RuntimeModes.st: 'serve_str'}[runtime_mode])
@@ -226,8 +233,9 @@ class MTServer(AbstractServer[WorkerThread]):
         http1_settings: Optional[HTTP1Settings],
         http2_settings: Optional[HTTP2Settings],
         websockets: bool,
+        static_path: Optional[Tuple[str, str, str]],
         log_access_fmt: Optional[str],
-        ssl_ctx: Tuple[bool, Optional[str], Optional[str], Optional[str]],
+        ssl_ctx: SSLCtx,
         scope_opts: Dict[str, Any],
     ):
         wcallback = _wsgi_call_wrap(callback, scope_opts, log_access_fmt)
@@ -243,6 +251,7 @@ class MTServer(AbstractServer[WorkerThread]):
             http_mode,
             http1_settings,
             http2_settings,
+            static_path,
             *ssl_ctx,
         )
         serve = getattr(worker, {RuntimeModes.mt: 'serve_mtr', RuntimeModes.st: 'serve_str'}[runtime_mode])
@@ -260,7 +269,7 @@ class MTServer(AbstractServer[WorkerThread]):
                 idx + 1,
                 sig,
                 callback_loader,
-                (self._ssp, self._sfd),
+                self._shd,
                 self.loop,
                 self.runtime_mode,
                 self.runtime_threads,
@@ -273,6 +282,7 @@ class MTServer(AbstractServer[WorkerThread]):
                 self.http1_settings,
                 self.http2_settings,
                 self.websockets,
+                self.static_path,
                 self.log_access_format if self.log_access else None,
                 self.ssl_ctx,
                 {'url_path_prefix': self.url_path_prefix},

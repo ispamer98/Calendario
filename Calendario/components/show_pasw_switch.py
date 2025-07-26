@@ -11,7 +11,7 @@ def show_pasw_switch_login() -> rx.Component:
         rx.switch(
             on_change=Login_state.swith_on, #Cambia el estado del switch
             is_checked=RegisterState.show_pasw,  #Estado actual del switch
-            color_scheme="jade" 
+            color_scheme="blue" 
         ),
         rx.text("Mostrar contraseña"),
         padding_top="0.5em",
@@ -22,7 +22,7 @@ def show_pasw_switch_register() -> rx.Component:
         rx.switch(
             on_change=RegisterState.swith_on,  #Cambia el estado del switch
             is_checked=RegisterState.show_pasw,  #Estado actual del switch
-            color_scheme="jade",
+            color_scheme="blue",
         ),
         rx.text("Mostrar contraseña"),
         padding_top="0.5em",
@@ -33,7 +33,7 @@ def show_pasw_switch_security() -> rx.Component:
         rx.switch(
             on_change=UserState.swith_on, #Cambia el estado del switch
             is_checked=UserState.show_new_pasw, #Estado actual del switch
-            color_scheme="jade"  
+            color_scheme="blue"  
         ),
         rx.text("Mostrar contraseña"),
         padding_top="0.5em",

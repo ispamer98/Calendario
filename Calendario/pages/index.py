@@ -22,13 +22,26 @@ def index() -> rx.Component:
             rx.vstack( #Stack vertical que muestra icono y mensaje de bienvenida
                 rx.image("/favicon.ico",width="300px", height="220px"),
                 rx.heading(
-                    "¡Bienvenido a CalendPy!",
+                    rx.text(
+                        "¡Bienvenido a ",
+                        rx.text(
+                            "CalendPy!",
+                            as_="span",
+                            style={
+                                "background": "linear-gradient(45deg, #3b4c6b, #5a6e8d, #7a8f9e, #9baeb0, #b9c8d1, #d0d9e2)",
+                                "-webkit-background-clip": "text",
+                                "background-clip": "text",
+                                "-webkit-text-fill-color": "transparent",
+                                "color": "transparent",
+                            },
+                        ),
+                        as_="span",
+                    ),
                     size=rx.breakpoints(initial="7", md="8", lg="9"),
                     text_align="center",
-                    background_image="linear-gradient(45deg, #4F46E5, #3B82F6)",
-                    background_clip="text",
-                    padding_bottom="0.5em"
-                ), 
+                    padding_bottom="0.5em",
+                ),
+
                 #Info sobre el proyecto
                 rx.text(
                     "Organiza tus comidas de manera eficiente ",

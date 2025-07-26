@@ -30,7 +30,7 @@ class DrawerState(rx.State):
         self.show_calendar_submenu = not self.show_calendar_submenu #Alterna la apertura del submenu de calendario
 
 def drawer_menu():
-    NAVBAR_HEIGHT = "65px" #Alto de la navbar
+    NAVBAR_HEIGHT = "68px" #Alto de la navbar
 
     return rx.drawer.root( #Drawer vertical para los submenus
         rx.drawer.trigger(),
@@ -60,7 +60,7 @@ def drawer_menu():
                             min_width="auto",
                             background="transparent",
                             _hover={
-                                "color": "#EF4444",
+                                "color": "#F54444",
                                 "transform": "scale(1.5)",
                                 "cursor": "pointer",
                                 "transition": "all 0.2s ease-in-out",
@@ -252,8 +252,8 @@ def user_navbar() -> rx.Component:
                     rx.hstack(
                         rx.image(
                             src="/favicon.ico",
-                            width="30px",
-                            height="20px"),
+                            width="43px",
+                            height="33px"),
                         rx.text("CalendPy",
                                 font_family="Sarina,cursive",
                                 font_size="1.5em",),

@@ -55,4 +55,4 @@ class Dirs(SimpleNamespace):
     """Various directories/paths used by the CLI."""
 
     # The cloud.yaml file.
-    CLOUD = "cloud.yml"
+    CLOUD_YAML = "cloud.yml"

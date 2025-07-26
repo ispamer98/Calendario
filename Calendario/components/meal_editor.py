@@ -105,6 +105,13 @@ def meal_editor() -> rx.Component:
                             on_click=DayState.clear_dinner #Función que limpia el contenido
                         ),
                     ),
+                    rx.hstack(
+                        rx.button(
+                            rx.icon("utensils"),
+                            rx.icon("plus"),
+                            rx.text("Añade una comida"),
+                        )
+                    ),
                     rx.hstack( 
                         rx.dialog.close( #Botón de cierre del dialogo
                             rx.button(

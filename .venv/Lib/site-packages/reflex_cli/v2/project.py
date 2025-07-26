@@ -3,8 +3,6 @@
 import json
 
 import click
-import httpx
-from tabulate import tabulate
 
 from reflex_cli import constants
 from reflex_cli.utils import console
@@ -62,7 +60,7 @@ def create_project(
         project = [project]
         headers = list(project[0].keys())
         table = [list(p.values()) for p in project]
-        console.print(tabulate(table, headers=headers))
+        console.print_table(table, headers=headers)
     else:
         console.print(str(project))
 
@@ -136,6 +134,8 @@ def select_project(
     interactive: bool,
 ):
     """Select a project."""
+    import httpx
+
     from reflex_cli.utils import hosting
 
     try:
@@ -203,11 +203,9 @@ def get_select_project(
             project_details = hosting.get_project(
                 project_id=project, client=authenticated_client
             )
-            console.print(
-                tabulate(
-                    [[project, project_details["name"]]],
-                    headers=["Selected Project ID", "Project Name"],
-                )
+            console.print_table(
+                [[project, project_details["name"]]],
+                headers=["Selected Project ID", "Project Name"],
             )
         except NotAuthenticatedError:
             console.error(
@@ -266,7 +264,7 @@ def get_projects(
         if projects:
             headers = list(projects[0].keys())
             table = [list(project.values()) for project in projects]
-            console.print(tabulate(table, headers=headers))
+            console.print_table(table, headers=headers)
         else:
             # If returned empty list, print the empty
             console.print(str(projects))
@@ -344,7 +342,7 @@ def get_project_roles(
         if roles:
             headers = list(roles[0].keys())
             table = [list(role.values()) for role in roles]
-            console.print(tabulate(table, headers=headers))
+            console.print_table(table, headers=headers)
         else:
             # If returned empty list, print the empty
             console.print(str(roles))
@@ -420,7 +418,7 @@ def get_project_role_permissions(
         if permissions:
             headers = list(permissions[0].keys())
             table = [list(permission.values()) for permission in permissions]
-            console.print(tabulate(table, headers=headers))
+            console.print_table(table, headers=headers)
         else:
             # If returned empty list, print the empty
             console.print(str(permissions))
@@ -495,7 +493,7 @@ def get_project_role_users(
         if users:
             headers = list(users[0].keys())
             table = [list(user.values()) for user in users]
-            console.print(tabulate(table, headers=headers))
+            console.print_table(table, headers=headers)
         else:
             # If returned empty list, print the empty
             console.print(str(users))
