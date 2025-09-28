@@ -172,7 +172,10 @@ def get_deployment_regions(
         return
     if list_regions_info:
         headers = list(list_regions_info[0].keys())
-        table = [list(deployment.values()) for deployment in list_regions_info]
+        table = [
+            [str(value) if value is not None else "" for value in deployment.values()]
+            for deployment in list_regions_info
+        ]
         console.print_table(table, headers=headers)
 
 

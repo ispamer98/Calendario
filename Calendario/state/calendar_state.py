@@ -223,7 +223,7 @@ class CalendarState(rx.State):
         try:
             #Guardamos los registros que nos aporta la base de datos
             total_meals = await get_all_meals()
-            self.meals = total_meals
+            self.meals = sorted(total_meals, key=lambda meal: meal.name.lower())
         except Exception as e:
             print(f"Error loading meals: {e}")
 

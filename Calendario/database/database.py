@@ -273,6 +273,23 @@ class SupabaseAPI:
             print(f"Error obteniendo comidas: {e}")
             return []
         
+
+    def add_meal(self,meal:str, description:str) -> Optional[Meal]:
+        try:
+            meal_data={
+                "name": meal,
+                "description" : description
+            }
+            response = self.supabase.table("meals").insert(meal_data).execute()
+            if response.data:
+                new_meal = Meal(**response.data[0])
+                return new_meal
+        #Si existe error, mostramos el mensaje y devolvemos None
+        except Exception as e:
+            print(f"Error agregando comida: {e}")
+        return None
+    
+
     #Funciónes que actualizan comida/cena para un día en concreto
     async def update_day_meal(self, day_id: int, meal: Optional[str]) -> Optional[Day]:
             try:
@@ -356,6 +373,7 @@ class SupabaseAPI:
             print(f"Error agregando comentario: {e}")
         return None
     
+
     #Actualiza el estado del día si existen comentarios
     def update_day_comments_flag(self, day_id: int) -> bool:
         try:

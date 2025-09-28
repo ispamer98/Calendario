@@ -1,0 +1,27 @@
+{
+  "name": "calendario",
+  "version": "1.0.0",
+  "description": "👋 ¡Bienvenido a Calendario!\r ¡Gracias por visitar el repositorio de Calendario! 🎉",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ispamer98/Calendario.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ispamer98/Calendario/issues"
+  },
+  "homepage": "https://github.com/ispamer98/Calendario#readme",
+  "dependencies": {
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1"
+  },
+  "devDependencies": {
+    "vite": "^7.1.5"
+  }
+}

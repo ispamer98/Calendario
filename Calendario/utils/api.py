@@ -60,6 +60,9 @@ async def get_day_details(day_id: int) -> Union[Day, None]:
 async def get_all_meals() -> List[Meal]:
     return SUPABASE_API.get_all_meals()
 
+async def add_new_meal(meal:str,description:str) -> Meal:
+    return SUPABASE_API.add_meal(meal,description)
+
 # ---------------------- Comentarios ----------------------
 async def get_day_comments(day_id: int) -> List[Comment]:
     return SUPABASE_API.get_comments_for_day(day_id) or []

@@ -37,6 +37,8 @@ class UserState(rx.State):
     current_page : str = "calendar"  #Manejador de cambio de páginas
     show_new_pasw: bool = False #Switch para mostrar la nueva contraseña
 
+
+
     #Reseteo de datos en página security ( cambio de contraseña )
     @rx.event
     def reset_security(self):
@@ -289,3 +291,8 @@ class UserState(rx.State):
     def go_calendar_page(self):
         self.current_page="calendar"
         return rx.redirect("/calendar")
+    
+    @rx.event
+    def go_meal_list(self):
+        self.current_page="meal_list"
+        return rx.redirect("/meal_list")

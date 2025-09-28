@@ -1,7 +1,7 @@
 #Calendario/pages/calendar.py
 
 import reflex as rx
-from Calendario.components.meal_editor import meal_editor
+from Calendario.components.meal_editor import meal_editor,new_meal_input
 from Calendario.components.user_calendar import user_calendar
 from Calendario.state.calendar_state import CalendarState
 from Calendario.components.user_navbar import user_navbar
@@ -27,6 +27,7 @@ def calendar() -> rx.Component:
     return rx.vstack(
         user_navbar(),  # Incluimos la navbar
         meal_editor(),  # Y el editor de comidas para que pueda lanzarse
+        new_meal_input(),
         rx.container(  # Contenedor principal
             rx.cond(
                 UserState.current_user,  # Si existe registro de usuario loggeado

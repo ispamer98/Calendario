@@ -4,6 +4,79 @@ import reflex as rx
 from Calendario.state.calendar_state import CalendarState
 from Calendario.state.day_state import DayState
 
+def new_meal_input() -> rx.Component:
+    return rx.dialog.root(
+        rx.dialog.content(
+            rx.dialog.title("Añadir Nueva Comida", font_weight="bold", size="3"),
+            rx.vstack(
+                rx.input(
+                    placeholder="Nombre de la comida",
+                    value=DayState.new_meal,
+                    on_change=DayState.set_new_meal,
+                    width="100%",
+                    margin="1em 0",
+                    border_radius="md",
+                    box_shadow="sm",
+                ),
+                rx.text_area(
+                    placeholder="Descripción",
+                    value=DayState.new_meal_description,
+                    on_change=DayState.set_new_meal_description,
+                    width="100%",
+                    margin="1em 0",
+                    border_radius="md",
+                    box_shadow="sm",
+                    min_height="100px"
+                ),
+                rx.hstack(
+                    rx.button(
+                        rx.hstack(
+                            rx.text("Añadir", font_weight="bold", size="2"),
+                            rx.icon("utensils", size=15)
+                        ),
+                        color_scheme="green",
+                        variant="solid",
+                        border_radius="md",
+                        padding="0.5em 1em",
+                        size="2",
+                        on_click=DayState.add_new_meal,
+                        _hover={
+                            "background": "green.600",
+                            "transform": "scale(1.05)",
+                            "transition": "all 0.15s ease-in-out"
+                        },
+                        _active={"transform": "scale(0.95)"},
+                    ),
+                    rx.dialog.close(
+                        rx.button(
+                            "Cerrar",
+                            color_scheme="red",
+                            variant="outline",
+                            border_radius="md",
+                            padding="0.5em 1em",
+                            size="2",
+                            on_click=DayState.close_new_meal_input,
+                            _hover={
+                                "background": "red.50",
+                                "transform": "scale(1.05)",
+                                "transition": "all 0.15s ease-in-out"
+                            }
+                        )
+                    ),
+                    justify="end",
+                    spacing="1",
+                    margin_top="1em"
+                ),
+                width="100%"
+            ),
+            max_width="400px",
+            align_items="stretch",
+            padding="1em"
+        ),
+        open=DayState.show_new_meal_input,
+    )
+
+
 def meal_editor() -> rx.Component:
     #Componente que editará las comidas para el dia seleccionado
     return rx.dialog.root(
@@ -105,13 +178,19 @@ def meal_editor() -> rx.Component:
                             on_click=DayState.clear_dinner #Función que limpia el contenido
                         ),
                     ),
-                    rx.hstack(
-                        rx.button(
-                            rx.icon("utensils"),
-                            rx.icon("plus"),
-                            rx.text("Añade una comida"),
-                        )
+                    rx.divider(margin_top="1em",
+                               ),
+                    # Botón para abrir el diálogo
+                    rx.button( 
+                        rx.icon("plus", size=15),
+                        rx.icon("utensils", size=15),
+                        color_scheme="green",
+                        type="button",
+                        on_click=DayState.open_new_meal_input,
+                        align_items="center",
+                        margin_top="1em"
                     ),
+
                     rx.hstack( 
                         rx.dialog.close( #Botón de cierre del dialogo
                             rx.button(
@@ -149,7 +228,7 @@ def meal_editor() -> rx.Component:
                 ),
                 on_submit=DayState.update_day #Al hacer click en el boton de "submint", actualiza la info del dia
             ),
-            max_width="500px",
+            max_width="400px",
             align_items="center",
         ),
         open=DayState.show_editor #Controlador de visionado del dialogo

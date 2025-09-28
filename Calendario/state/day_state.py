@@ -1,12 +1,16 @@
 import reflex as rx
 from typing import Optional, List
+
+from sqlalchemy import Boolean
 from Calendario.utils.api import (
     get_day_comments,
     add_comment_to_day,
     delete_comment as api_delete_comment,
     update_day_meal,
     update_day_dinner,
-    get_day_details
+    get_day_details,
+    get_all_meals,
+    add_new_meal
 )
 from Calendario.model.model import Day, Comment
 from Calendario.state.calendar_state import CalendarState
@@ -23,6 +27,13 @@ class DayState(rx.State):
     last_loaded_day_id: int = None #Último día cargado
     show_comment_input: bool = False #Manejador para el input de nuevo comentario
     new_comment_text: str = "" #Texto de nuevo comentario
+    new_meal: str = ""
+    new_meal_description : str = ""
+    show_new_meal_input : bool 
+
+    @rx.event
+    def open_new_meal_input(self):
+        self.show_new_meal_input = True
 
     #Cargamos los comentarios para el día elegido
     @rx.event
@@ -36,10 +47,54 @@ class DayState(rx.State):
     def reversed_comments(self) -> list[Comment]:
         return list(reversed(self.current_comments))
 
-    #Limpiamos el registro de comentarios para el día
     @rx.event
     def clear_current_comments(self):
         self.current_comments = []
+
+    @rx.event
+    def close_new_meal_input(self):
+        self.show_new_meal_input = False
+        self.new_meal = ""
+        self.new_meal_description = ""
+
+    # Setters
+    @rx.event
+    def set_new_meal(self, value: str):
+        self.new_meal = value
+
+    @rx.event
+    def set_new_meal_description(self, value: str):
+        self.new_meal_description = value
+
+        # Añadir nueva comida
+    @rx.event
+    async def add_new_meal(self):
+        if not self.new_meal.strip() or not self.new_meal_description.strip():
+            return rx.toast.error("Debes rellenar todos los campos")
+        try:
+            # Añadimos la comida a la base de datos
+            await add_new_meal(
+                meal=self.new_meal.strip(),
+                description=self.new_meal_description.strip()
+            )
+
+            # Obtenemos el estado del calendario
+            calendar_state = await self.get_state(CalendarState)
+            # Recargamos las comidas desde la base de datos
+            await calendar_state.load_meals()
+
+            # Cerramos el input de nueva comida
+            self.close_new_meal_input()
+
+            # Toast de éxito y refresco de la página
+            return [
+                rx.toast.success("Comida añadida"),
+                await calendar_state.refresh_page()
+            ]
+
+        except Exception as e:
+            return rx.toast.error(f"Error: {str(e)}")
+
 
     #Cerramos el input de comentarios
     @rx.event

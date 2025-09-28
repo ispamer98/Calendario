@@ -11,6 +11,7 @@ from reflex_cli.core.config import Config
 from reflex_cli.utils import console
 from reflex_cli.utils.exceptions import (
     ConfigInvalidFieldValueError,
+    GetAppError,
     NotAuthenticatedError,
     ResponseError,
     ScaleAppError,
@@ -96,7 +97,9 @@ def app_history(
             return
         if history:
             headers = list(history[0].keys())
-            table = [list(deployment.values()) for deployment in history]
+            table = [
+                [str(value) for value in deployment.values()] for deployment in history
+            ]
             console.print_table(table, headers=headers)
         else:
             console.print(str(history))
@@ -359,6 +362,7 @@ def delete_app(
                     )
                     raise click.exceptions.Exit(1)
 
+        app_name_from_search = None
         if app_name is not None and app_id is None:
             app_result = hosting.search_app(
                 app_name=app_name,
@@ -366,11 +370,57 @@ def delete_app(
                 client=authenticated_client,
                 interactive=interactive,
             )
+            if not app_result:
+                console.warn(f"App '{app_name}' not found.")
+                raise click.exceptions.Exit(1)
             app_id = app_result.get("id") if app_result else None
+            app_name_from_search = app_result.get("name") if app_result else app_name
+
+        if app_name_from_search is None and app_id:
+            try:
+                app_result = hosting.get_app(
+                    client=authenticated_client,
+                    app_id=app_id,
+                )
+            except GetAppError:
+                console.warn(f"No application found with ID '{app_id}'")
+                return
+            if not app_result:
+                console.warn(f"App with ID '{app_id}' not found.")
+                raise click.exceptions.Exit(0)
 
         if not app_id:
             console.error("No valid app_id or app_name provided.")
             raise click.exceptions.Exit(1)
+
+        if interactive:
+            app_name_display = "Unknown"
+
+            if app_name_from_search is not None:
+                app_name_display = app_name_from_search
+            elif app_name is not None:
+                app_name_display = app_name
+            else:
+                try:
+                    app_details = hosting.get_app(
+                        app_id=app_id, client=authenticated_client
+                    )
+                    app_name_display = app_details.get("name", "Unknown")
+                except Exception:
+                    app_name_display = "Unknown"
+
+            app_id_display = app_id
+
+            if (
+                console.ask(
+                    f"Are you sure you want to delete app '{app_name_display}' (ID: {app_id_display})?",
+                    choices=["y", "n"],
+                    default="n",
+                )
+                != "y"
+            ):
+                console.info("Deletion cancelled.")
+                return
 
         result = hosting.delete_app(app_id=app_id, client=authenticated_client)
         if result:
@@ -572,6 +622,14 @@ def list_apps(
 
     if project_id is None:
         project_id = hosting.get_selected_project()
+
+    if project_id is not None and not as_json:
+        try:
+            project = hosting.get_project(project_id, client=authenticated_client)
+            console.info(f"Listing apps for project '{project['name']}' ({project_id})")
+        except Exception:
+            pass
+
     try:
         deployments = hosting.list_apps(project=project_id, client=authenticated_client)
     except Exception as ex:
@@ -583,7 +641,9 @@ def list_apps(
         return
     if deployments:
         headers = list(deployments[0].keys())
-        table = [list(deployment.values()) for deployment in deployments]
+        table = [
+            [str(value) for value in deployment.values()] for deployment in deployments
+        ]
         console.print_table(table, headers=headers)
     else:
         console.print(str(deployments))
@@ -592,7 +652,7 @@ def list_apps(
 @apps_cli.command(name="scale")
 @click.argument("app_id", required=False)
 @click.option("--app-name", help="The name of the app.")
-@click.option("--vm-type", help="The virtual machine type to scale to.")
+@click.option("--vmtype", help="The virtual machine type to scale to.")
 @click.option("--regions", "-r", multiple=True, help="Region to scale the app to.")
 @click.option("--token", help="The authentication token.")
 @click.option(
@@ -612,7 +672,7 @@ def list_apps(
 def scale_app(
     app_id: str | None,
     app_name: str | None,
-    vm_type: str | None,
+    vmtype: str | None,
     regions: tuple[str, ...],
     token: str | None,
     loglevel: str,
@@ -639,7 +699,7 @@ def scale_app(
                     raise click.exceptions.Exit(1)
 
         cli_args = hosting.ScaleAppCliArgs.create(
-            regions=list(regions), vm_type=vm_type, scale_type=scale_type
+            regions=list(regions), vm_type=vmtype, scale_type=scale_type
         )
         config = Config.from_yaml_or_toml_or_default().with_overrides(
             vmtype=cli_args.vm_type,
@@ -648,7 +708,7 @@ def scale_app(
 
         if not config.exists() and not cli_args.is_valid:
             console.error(
-                "specify either --vm-type or --regions or add them to the cloud.yml or pyproject.toml file"
+                "specify either --vmtype or --regions or add them to the cloud.yml or pyproject.toml file"
             )
             raise click.exceptions.Exit(1)
 
@@ -757,7 +817,7 @@ def inspect_app(
         if app_info:
             if isinstance(app_info, dict):
                 headers = list(app_info.keys())
-                values = [list(app_info.values())]
+                values = [[str(value) for value in app_info.values()]]
                 console.print_table(values, headers=headers)
             else:
                 console.print(str(app_info))

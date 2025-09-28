@@ -2,6 +2,8 @@
 
 import reflex as rx
 from Calendario.components.calendar_creator import calendar_creator
+from Calendario.components.meal_editor import new_meal_input
+from Calendario.state.day_state import DayState
 from Calendario.state.user_state import UserState
 from Calendario.state.calendar_state import CalendarState
 
@@ -10,6 +12,7 @@ class DrawerState(rx.State):
     is_open: bool = False #Variable que controla la apertura del drawer
     show_profile_submenu: bool = False #Variable que controla la apertura del submenu de perfil
     show_calendar_submenu: bool = False #Variable que controla la apertura del submenu de calendario
+    show_meal_submenu : bool = False #Variable que controla la apertura del submenu de comida
 
     @rx.event
     def open_drawer(self):
@@ -20,6 +23,7 @@ class DrawerState(rx.State):
         self.is_open = False #Si se ejecuta, cierra el drawer
         self.show_profile_submenu = False #Cierra el submenu de perfil
         self.show_calendar_submenu = False #Cierra el submenu de calendario
+        self.show_meal_submenu = False #Cierra el submenu de comida
 
     @rx.event
     def toggle_profile_submenu(self):
@@ -28,6 +32,10 @@ class DrawerState(rx.State):
     @rx.event
     def toggle_calendar_submenu(self):
         self.show_calendar_submenu = not self.show_calendar_submenu #Alterna la apertura del submenu de calendario
+
+    @rx.event
+    def toggle_meal_submenu(self):
+        self.show_meal_submenu = not self.show_meal_submenu #Alterna la apertura del submenu de comida
 
 def drawer_menu():
     NAVBAR_HEIGHT = "68px" #Alto de la navbar
@@ -217,7 +225,79 @@ def drawer_menu():
                             )
                         )
                     ),
-
+                    #Submenu de comida
+                    rx.box(
+                        rx.button(
+                            rx.hstack(
+                                rx.icon("utensils"),
+                                rx.text("Comidas"),
+                                rx.icon("chevron-down"),
+                                spacing="2",
+                                align="center",
+                                color="white",
+                                width="100%",
+                            ),
+                            variant="ghost",
+                            width="100%",
+                            justify_content="flex-start",
+                            font_size="lg",
+                            font_weight="600",
+                            background="transparent",
+                            padding_y="0.5em",
+                            _hover={
+                                "background": "#23282b",
+                                "cursor": "pointer",
+                                "transition": "all 0.2s ease-in-out",
+                                "display": "block",
+                                "width": "200%",
+                                "max_width" : "200px",
+                                "padding_left": "0.5em",
+                            },
+                            #Al hacer click, abre el submenu
+                            on_click=DrawerState.toggle_meal_submenu,
+                        ),
+                        rx.cond( #Si el submenu está en estado abierto
+                            DrawerState.show_meal_submenu,
+                            rx.vstack( #Muestra su contenido
+                                rx.separator(margin_top="1em",margin_bottom="1em"),
+                                rx.button( #Boton que muestra la información del usuario
+                                    rx.icon("arrow-big-right"),
+                                    "Añadir comida",
+                                    variant="ghost",
+                                    justify_content="flex-start",
+                                    width="100%",
+                                    font_size="md",
+                                    color="white",
+                                    padding_left="1.5em",
+                                    _hover={
+                                        "background": "#23282b",
+                                        "color": "#309DCF",
+                                    },
+                                    #Cierra el drawer y redirige a la pagina de información de usuario
+                                    on_click=[DrawerState.close_drawer, DayState.open_new_meal_input ],
+                                ),
+                                rx.button( #Botón que redirige al cambio de contraseña
+                                    rx.icon("arrow-big-right"),
+                                    "Lista de comidas",
+                                    variant="ghost",
+                                    justify_content="flex-start",
+                                    width="100%",
+                                    font_size="md",
+                                    color="white",
+                                    padding_left="1.5em",
+                                    _hover={
+                                        "background": "#23282b",
+                                        "color": "#309DCF",
+                                    },
+                                    #Cierra el drawer y redirige a la pagina de seguridad 
+                                    on_click=[DrawerState.close_drawer, UserState.go_meal_list],
+                                ),
+                                spacing="1",
+                                align_items="start",
+                                width="100%"
+                            )
+                        )
+                    ),
                     direction="column",
                     align_items="start",
                     gap="1.5em",
@@ -271,6 +351,7 @@ def user_navbar() -> rx.Component:
                 
                 rx.spacer(),
                 calendar_creator(), #Incluimos el creador de calendario, para poder lanzarlo desde el submenu
+                new_meal_input(),
                 # Menú de usuario
                 rx.menu.root( #Creamos un "menu", boton visual con el nombre de usuario
                     rx.menu.trigger(

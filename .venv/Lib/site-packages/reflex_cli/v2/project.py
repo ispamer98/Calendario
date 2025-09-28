@@ -49,17 +49,28 @@ def create_project(
     from reflex_cli.utils import hosting
 
     console.set_log_level(loglevel)
-    authenticated_client = hosting.get_authenticated_client(
-        token=token, interactive=interactive
-    )
-    project = hosting.create_project(name=name, client=authenticated_client)
+    try:
+        authenticated_client = hosting.get_authenticated_client(
+            token=token, interactive=interactive
+        )
+        project = hosting.create_project(name=name, client=authenticated_client)
+    except ValueError as err:
+        console.error(str(err))
+        raise click.exceptions.Exit(1) from err
+    except NotAuthenticatedError as err:
+        console.error("You are not authenticated. Run `reflex login` to authenticate.")
+        raise click.exceptions.Exit(1) from err
+
     if as_json:
         console.print(json.dumps(project))
         return
     if project:
         project = [project]
         headers = list(project[0].keys())
-        table = [list(p.values()) for p in project]
+        table = [
+            [str(value) if value is not None else "" for value in p.values()]
+            for p in project
+        ]
         console.print_table(table, headers=headers)
     else:
         console.print(str(project))
@@ -263,7 +274,15 @@ def get_projects(
             return
         if projects:
             headers = list(projects[0].keys())
-            table = [list(project.values()) for project in projects]
+            table = []
+            for project in projects:
+                row = []
+                for value in project.values():
+                    if isinstance(value, (dict, list)):
+                        row.append(json.dumps(value))
+                    else:
+                        row.append(str(value))
+                table.append(row)
             console.print_table(table, headers=headers)
         else:
             # If returned empty list, print the empty
@@ -341,7 +360,10 @@ def get_project_roles(
             return
         if roles:
             headers = list(roles[0].keys())
-            table = [list(role.values()) for role in roles]
+            table = [
+                [str(value) if value is not None else "" for value in role.values()]
+                for role in roles
+            ]
             console.print_table(table, headers=headers)
         else:
             # If returned empty list, print the empty
@@ -417,7 +439,13 @@ def get_project_role_permissions(
             return
         if permissions:
             headers = list(permissions[0].keys())
-            table = [list(permission.values()) for permission in permissions]
+            table = [
+                [
+                    str(value) if value is not None else ""
+                    for value in permission.values()
+                ]
+                for permission in permissions
+            ]
             console.print_table(table, headers=headers)
         else:
             # If returned empty list, print the empty
@@ -492,7 +520,10 @@ def get_project_role_users(
             return
         if users:
             headers = list(users[0].keys())
-            table = [list(user.values()) for user in users]
+            table = [
+                [str(value) if value is not None else "" for value in user.values()]
+                for user in users
+            ]
             console.print_table(table, headers=headers)
         else:
             # If returned empty list, print the empty
