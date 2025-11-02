@@ -12,6 +12,7 @@ from ..errors import ConfigurationError, FatalError
 from ..rsgi import _callback_wrapper as _rsgi_call_wrap, _callbacks_from_target as _rsgi_cbs_from_target
 from ..wsgi import _callback_wrapper as _wsgi_call_wrap
 from .common import (
+    WORKERS_METHODS,
     AbstractServer,
     AbstractWorker,
     HTTP1Settings,
@@ -86,7 +87,7 @@ class MTServer(AbstractServer[WorkerThread]):
         http1_settings: Optional[HTTP1Settings],
         http2_settings: Optional[HTTP2Settings],
         websockets: bool,
-        static_path: Optional[Tuple[str, str, str]],
+        static_path: Optional[Tuple[str, str, Optional[str]]],
         log_access_fmt: Optional[str],
         ssl_ctx: SSLCtx,
         scope_opts: Dict[str, Any],
@@ -108,7 +109,7 @@ class MTServer(AbstractServer[WorkerThread]):
             static_path,
             *ssl_ctx,
         )
-        serve = getattr(worker, {RuntimeModes.mt: 'serve_mtr', RuntimeModes.st: 'serve_str'}[runtime_mode])
+        serve = getattr(worker, WORKERS_METHODS[runtime_mode][sock.is_uds()])
         scheduler = _new_cbscheduler(loop, wcallback, impl_asyncio=task_impl == TaskImpl.asyncio)
         serve(scheduler, loop, shutdown_event)
 
@@ -131,7 +132,7 @@ class MTServer(AbstractServer[WorkerThread]):
         http1_settings: Optional[HTTP1Settings],
         http2_settings: Optional[HTTP2Settings],
         websockets: bool,
-        static_path: Optional[Tuple[str, str, str]],
+        static_path: Optional[Tuple[str, str, Optional[str]]],
         log_access_fmt: Optional[str],
         ssl_ctx: SSLCtx,
         scope_opts: Dict[str, Any],
@@ -161,7 +162,7 @@ class MTServer(AbstractServer[WorkerThread]):
             static_path,
             *ssl_ctx,
         )
-        serve = getattr(worker, {RuntimeModes.mt: 'serve_mtr', RuntimeModes.st: 'serve_str'}[runtime_mode])
+        serve = getattr(worker, WORKERS_METHODS[runtime_mode][sock.is_uds()])
         scheduler = _new_cbscheduler(loop, wcallback, impl_asyncio=task_impl == TaskImpl.asyncio)
         serve(scheduler, loop, shutdown_event)
         loop.run_until_complete(lifespan_handler.shutdown())
@@ -185,7 +186,7 @@ class MTServer(AbstractServer[WorkerThread]):
         http1_settings: Optional[HTTP1Settings],
         http2_settings: Optional[HTTP2Settings],
         websockets: bool,
-        static_path: Optional[Tuple[str, str, str]],
+        static_path: Optional[Tuple[str, str, Optional[str]]],
         log_access_fmt: Optional[str],
         ssl_ctx: SSLCtx,
         scope_opts: Dict[str, Any],
@@ -209,7 +210,7 @@ class MTServer(AbstractServer[WorkerThread]):
             static_path,
             *ssl_ctx,
         )
-        serve = getattr(worker, {RuntimeModes.mt: 'serve_mtr', RuntimeModes.st: 'serve_str'}[runtime_mode])
+        serve = getattr(worker, WORKERS_METHODS[runtime_mode][sock.is_uds()])
         scheduler = _new_cbscheduler(loop, wcallback, impl_asyncio=task_impl == TaskImpl.asyncio)
         serve(scheduler, loop, shutdown_event)
         callback_del(loop)
@@ -233,7 +234,7 @@ class MTServer(AbstractServer[WorkerThread]):
         http1_settings: Optional[HTTP1Settings],
         http2_settings: Optional[HTTP2Settings],
         websockets: bool,
-        static_path: Optional[Tuple[str, str, str]],
+        static_path: Optional[Tuple[str, str, Optional[str]]],
         log_access_fmt: Optional[str],
         ssl_ctx: SSLCtx,
         scope_opts: Dict[str, Any],
@@ -254,7 +255,7 @@ class MTServer(AbstractServer[WorkerThread]):
             static_path,
             *ssl_ctx,
         )
-        serve = getattr(worker, {RuntimeModes.mt: 'serve_mtr', RuntimeModes.st: 'serve_str'}[runtime_mode])
+        serve = getattr(worker, WORKERS_METHODS[runtime_mode][sock.is_uds()])
         scheduler = _new_cbscheduler(loop, wcallback, impl_asyncio=task_impl == TaskImpl.asyncio)
         serve(scheduler, loop, shutdown_event)
 
@@ -318,5 +319,9 @@ class MTServer(AbstractServer[WorkerThread]):
         if self.reload_on_changes:
             logger.error('The changes reloader is not supported on the free-threaded build')
             raise ConfigurationError('reload')
+
+        if self.workers_rss:
+            logger.error('The resource monitor is not supported on the free-threaded build')
+            raise ConfigurationError('workers_max_rss')
 
         super().serve(spawn_target, target_loader, wrap_loader)

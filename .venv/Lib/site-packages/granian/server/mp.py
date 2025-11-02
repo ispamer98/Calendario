@@ -5,12 +5,14 @@ from functools import wraps
 from typing import Any, Callable, Dict, Optional, Tuple
 
 from .._futures import _future_watcher_wrapper, _new_cbscheduler
-from .._granian import ASGIWorker, RSGIWorker, SocketHolder, WSGIWorker
+from .._granian import ASGIWorker, ProcInfoCollector, RSGIWorker, SocketHolder, WSGIWorker
+from .._internal import load_env
 from .._types import SSLCtx
 from ..asgi import LifespanProtocol, _callback_wrapper as _asgi_call_wrap
 from ..rsgi import _callback_wrapper as _rsgi_call_wrap, _callbacks_from_target as _rsgi_cbs_from_target
 from ..wsgi import _callback_wrapper as _wsgi_call_wrap
 from .common import (
+    WORKERS_METHODS,
     AbstractServer,
     AbstractWorker,
     HTTP1Settings,
@@ -20,7 +22,6 @@ from .common import (
     RuntimeModes,
     TaskImpl,
     configure_logging,
-    load_env,
     logger,
     setproctitle,
 )
@@ -100,7 +101,7 @@ class MPServer(AbstractServer[WorkerProcess]):
         http1_settings: Optional[HTTP1Settings],
         http2_settings: Optional[HTTP2Settings],
         websockets: bool,
-        static_path: Optional[Tuple[str, str, str]],
+        static_path: Optional[Tuple[str, str, Optional[str]]],
         log_access_fmt: Optional[str],
         ssl_ctx: SSLCtx,
         scope_opts: Dict[str, Any],
@@ -125,7 +126,7 @@ class MPServer(AbstractServer[WorkerProcess]):
             static_path,
             *ssl_ctx,
         )
-        serve = getattr(worker, {RuntimeModes.mt: 'serve_mtr', RuntimeModes.st: 'serve_str'}[runtime_mode])
+        serve = getattr(worker, WORKERS_METHODS[runtime_mode][sock.is_uds()])
         scheduler = _new_cbscheduler(loop, wcallback, impl_asyncio=task_impl == TaskImpl.asyncio)
         serve(scheduler, loop, shutdown_event)
 
@@ -147,7 +148,7 @@ class MPServer(AbstractServer[WorkerProcess]):
         http1_settings: Optional[HTTP1Settings],
         http2_settings: Optional[HTTP2Settings],
         websockets: bool,
-        static_path: Optional[Tuple[str, str, str]],
+        static_path: Optional[Tuple[str, str, Optional[str]]],
         log_access_fmt: Optional[str],
         ssl_ctx: SSLCtx,
         scope_opts: Dict[str, Any],
@@ -180,7 +181,7 @@ class MPServer(AbstractServer[WorkerProcess]):
             static_path,
             *ssl_ctx,
         )
-        serve = getattr(worker, {RuntimeModes.mt: 'serve_mtr', RuntimeModes.st: 'serve_str'}[runtime_mode])
+        serve = getattr(worker, WORKERS_METHODS[runtime_mode][sock.is_uds()])
         scheduler = _new_cbscheduler(loop, wcallback, impl_asyncio=task_impl == TaskImpl.asyncio)
         serve(scheduler, loop, shutdown_event)
         loop.run_until_complete(lifespan_handler.shutdown())
@@ -203,7 +204,7 @@ class MPServer(AbstractServer[WorkerProcess]):
         http1_settings: Optional[HTTP1Settings],
         http2_settings: Optional[HTTP2Settings],
         websockets: bool,
-        static_path: Optional[Tuple[str, str, str]],
+        static_path: Optional[Tuple[str, str, Optional[str]]],
         log_access_fmt: Optional[str],
         ssl_ctx: SSLCtx,
         scope_opts: Dict[str, Any],
@@ -230,7 +231,7 @@ class MPServer(AbstractServer[WorkerProcess]):
             static_path,
             *ssl_ctx,
         )
-        serve = getattr(worker, {RuntimeModes.mt: 'serve_mtr', RuntimeModes.st: 'serve_str'}[runtime_mode])
+        serve = getattr(worker, WORKERS_METHODS[runtime_mode][sock.is_uds()])
         scheduler = _new_cbscheduler(loop, wcallback, impl_asyncio=task_impl == TaskImpl.asyncio)
         serve(scheduler, loop, shutdown_event)
         callback_del(loop)
@@ -253,7 +254,7 @@ class MPServer(AbstractServer[WorkerProcess]):
         http1_settings: Optional[HTTP1Settings],
         http2_settings: Optional[HTTP2Settings],
         websockets: bool,
-        static_path: Optional[Tuple[str, str, str]],
+        static_path: Optional[Tuple[str, str, Optional[str]]],
         log_access_fmt: Optional[str],
         ssl_ctx: SSLCtx,
         scope_opts: Dict[str, Any],
@@ -277,7 +278,7 @@ class MPServer(AbstractServer[WorkerProcess]):
             static_path,
             *ssl_ctx,
         )
-        serve = getattr(worker, {RuntimeModes.mt: 'serve_mtr', RuntimeModes.st: 'serve_str'}[runtime_mode])
+        serve = getattr(worker, WORKERS_METHODS[runtime_mode][sock.is_uds()])
         scheduler = _new_cbscheduler(loop, wcallback, impl_asyncio=task_impl == TaskImpl.asyncio)
         serve(scheduler, loop, shutdown_event)
 
@@ -287,9 +288,30 @@ class MPServer(AbstractServer[WorkerProcess]):
         sock.set_inheritable(True)
         self._sso = sock
 
+    def _write_pidfile(self):
+        super()._write_pidfile()
+        self._rss_collector = ProcInfoCollector()
+
     def _unlink_pidfile(self):
         self._sso.detach()
         super()._unlink_pidfile()
+
+    def _handle_rss_signal(self, spawn_target, target_loader):
+        wpids = {wrk._id(): wrk for wrk in self.wrks}
+        try:
+            rss_data = self._rss_collector.memory(list(wpids.keys()))
+        except Exception:
+            logger.warning('Unable to collect resource usage for workers')
+            return
+        logger.debug(f'Collected resource usages for workers: {rss_data}')
+        to_restart = []
+        for wpid, wmem in rss_data.items():
+            if wmem >= self.workers_rss:
+                wrk = wpids[wpid]
+                logger.info(f'worker-{wrk.idx + 1} RSS over threshold, gracefully respawning..')
+                to_restart.append(wrk.idx)
+        if to_restart:
+            self._respawn_workers(to_restart, spawn_target, target_loader, delay=self.respawn_interval)
 
     def _spawn_worker(self, idx, target, callback_loader) -> WorkerProcess:
         return WorkerProcess(
