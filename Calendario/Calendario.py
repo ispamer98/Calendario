@@ -66,6 +66,7 @@ async def subscribe(subscription: dict):
 @app.api.get("/notify_test")
 def notify_test(message: str):
     send_notification(message)
+    print("enviado!")
     return {"sent": True}
 
 # --- Arrancar Reflex ---
