@@ -66,7 +66,6 @@ def _patch_typer(click_instance: click.Command) -> typer.Typer:
     import functools
 
     import typer
-    from typer.core import MarkupMode
     from typer.models import TyperInfo
 
     fake_typer_app = typer.Typer(add_completion=False)
@@ -75,21 +74,11 @@ def _patch_typer(click_instance: click.Command) -> typer.Typer:
 
     original_get_group_from_info = typer.main.get_group_from_info
 
-    def get_group_from_info(
-        group_info: TyperInfo,
-        *,
-        pretty_exceptions_short: bool,
-        rich_markup_mode: MarkupMode,
-    ):
-        """Get the group from the Typer info."""
+    def get_group_from_info(group_info: TyperInfo, *args, **kwargs):
         if group_info.typer_instance is fake_typer_app:
             click_instance.name = group_info.name
             return click_instance
-        return original_get_group_from_info(
-            group_info,
-            pretty_exceptions_short=pretty_exceptions_short,
-            rich_markup_mode=rich_markup_mode,
-        )
+        return original_get_group_from_info(group_info, *args, **kwargs)
 
     functools.update_wrapper(
         get_group_from_info,

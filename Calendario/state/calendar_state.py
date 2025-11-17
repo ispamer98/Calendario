@@ -11,7 +11,6 @@ from datetime import datetime
 from dateutil.relativedelta import relativedelta
 import pytz
 
-from Calendario.utils.send_not import send_notification
 
 #Estado que maneja la lógica del calendario
 class CalendarState(rx.State):
@@ -50,8 +49,6 @@ class CalendarState(rx.State):
             #Carga todos los calendarios
             await self.load_calendars()
             #Devuelve la información del día en curso
-            from Calendario.Calendario import notify_test
-            send_notification("aaaaaa")
             return UserState.today_info()
 
             

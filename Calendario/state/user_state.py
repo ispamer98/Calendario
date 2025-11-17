@@ -10,8 +10,6 @@ from datetime import datetime
 import json
 from typing import TypedDict
 
-from Calendario.utils.send_not import send_notification,SUBSCRIPTIONS
-
 #Clase para incluir los datos relacionados a comentarios
 class Comment(TypedDict):
     username: str
@@ -235,9 +233,6 @@ class UserState(rx.State):
                 #Reseteamos los inputs
                 self.username = ""
                 self.password = ""
-                print("SIIIIIIIIIIII")
-                print(SUBSCRIPTIONS)
-                send_notification("OLE OLE")
                 #Retornamos mensaje de bienvenida y redirigimos al calendario
                 return [rx.toast.success(
                     position="top-center",
