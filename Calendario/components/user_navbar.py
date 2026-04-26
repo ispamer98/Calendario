@@ -1,58 +1,63 @@
 # Calendario/components/user_navbar.py
+# Calendario/components/user_navbar.py
 
 import reflex as rx
+import os
+from dotenv import load_dotenv
 from Calendario.components.calendar_creator import calendar_creator
 from Calendario.components.meal_editor import new_meal_input
 from Calendario.state.day_state import DayState
 from Calendario.state.user_state import UserState
 from Calendario.state.calendar_state import CalendarState
+from Calendario.state.notification_state import NotificationState
 
+load_dotenv()
+VAPID_PUBLIC = os.getenv("VAPID_PUBLIC_KEY", "")
 
 class DrawerState(rx.State):
-    is_open: bool = False #Variable que controla la apertura del drawer
-    show_profile_submenu: bool = False #Variable que controla la apertura del submenu de perfil
-    show_calendar_submenu: bool = False #Variable que controla la apertura del submenu de calendario
-    show_meal_submenu : bool = False #Variable que controla la apertura del submenu de comida
+    is_open: bool = False
+    show_profile_submenu: bool = False
+    show_calendar_submenu: bool = False
+    show_meal_submenu : bool = False
 
     @rx.event
     def open_drawer(self):
-        self.is_open = True #Si se ejecuta, abre el drawer
+        self.is_open = True
 
     @rx.event
-    def close_drawer(self): 
-        self.is_open = False #Si se ejecuta, cierra el drawer
-        self.show_profile_submenu = False #Cierra el submenu de perfil
-        self.show_calendar_submenu = False #Cierra el submenu de calendario
-        self.show_meal_submenu = False #Cierra el submenu de comida
+    def close_drawer(self):
+        self.is_open = False
+        self.show_profile_submenu = False
+        self.show_calendar_submenu = False
+        self.show_meal_submenu = False
 
     @rx.event
     def toggle_profile_submenu(self):
-        self.show_profile_submenu = not self.show_profile_submenu #Alterna la apertura del submenu de perfil
+        self.show_profile_submenu = not self.show_profile_submenu
 
     @rx.event
     def toggle_calendar_submenu(self):
-        self.show_calendar_submenu = not self.show_calendar_submenu #Alterna la apertura del submenu de calendario
+        self.show_calendar_submenu = not self.show_calendar_submenu
 
     @rx.event
     def toggle_meal_submenu(self):
-        self.show_meal_submenu = not self.show_meal_submenu #Alterna la apertura del submenu de comida
+        self.show_meal_submenu = not self.show_meal_submenu
 
 def drawer_menu():
-    NAVBAR_HEIGHT = "68px" #Alto de la navbar
+    NAVBAR_HEIGHT = "68px"
 
-    return rx.drawer.root( #Drawer vertical para los submenus
+    return rx.drawer.root(
         rx.drawer.trigger(),
         rx.drawer.overlay(
-            #Fondo fuera del drawer, al hacer click fuera, lo cierra
             background="rgba(0, 0, 0, 0.6)",
             style={"top": NAVBAR_HEIGHT},
-            on_click=DrawerState.close_drawer, 
+            on_click=DrawerState.close_drawer,
         ),
         rx.drawer.portal(
             rx.drawer.content(
                 rx.flex(
                     rx.drawer.close(
-                        rx.button( #Boton de cerrar "X"
+                        rx.button(
                             "×",
                             on_click=DrawerState.close_drawer,
                             variant="ghost",
@@ -76,7 +81,6 @@ def drawer_menu():
                             _focus={"boxShadow": "none"},
                         ),
                     ),
-
                     # Submenu de calendario
                     rx.box(
                         rx.button(
@@ -106,14 +110,13 @@ def drawer_menu():
                                 "max_width" : "200px",
                                 "padding_left": "0.5em",
                             },
-                            on_click=DrawerState.toggle_calendar_submenu, #Al hacer click, abre el submenu
-                            
+                            on_click=DrawerState.toggle_calendar_submenu,
                         ),
-                        rx.cond( #Si el submenú está en estado abierto
+                        rx.cond(
                             DrawerState.show_calendar_submenu,
-                            rx.vstack( #Muestra su contenido
+                            rx.vstack(
                                 rx.separator(margin_top="1em",margin_bottom="1em"),
-                                rx.button( #Botón que redirige a la pagina de calendario
+                                rx.button(
                                     rx.icon("arrow-big-right"),
                                     "Visualizar calendario",
                                     variant="ghost",
@@ -126,10 +129,9 @@ def drawer_menu():
                                         "background": "#23282b",
                                         "color": "#309DCF",
                                     },
-                                    #Cierra el drawer y muestra el calendario
                                     on_click=[DrawerState.close_drawer, UserState.go_calendar_page],
                                 ),
-                                rx.button( #Boton que abre el creador de calendario
+                                rx.button(
                                     rx.icon("arrow-big-right"),
                                     "Crear Calendario",
                                     variant="ghost",
@@ -142,7 +144,6 @@ def drawer_menu():
                                         "background": "#23282b",
                                         "color": "#309DCF",
                                     },
-                                    #Cierra el drawer y muestra el creador de calendario
                                     on_click=[DrawerState.close_drawer, CalendarState.open_calendar_creator],
                                 ),
                                 spacing="1",
@@ -151,8 +152,7 @@ def drawer_menu():
                             )
                         )
                     ),
-
-                    #Submenu de perfil
+                    # Submenu de perfil
                     rx.box(
                         rx.button(
                             rx.hstack(
@@ -180,14 +180,13 @@ def drawer_menu():
                                 "max_width" : "200px",
                                 "padding_left": "0.5em",
                             },
-                            #Al hacer click, abre el submenu
                             on_click=DrawerState.toggle_profile_submenu,
                         ),
-                        rx.cond( #Si el submenu está en estado abierto
+                        rx.cond(
                             DrawerState.show_profile_submenu,
-                            rx.vstack( #Muestra su contenido
+                            rx.vstack(
                                 rx.separator(margin_top="1em",margin_bottom="1em"),
-                                rx.button( #Boton que muestra la información del usuario
+                                rx.button(
                                     rx.icon("arrow-big-right"),
                                     "Datos de usuario",
                                     variant="ghost",
@@ -200,10 +199,9 @@ def drawer_menu():
                                         "background": "#23282b",
                                         "color": "#309DCF",
                                     },
-                                    #Cierra el drawer y redirige a la pagina de información de usuario
                                     on_click=[DrawerState.close_drawer, UserState.go_profile_page],
                                 ),
-                                rx.button( #Botón que redirige al cambio de contraseña
+                                rx.button(
                                     rx.icon("arrow-big-right"),
                                     "Seguridad",
                                     variant="ghost",
@@ -216,7 +214,6 @@ def drawer_menu():
                                         "background": "#23282b",
                                         "color": "#309DCF",
                                     },
-                                    #Cierra el drawer y redirige a la pagina de seguridad 
                                     on_click=[DrawerState.close_drawer, UserState.go_security_page],
                                 ),
                                 spacing="1",
@@ -225,7 +222,7 @@ def drawer_menu():
                             )
                         )
                     ),
-                    #Submenu de comida
+                    # Submenu de comida
                     rx.box(
                         rx.button(
                             rx.hstack(
@@ -253,14 +250,13 @@ def drawer_menu():
                                 "max_width" : "200px",
                                 "padding_left": "0.5em",
                             },
-                            #Al hacer click, abre el submenu
                             on_click=DrawerState.toggle_meal_submenu,
                         ),
-                        rx.cond( #Si el submenu está en estado abierto
+                        rx.cond(
                             DrawerState.show_meal_submenu,
-                            rx.vstack( #Muestra su contenido
+                            rx.vstack(
                                 rx.separator(margin_top="1em",margin_bottom="1em"),
-                                rx.button( #Boton que muestra la información del usuario
+                                rx.button(
                                     rx.icon("arrow-big-right"),
                                     "Añadir comida",
                                     variant="ghost",
@@ -273,10 +269,9 @@ def drawer_menu():
                                         "background": "#23282b",
                                         "color": "#309DCF",
                                     },
-                                    #Cierra el drawer y redirige a la pagina de información de usuario
                                     on_click=[DrawerState.close_drawer, DayState.open_new_meal_input ],
                                 ),
-                                rx.button( #Botón que redirige a la pagina de comidas
+                                rx.button(
                                     rx.icon("arrow-big-right"),
                                     "Lista de comidas",
                                     variant="ghost",
@@ -289,7 +284,6 @@ def drawer_menu():
                                         "background": "#23282b",
                                         "color": "#309DCF",
                                     },
-                                    #Cierra el drawer y redirige a las comidas 
                                     on_click=[DrawerState.close_drawer, UserState.go_meal_list],
                                 ),
                                 spacing="1",
@@ -315,60 +309,109 @@ def drawer_menu():
                 z_index="1200",
             )
         ),
-        open=DrawerState.is_open, #Al abrir, actualzia el estado
+        open=DrawerState.is_open,
         placement="left",
         modal=True,
     )
 
-#Componente de navbar ( barra superior de navegación )
 def user_navbar() -> rx.Component:
     return rx.box(
         rx.box(
-            rx.hstack( #Incluimos el drawer de lo submenus
+            rx.hstack(
                 drawer_menu(),
-                
-                #Logo de la aplicación + Nombre de la misma
+                # Logo
                 rx.heading(
                     rx.hstack(
-                        rx.image(
-                            src="/favicon.ico",
-                            width="43px",
-                            height="33px"),
-                        rx.text("CalendPy",
-                                font_family="Sarina,cursive",
-                                font_size="1.5em",),
-                        
+                        rx.image(src="/favicon.ico", width="43px", height="33px"),
+                        rx.text("CalendPy", font_family="Sarina,cursive", font_size="1.5em"),
                     ),
                     background_image="linear-gradient(45deg, #4F46E5, #EC4899)",
                     background_clip="text",
                     font_weight="800",
                     font_size="1em",
                     user_select="none",
-                    on_click=DrawerState.open_drawer, #Al hacer click en la cabecera, se abre el drawer
-                    _hover={"transform": "scale(1.05)",
-                            "cursor": "pointer"},
+                    on_click=DrawerState.open_drawer,
+                    _hover={"transform": "scale(1.05)", "cursor": "pointer"},
                 ),
-                
                 rx.spacer(),
-                calendar_creator(), #Incluimos el creador de calendario, para poder lanzarlo desde el submenu
+                calendar_creator(),
                 new_meal_input(),
+                # 🔔 Botón campana para suscripción push
+                rx.button(
+                    rx.icon("bell", size=20),
+                    on_click=rx.call_script(
+                        f"""
+                        (async function() {{
+                            try {{
+                                let alias = window.prompt("Nombre para este dispositivo (ej: Mi iPhone, PC Casa):", "");
+                                if (alias === null) {{
+                                    return "USER_CANCEL";
+                                }}
+                                alias = alias.trim();
+                                if (alias === "") {{
+                                    alert("El alias no puede estar vacío. Cancelado.");
+                                    return "USER_CANCEL";
+                                }}
+                                // Registrar Service Worker
+                                let reg;
+                                for (let intentos = 0; intentos < 3; intentos++) {{
+                                    try {{
+                                        reg = await navigator.serviceWorker.register('/service-worker.js');
+                                        await navigator.serviceWorker.ready;
+                                        break;
+                                    }} catch (e) {{
+                                        console.warn("Intento " + (intentos+1) + " fallido", e);
+                                        await new Promise(r => setTimeout(r, 500));
+                                    }}
+                                }}
+                                if (!reg) throw new Error("No se pudo registrar el Service Worker");
+                                const perm = await Notification.requestPermission();
+                                if (perm !== 'granted') return "PERMISO_DENEGADO";
+                                const publicKey = '{VAPID_PUBLIC}';
+                                const toUint8 = (b) => {{
+                                    const pad = '='.repeat((4 - b.length % 4) % 4);
+                                    const b64 = (b + pad).replace(/-/g, '+').replace(/_/g, '/');
+                                    const raw = window.atob(b64);
+                                    const out = new Uint8Array(raw.length);
+                                    for (let i = 0; i < raw.length; ++i) out[i] = raw.charCodeAt(i);
+                                    return out;
+                                }};
+                                const sub = await reg.pushManager.subscribe({{
+                                    userVisibleOnly: true,
+                                    applicationServerKey: toUint8(publicKey)
+                                }});
+                                return JSON.stringify({{
+                                    subscription: sub,
+                                    alias: alias
+                                }});
+                            }} catch (err) {{
+                                if (err.name === "NotAllowedError") return "PERMISO_BLOQUEADO";
+                                return "ERROR_" + err.message;
+                            }}
+                        }})();
+                        """,
+                        callback=NotificationState.guardar_subscripcion
+                    ),
+                    variant="ghost",
+                    size="3",
+                    _hover={"transform": "scale(1.1)", "cursor": "pointer"},
+                ),
                 # Menú de usuario
-                rx.menu.root( #Creamos un "menu", boton visual con el nombre de usuario
+                rx.menu.root(
                     rx.menu.trigger(
                         rx.button(
                             rx.hstack(
                                 rx.spacer(" "),
                                 rx.icon("user"),
-                                rx.cond( #Si el usuario está loggeado 
+                                rx.cond(
                                     UserState.current_user,
-                                    rx.text(UserState.current_user.username), #Muestra su nombre
-                                    rx.text("Usuario") #Hasta que carga la info, muestra un usuario generico
+                                    rx.text(UserState.current_user.username),
+                                    rx.text("Usuario")
                                 ),
                                 rx.icon("chevron-down"),
                                 spacing="2",
                                 align="center",
                                 color="white",
-                                
                             ),
                             variant="ghost",
                             radius="full",
@@ -385,26 +428,21 @@ def user_navbar() -> rx.Component:
                             }
                         )
                     ),
-                    rx.menu.content( #Opciones del menú
-                        rx.menu.item("Perfil", #Redirige a la información de usuario
-                                     rx.icon("settings"),
+                    rx.menu.content(
+                        rx.menu.item("Perfil", rx.icon("settings"),
                                      style={"_hover" : { "background " : "#23282b"}},
-                                     on_click=rx.redirect("/profile")
-                                     ),
-                        rx.menu.separator(), #Separador visual
-                        rx.menu.item( #Botón de cerrar sesión en rojo
-                            "Cerrar sesión",
-                            rx.icon("log-out"), 
-                            on_click=UserState.logout, #Función que cierra sesión
-                            color="#EF4444",
-                            style={"_hover" : { "background " : "#23282b"}}
-                        ),
+                                     on_click=rx.redirect("/profile")),
+                        rx.menu.separator(),
+                        rx.menu.item("Cerrar sesión", rx.icon("log-out"),
+                                     on_click=UserState.logout,
+                                     color="#EF4444",
+                                     style={"_hover" : { "background " : "#23282b"}}),
                         width="200px",
                     ),
                     modal=False
                 ),
                 justify="between",
-                align="center", 
+                align="center",
                 width="100%",
                 padding_y="1em",
                 padding_x="2em",

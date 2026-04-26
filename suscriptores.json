@@ -1,0 +1,21 @@
+[
+    {
+        "endpoint": "https://fcm.googleapis.com/fcm/send/fcjJ_ghjNVI:APA91bHi-3mp8bZx9NL8hMxpylxyrpKoQ1ZDsboQ0P21IA_9aAautzTSFrTbyMhJy0XDfXTvR3LnAYlabD0STME9QolYoG3EQBC23nzO6vYec_WfM3pRMwTcsMqzXBvcDeDTkQoN4h5F",
+        "expirationTime": null,
+        "keys": {
+            "p256dh": "BKlrByYBWY6-zZ75DpGcNC3rMYlwIUxpmT5iHD450wfNGGhds6fHufIyOx5G0eUcCQSz7ngregjmzIHq5oPpAEg",
+            "auth": "QTjp6BZdx9R64xHk5FgJ_w"
+        },
+        "nombre_usuario": "a",
+        "alias": "PC"
+    },
+    {
+        "endpoint": "https://web.push.apple.com/QAN5oroiDNwuaL59oXoDDOlrRXBh5K5Hrkdl1b0yTcOdQk5Agx-npAzqtsk61lBmP7sZ0q3ejyYd63sS6Zmot5b1UgAw-e4ON6UxaD1dByhRMKa5ocygzKaZzlPV_BFVblw-7kIhpCaThlk8UlA_IRlWUXocCbnQlh7WyvZZ7vE",
+        "keys": {
+            "p256dh": "BJ6DxblOmTioxC9zwMakOVpGWm8FVFvwlv2_vbLRpO2d_4YDxPdj75cRIQGGAnNVpMv-HswUu1GK3xR1flWpwgM",
+            "auth": "c4OJFV0yKsyRMlFgNhxp3A"
+        },
+        "nombre_usuario": "a",
+        "alias": "iPhone"
+    }
+]

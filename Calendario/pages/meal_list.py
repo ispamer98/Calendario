@@ -48,7 +48,7 @@ def meal_list() -> rx.Component:
                     rx.button(
                         rx.hstack(
                             rx.icon("plus", size=18),
-                            rx.text("Nueva Comida"),
+                            rx.text("Añadir"),
                             spacing="2",
                         ),
                         color_scheme="green",
