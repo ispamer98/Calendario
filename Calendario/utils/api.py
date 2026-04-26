@@ -63,6 +63,11 @@ async def get_all_meals() -> List[Meal]:
 async def add_new_meal(meal:str,description:str) -> Meal:
     return SUPABASE_API.add_meal(meal,description)
 
+# Añadir al final del archivo
+async def delete_meal_by_id(meal_id: int) -> bool:
+    """Elimina una comida por su ID"""
+    return SUPABASE_API.delete_meal_by_id(meal_id)
+
 # ---------------------- Comentarios ----------------------
 async def get_day_comments(day_id: int) -> List[Comment]:
     return SUPABASE_API.get_comments_for_day(day_id) or []

@@ -276,7 +276,7 @@ def drawer_menu():
                                     #Cierra el drawer y redirige a la pagina de información de usuario
                                     on_click=[DrawerState.close_drawer, DayState.open_new_meal_input ],
                                 ),
-                                rx.button( #Botón que redirige al cambio de contraseña
+                                rx.button( #Botón que redirige a la pagina de comidas
                                     rx.icon("arrow-big-right"),
                                     "Lista de comidas",
                                     variant="ghost",
@@ -289,7 +289,7 @@ def drawer_menu():
                                         "background": "#23282b",
                                         "color": "#309DCF",
                                     },
-                                    #Cierra el drawer y redirige a la pagina de seguridad 
+                                    #Cierra el drawer y redirige a las comidas 
                                     on_click=[DrawerState.close_drawer, UserState.go_meal_list],
                                 ),
                                 spacing="1",

@@ -42,7 +42,7 @@ def send_welcome_email(email, username):
     - ¡Y compartirlo todo! 🌐
 
     Ir a CalendPy:
-    https://calendario-red-ocean.reflex.run/
+    https://calendpy.noxuscmmd.uk/
 
     El equipo de CalendPy
     """
@@ -67,7 +67,7 @@ def send_welcome_email(email, username):
           </ul>
 
           <div style="text-align: center; margin: 30px 0;">
-            <a href="https://calendario-red-ocean.reflex.run/" style="
+            <a href="https://calendpy.noxuscmmd.uk/" style="
                 display: inline-block;
                 padding: 12px 24px;
                 font-size: 16px;

@@ -410,7 +410,6 @@ class CalendarState(rx.State):
         self.toast_info = None
         self.new_calendar_name = ""
         self.new_calendar_month = datetime.today().strftime("%Y-%m")
-        self.current_calendar = None
         self.loading = False
         self.show_calendar_creator = False
         self.error_message = None

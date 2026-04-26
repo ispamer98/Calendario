@@ -13,13 +13,13 @@ from Calendario.components.today_box import today_box
     route="/calendar",
     title="Calendario | CalendPy",
     on_load=[ #Acciones al cargar la página
-        CalendarState.reset_calendars,
         CalendarState.clean,
         UserState.on_load,
         CalendarState.load_meals,
         UserState.check_autenticated,
         CalendarState.update_current_date,
-        CalendarState.refresh_page
+        CalendarState.refresh_page,
+        CalendarState.reset_calendars
     ],
 )
 def calendar() -> rx.Component:

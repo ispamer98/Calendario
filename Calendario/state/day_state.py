@@ -1,4 +1,5 @@
 import reflex as rx
+import re
 from typing import Optional, List
 
 from sqlalchemy import Boolean
@@ -67,33 +68,41 @@ class DayState(rx.State):
         self.new_meal_description = value
 
         # Añadir nueva comida
+
     @rx.event
     async def add_new_meal(self):
-        if not self.new_meal.strip() or not self.new_meal_description.strip():
+        meal = self.new_meal.strip()
+        description = self.new_meal_description.strip()
+
+        if not meal or not description:
             return rx.toast.error("Debes rellenar todos los campos")
+
+        # 1️⃣ Máximo 20 caracteres
+        if len(meal) > 20:
+            return rx.toast.error("El nombre no puede tener más de 20 caracteres")
+
+        # 2️⃣ Solo letras, números y espacios
+        if not re.match(r'^[A-Za-z0-9 ]+$', meal):
+            return rx.toast.error("El nombre no puede contener caracteres especiales")
+
         try:
-            # Añadimos la comida a la base de datos
-            await add_new_meal(
-                meal=self.new_meal.strip(),
-                description=self.new_meal_description.strip()
-            )
+            result = await add_new_meal(meal=meal, description=description)
 
-            # Obtenemos el estado del calendario
+            if result is None:
+                return rx.toast.error("Ya existe una comida con ese nombre")
+
             calendar_state = await self.get_state(CalendarState)
-            # Recargamos las comidas desde la base de datos
             await calendar_state.load_meals()
-
-            # Cerramos el input de nueva comida
             self.close_new_meal_input()
 
-            # Toast de éxito y refresco de la página
             return [
                 rx.toast.success("Comida añadida"),
                 await calendar_state.refresh_page()
             ]
 
-        except Exception as e:
-            return rx.toast.error(f"Error: {str(e)}")
+        except Exception:
+            return rx.toast.error("Error al añadir la comida")
+
 
 
     #Cerramos el input de comentarios

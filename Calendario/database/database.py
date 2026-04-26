@@ -274,20 +274,41 @@ class SupabaseAPI:
             return []
         
 
-    def add_meal(self,meal:str, description:str) -> Optional[Meal]:
+    def add_meal(self, meal: str, description: str) -> Optional[Meal]:
         try:
-            meal_data={
+            # 1️⃣ Comprobamos si ya existe (case-insensitive)
+            existing = (
+                self.supabase
+                .from_("meals")
+                .select("id")
+                .ilike("name", meal)
+                .execute()
+            )
+
+            if existing.data:
+                return None  # ⬅️ Nombre en uso
+
+            # 2️⃣Insertamos si no existe
+            meal_data = {
                 "name": meal,
-                "description" : description
+                "description": description
             }
-            response = self.supabase.table("meals").insert(meal_data).execute()
+
+            response = (
+                self.supabase
+                .from_("meals")
+                .insert(meal_data)
+                .execute()
+            )
+
             if response.data:
-                new_meal = Meal(**response.data[0])
-                return new_meal
-        #Si existe error, mostramos el mensaje y devolvemos None
+                return Meal(**response.data[0])
+
         except Exception as e:
             print(f"Error agregando comida: {e}")
+
         return None
+
     
 
     #Funciónes que actualizan comida/cena para un día en concreto
@@ -700,3 +721,46 @@ class SupabaseAPI:
                 "dinner": "",
                 "comments": []
             }]
+
+
+    def delete_meal_by_id(self, meal_id: int) -> bool:
+        """Elimina una comida y limpia referencias en days.meal y days.dinner"""
+        try:
+            # 1. Obtener el nombre de la comida
+            meal_resp = (
+                self.supabase
+                .table("meals")
+                .select("name")
+                .eq("id", meal_id)
+                .execute()
+            )
+
+            if not meal_resp.data:
+                return False
+
+            meal_name = meal_resp.data[0]["name"]
+
+            # 2. Limpiar referencias en days.meal
+            self.supabase.table("days").update(
+                {"meal": None}
+            ).eq("meal", meal_name).execute()
+
+            # 3. Limpiar referencias en days.dinner
+            self.supabase.table("days").update(
+                {"dinner": None}
+            ).eq("dinner", meal_name).execute()
+
+            # 4. Eliminar la comida
+            delete_resp = (
+                self.supabase
+                .table("meals")
+                .delete()
+                .eq("id", meal_id)
+                .execute()
+            )
+
+            return bool(delete_resp.data)
+
+        except Exception as e:
+            print(f"Error eliminando comida (id={meal_id}): {e}")
+            return False

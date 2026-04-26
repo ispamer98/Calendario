@@ -217,6 +217,7 @@ class UserState(rx.State):
     #Función que da autentica al usuario
     @rx.event
     async def login(self):
+        from Calendario.state.calendar_state import CalendarState
         #Si no tenemos usuario o contraseña, resetea el campo de contraseña
         if not self.username or not self.password:
             self.restart_pasw()
@@ -233,6 +234,8 @@ class UserState(rx.State):
                 #Reseteamos los inputs
                 self.username = ""
                 self.password = ""
+                calendar_state = await self.get_state(CalendarState)
+                calendar_state.current_calendar = None
                 #Retornamos mensaje de bienvenida y redirigimos al calendario
                 return [rx.toast.success(
                     position="top-center",
