@@ -133,7 +133,6 @@ def meal_card_mobile(meal: rx.Var[Meal]) -> rx.Component:
             style={"cursor": "pointer"},
         ),
         margin="2px 0",
-        # Eliminar el blur de la tarjeta seleccionada
         filter=rx.cond(
             (MealCardState.selected_meal_id != None) & 
             (MealCardState.selected_meal_id != meal.id),
@@ -283,60 +282,19 @@ def meal_list_grid() -> rx.Component:
         rx.box(
             rx.cond(
                 CalendarState.meals.length() > 0,
-                # Contenedor principal con overlay para clicks fuera
+                # Contenedor principal (sin overlay)
                 rx.box(
-                    # Overlay para clicks fuera (solo en móvil cuando hay selección)
-                    rx.cond(
-                        MealCardState.selected_meal_id != None,
-                        rx.box(
-                            style={
-                                "position": "fixed",
-                                "top": "0",
-                                "left": "0",
-                                "width": "100%",
-                                "height": "100%",
-                                "background": "transparent",
-                                "z_index": "40",
-                            },
-                            on_click=MealCardState.handle_click_outside,
-                        )
-                    ),
-                                        
-                    # Contenido de las comidas
+                    # Contenido para móvil
                     rx.mobile_only(
-                        rx.box(
-                            # Overlay transparente SOLO cuando hay una tarjeta seleccionada
-                            rx.cond(
-                                MealCardState.selected_meal_id != None,
-                                rx.box(
-                                    style={
-                                        "position": "fixed",
-                                        "top": "0",
-                                        "left": "0",
-                                        "width": "100%",
-                                        "height": "100%",
-                                        "background": "transparent",
-                                        "z_index": "40",
-                                    },
-                                    on_click=MealCardState.handle_click_outside,
-                                )
-                            ),
-                            
-                            # Lista de tarjetas
-                            rx.vstack(
-                                rx.foreach(CalendarState.meals, meal_card),
-                                spacing="2",
-                                width="100%",
-                                padding="1em",
-                                align_items="center",
-                                position="relative",
-                                z_index="30",
-                            ),
+                        rx.vstack(
+                            rx.foreach(CalendarState.meals, meal_card),
+                            spacing="2",
                             width="100%",
-                            position="relative",
+                            padding="1em",
+                            align_items="center",
                         )
                     ),
-                    
+                    # Contenido para tablet/desktop
                     rx.tablet_and_desktop(
                         rx.flex(
                             rx.foreach(CalendarState.meals, meal_card),
@@ -346,22 +304,15 @@ def meal_list_grid() -> rx.Component:
                             gap="2em",
                             width="100%",
                             padding="3em",
-                            position="relative",
-                            transition="all 0.3s ease",
                         )
                     ),
                     width="100%",
-                    position="relative",
                 ),
-                # Estado vacío
+                # Estado vacío (sin cambios)
                 rx.vstack(
                     rx.icon("utensils", size=48, color="var(--slate-8)"),
                     rx.heading("No hay comidas aún", size="5", weight="medium"),
-                    rx.text(
-                        "Añade tu primera comida para comenzar",
-                        color="var(--slate-10)",
-                        size="3",
-                    ),
+                    rx.text("Añade tu primera comida para comenzar", color="var(--slate-10)", size="3"),
                     spacing="3",
                     align="center",
                     padding_y="6em",

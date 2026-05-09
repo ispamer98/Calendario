@@ -33,12 +33,14 @@ class MealCardState(rx.State):
 
     @rx.event
     def select_meal(self, meal_id: int):
-        """Selecciona una comida (para móvil)"""
-        now = time.time()
-        self.last_select_time = now
-        
-        # Siempre seleccionar la nueva tarjeta (no toggle)
-        self.selected_meal_id = meal_id
+        """Selecciona/deselecciona una comida (toggle)"""
+        if self.selected_meal_id == meal_id:
+            # Si ya está seleccionada, la deseleccionamos
+            self.selected_meal_id = None
+        else:
+            # Si no, la seleccionamos
+            self.selected_meal_id = meal_id
+        self.last_select_time = time.time()
     
     @rx.event
     def deselect_meal(self):

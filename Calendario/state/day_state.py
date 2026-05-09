@@ -1,3 +1,4 @@
+from Calendario.state.notification_state import NotificationState
 import reflex as rx
 import re
 from typing import Optional, List
@@ -7,6 +8,7 @@ from Calendario.utils.api import (
     get_day_comments,
     add_comment_to_day,
     delete_comment as api_delete_comment,
+    get_shared_users,
     update_day_meal,
     update_day_dinner,
     get_day_details,
@@ -126,56 +128,106 @@ class DayState(rx.State):
     #Función que añade comentario al día seleccionado
     @rx.event
     async def add_comment(self, day: Day):
-        #Verificamos que el input de comentario no esté vacío
-        if not self.new_comment_text.strip():
+        # 1. Capturamos el texto REAL inmediatamente en una variable local
+        texto_comentario = self.new_comment_text.strip()
+
+        if not texto_comentario:
             return rx.toast.error("El comentario no puede estar vacío")
 
         try:
-            #Recuperamos el estado del usuario
             user_state = await self.get_state(UserState)
-            #Añadimos el comentario al día
+            
+            # 2. Guardamos en la base de datos
             new_comment = await add_comment_to_day(
                 day_id=day.id,
                 user_id=user_state.current_user.id,
-                content=self.new_comment_text.strip()
+                content=texto_comentario
             )
-            #Si el nuevo comentario se añade en el día
+
             if new_comment:
-                #Recuperamos los detalles del día
+                # 3. Actualizamos el estado de la interfaz
                 updated_day = await get_day_details(day.id)
                 calendar_state = await self.get_state(CalendarState)
-                #Actualizamos el día
                 await calendar_state.update_day_in_state(updated_day)
-                #Cargamos los comentarios
                 await self.load_day_comments(day.id)
-                #Alternamos para cerrar el input de comentarios
                 self.toggle_comment_input()
-                #Retornamos mensaje de éxito y recargamos la página
-                return [rx.toast.success("Comentario añadido"),
-                        await calendar_state.refresh_page()]
+
+                # --- NOTIFICACIONES ---
+                calendar = calendar_state.current_calendar
+                if calendar:
+                    shared_users = await get_shared_users(calendar.id)
+                    author = user_state.current_user.username
+
+                    # Formatear la fecha
+                    meses_es = [
+                        "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+                        "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
+                    ]
+                    fecha_formateada = f"{day.date.day} de {meses_es[day.date.month - 1]}"
+
+                    # Preparar resumen del texto real para el mensaje
+                    resumen = (texto_comentario[:47] + "...") if len(texto_comentario) > 50 else texto_comentario
+
+                    for user in shared_users:
+                        if user.username != author:
+                            NotificationState.enviar_notificacion(
+                                titulo="💬 Nuevo comentario",
+                                mensaje=f"{author} en '{calendar.name}' ({fecha_formateada}): \"{resumen}\"",
+                                destino=user.username
+                            )
+
+                return [
+                    rx.toast.success("Comentario añadido"),
+                    await calendar_state.refresh_page()
+                ]
+            else:
+                return rx.toast.error("No se pudo guardar el comentario.")
 
         except Exception as e:
             return rx.toast.error(f"Error: {str(e)}")
         finally:
-            #Limpiamos el campo de comentario
+            # Limpiamos el input al final
             self.new_comment_text = ""
-
-    #Función para borrar el comentario
+        #Función para borrar el comentario
     @rx.event
     async def delete_comment(self, comment_id: int, day: Day):
         try:
-            #Eliminamos el comentario desde base de datos
+            # Eliminamos el comentario desde base de datos
             success = await api_delete_comment(comment_id)
             
             if success:
-                #Si tenemos éxito, cargamos de nuevo los comentarios
+                # Cargamos de nuevo los comentarios
                 await self.load_day_comments(day.id)
-                #Cargamos los detalles del día
+                # Cargamos los detalles del día
                 updated_day = await get_day_details(day.id)
                 calendar_state = await self.get_state(CalendarState)
-                #Actualizamos el día
+                # Actualizamos el día
                 await calendar_state.update_day_in_state(updated_day)
-                #Retornamos mensaje de éxito y refrescamos la página
+
+                # --- NOTIFICACIONES ---
+                calendar = calendar_state.current_calendar
+                if calendar:
+                    shared_users = await get_shared_users(calendar.id)
+                    author = (await self.get_state(UserState)).current_user.username
+
+                    # Formatear la fecha del día
+                    meses_es = [
+                        "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+                        "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
+                    ]
+                    dia = day.date.day
+                    mes = meses_es[day.date.month - 1]
+                    fecha_formateada = f"{dia} de {mes}"
+
+                    for user in shared_users:
+                        if user.username != author:
+                            NotificationState.enviar_notificacion(
+                                titulo="🗑️ Comentario eliminado",
+                                mensaje=f"{author} ha eliminado un comentario en '{calendar.name}' del {fecha_formateada}",
+                                destino=user.username
+                            )
+                # ----------------------
+
                 return [rx.toast.success("Comentario eliminado correctamente"),
                         await calendar_state.refresh_page()]
             return rx.toast.error("Error al eliminar el comentario")
@@ -234,14 +286,57 @@ class DayState(rx.State):
                 updated = True
             #Si encontramos diferencias
             if updated:
-                #Guardamos los detalles del día
                 updated_day = await get_day_details(self.current_day.id)
                 calendar_state = await self.get_state(CalendarState)
-                #Actualizamos el día
                 await calendar_state.update_day_in_state(updated_day)
+
+                # --- NOTIFICACIONES ACTUALIZADAS ---
+                calendar = calendar_state.current_calendar
+                if calendar:
+                    shared_users = await get_shared_users(calendar.id)
+                    author = (await self.get_state(UserState)).current_user.username
+
+                    # 1. Determinar qué cambió para el mensaje principal
+                    cambio_comida = meal != self.current_day.meal
+                    cambio_cena = dinner != self.current_day.dinner
+
+                    if cambio_comida and cambio_cena:
+                        detalle_cambio = "el menú completo"
+                    elif cambio_comida:
+                        detalle_cambio = f"la comida ({meal})" # Aquí incluimos el plato
+                    elif cambio_cena:
+                        detalle_cambio = f"la cena ({dinner})" # Aquí incluimos el plato
+                    else:
+                        detalle_cambio = "el día"
+
+                    # 2. Formatear la fecha
+                    meses_es = [
+                        "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+                        "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
+                    ]
+                    dia = self.current_day.date.day
+                    mes = meses_es[self.current_day.date.month - 1]
+                    fecha_formateada = f"{dia} de {mes}"
+
+                    # 3. Construir el mensaje con el salto de línea y la flecha
+                    # \n es el salto de línea para que el autor aparezca debajo
+                    mensaje_notif = (
+                        f"Se ha modificado {detalle_cambio} en '{calendar.name}' "
+                        f"para el día {fecha_formateada}\n"
+                        f"↳ {author}"
+                    )
+
+                    for user in shared_users:
+                        if user.username != author:
+                            NotificationState.enviar_notificacion(
+                                titulo="🍽️ Menú actualizado",
+                                mensaje=mensaje_notif,
+                                destino=user.username
+                            )
+                # ----------------------
+
                 toast_message = "Día actualizado correctamente"
                 self.show_editor = False
-                #Refrescamos la página
                 return await calendar_state.refresh_page()
             else:
                 toast_message = "No se detectaron cambios"

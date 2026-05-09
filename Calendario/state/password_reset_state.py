@@ -105,7 +105,7 @@ class PasswordResetState(rx.State):
             }).execute()
 
             #Generamos el link de reseteo para contraseña
-            reset_link = f"https://calendario-red-ocean.reflex.run/reset_password?token={token}"
+            reset_link = f"https://calendpy.noxuscmmd.uk/reset_password?token={token}"
             #Y enviamos el enlace al correo introducido
             send_password_reset_email(self.email, reset_link)
             return rx.toast.success("Enlace de recuperación enviado a tu correo.", position="top-center")

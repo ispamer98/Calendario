@@ -10,7 +10,7 @@ from Calendario.utils.api import get_today_info,delete_calendar_and_days,get_sha
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 import pytz
-
+from Calendario.state.notification_state import NotificationState
 
 #Estado que maneja la lógica del calendario
 class CalendarState(rx.State):
@@ -132,11 +132,20 @@ class CalendarState(rx.State):
             
             #Si tiene éxito
             if success:
-                #Limpiamos el campo y cerramos el diálogo
+                # Guardamos el nombre del destinatario antes de limpiar
+                destinatario = self.username_to_share
                 self.username_to_share = ""
                 self.close_calendar_sharer()
-                #Devolvemos mensaje de éxito
+
+                # Enviar notificación al destinatario
+                NotificationState.enviar_notificacion(
+                    titulo="📅 Nuevo calendario compartido",
+                    mensaje=f"{user_state.current_user.username} te ha añadido al calendario '{self.current_calendar.name}'",
+                    destino=destinatario
+                )
+
                 return rx.toast.success(message, position="top-center")
+            
             #Si se genera error
             else:
                 #Limpiamos el campo y devolvemos el mensaje de error

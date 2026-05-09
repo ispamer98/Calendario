@@ -6,8 +6,17 @@
             "p256dh": "BKlrByYBWY6-zZ75DpGcNC3rMYlwIUxpmT5iHD450wfNGGhds6fHufIyOx5G0eUcCQSz7ngregjmzIHq5oPpAEg",
             "auth": "QTjp6BZdx9R64xHk5FgJ_w"
         },
-        "nombre_usuario": "a",
+        "nombre_usuario": "Ruben",
         "alias": "PC"
+    },
+    {
+        "endpoint": "https://web.push.apple.com/QDMS5A4fIHkQcU9UrOZGgkRLVWuf580SSv7Zo24N7DnyLDiEbVjpISEDwR-nATIt7xpq2SN9bgOPTy51c7j5NeUQy5mHggItg71qFvRhBooI2OaD_AHbduTSP2SuM-B8cAMjON8nQt-lgsY9C1yL61fqIVdw61GBX9zWK3V1-Cs",
+        "keys": {
+            "p256dh": "BFkSv5f4AOa3FTIc22ATQkgIJc5p4AnEyAMw9LvpZQC0Du46a-QjrtDIbuVaycYfPE7ek3hYr6sR3zq838j2CkE",
+            "auth": "yS61xtqeX7yTLZs0IGRi7g"
+        },
+        "nombre_usuario": "Gaby",
+        "alias": "iPhone Gaby"
     },
     {
         "endpoint": "https://web.push.apple.com/QAN5oroiDNwuaL59oXoDDOlrRXBh5K5Hrkdl1b0yTcOdQk5Agx-npAzqtsk61lBmP7sZ0q3ejyYd63sS6Zmot5b1UgAw-e4ON6UxaD1dByhRMKa5ocygzKaZzlPV_BFVblw-7kIhpCaThlk8UlA_IRlWUXocCbnQlh7WyvZZ7vE",
@@ -16,6 +25,6 @@
             "auth": "c4OJFV0yKsyRMlFgNhxp3A"
         },
         "nombre_usuario": "a",
-        "alias": "iPhone"
+        "alias": "iPhone Ruben"
     }
 ]
