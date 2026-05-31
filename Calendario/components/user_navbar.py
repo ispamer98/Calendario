@@ -1,5 +1,4 @@
 # Calendario/components/user_navbar.py
-# Calendario/components/user_navbar.py
 
 import reflex as rx
 import os
@@ -19,6 +18,7 @@ class DrawerState(rx.State):
     show_profile_submenu: bool = False
     show_calendar_submenu: bool = False
     show_meal_submenu : bool = False
+    show_list_submenu : bool = False   # NUEVO
 
     @rx.event
     def open_drawer(self):
@@ -30,6 +30,7 @@ class DrawerState(rx.State):
         self.show_profile_submenu = False
         self.show_calendar_submenu = False
         self.show_meal_submenu = False
+        self.show_list_submenu = False   # NUEVO
 
     @rx.event
     def toggle_profile_submenu(self):
@@ -42,6 +43,10 @@ class DrawerState(rx.State):
     @rx.event
     def toggle_meal_submenu(self):
         self.show_meal_submenu = not self.show_meal_submenu
+
+    @rx.event
+    def toggle_list_submenu(self):       # NUEVO
+        self.show_list_submenu = not self.show_list_submenu
 
 def drawer_menu():
     NAVBAR_HEIGHT = "68px"
@@ -222,7 +227,7 @@ def drawer_menu():
                             )
                         )
                     ),
-                    # Submenu de comida
+                    # Submenu de comidas
                     rx.box(
                         rx.button(
                             rx.hstack(
@@ -292,6 +297,62 @@ def drawer_menu():
                             )
                         )
                     ),
+                    # ========== NUEVO SUBMENÚ: LISTA DE COMPRA ==========
+                    rx.box(
+                        rx.button(
+                            rx.hstack(
+                                rx.icon("shopping-cart"),   # icono de carrito
+                                rx.text("Lista de compra"),
+                                rx.icon("chevron-down"),
+                                spacing="2",
+                                align="center",
+                                color="white",
+                                width="100%",
+                            ),
+                            variant="ghost",
+                            width="100%",
+                            justify_content="flex-start",
+                            font_size="lg",
+                            font_weight="600",
+                            background="transparent",
+                            padding_y="0.5em",
+                            _hover={
+                                "background": "#23282b",
+                                "cursor": "pointer",
+                                "transition": "all 0.2s ease-in-out",
+                                "display": "block",
+                                "width": "200%",
+                                "max_width" : "200px",
+                                "padding_left": "0.5em",
+                            },
+                            on_click=DrawerState.toggle_list_submenu,
+                        ),
+                        rx.cond(
+                            DrawerState.show_list_submenu,
+                            rx.vstack(
+                                rx.separator(margin_top="1em",margin_bottom="1em"),
+                                rx.button(
+                                    rx.icon("arrow-big-right"),
+                                    "Ver mi lista",
+                                    variant="ghost",
+                                    justify_content="flex-start",
+                                    width="100%",
+                                    font_size="md",
+                                    color="white",
+                                    padding_left="1.5em",
+                                    _hover={
+                                        "background": "#23282b",
+                                        "color": "#309DCF",
+                                    },
+                                    on_click=[DrawerState.close_drawer, UserState.go_shopping_list],
+                                ),
+                                # Si quieres añadir más opciones como "Compartir lista" o "Historial", puedes agregarlas aquí
+                                spacing="1",
+                                align_items="start",
+                                width="100%"
+                            )
+                        )
+                    ),
                     direction="column",
                     align_items="start",
                     gap="1.5em",
@@ -336,7 +397,7 @@ def user_navbar() -> rx.Component:
                 rx.spacer(),
                 calendar_creator(),
                 new_meal_input(),
-                # 🔔 Botón campana para suscripción push
+                # 🔔 Botón campana
                 rx.button(
                     rx.icon("bell", size=20),
                     on_click=rx.call_script(
@@ -344,27 +405,18 @@ def user_navbar() -> rx.Component:
                         (async function() {{
                             try {{
                                 let alias = window.prompt("Nombre para este dispositivo (ej: Mi iPhone, PC Casa):", "");
-                                if (alias === null) {{
-                                    return "USER_CANCEL";
-                                }}
+                                if (alias === null) return "USER_CANCEL";
                                 alias = alias.trim();
-                                if (alias === "") {{
-                                    alert("El alias no puede estar vacío. Cancelado.");
-                                    return "USER_CANCEL";
-                                }}
-                                // Registrar Service Worker
+                                if (alias === "") {{ alert("El alias no puede estar vacío."); return "USER_CANCEL"; }}
                                 let reg;
-                                for (let intentos = 0; intentos < 3; intentos++) {{
+                                for (let i = 0; i < 3; i++) {{
                                     try {{
                                         reg = await navigator.serviceWorker.register('/service-worker.js');
                                         await navigator.serviceWorker.ready;
                                         break;
-                                    }} catch (e) {{
-                                        console.warn("Intento " + (intentos+1) + " fallido", e);
-                                        await new Promise(r => setTimeout(r, 500));
-                                    }}
+                                    }} catch (e) {{ await new Promise(r => setTimeout(r, 500)); }}
                                 }}
-                                if (!reg) throw new Error("No se pudo registrar el Service Worker");
+                                if (!reg) throw new Error("No se pudo registrar SW");
                                 const perm = await Notification.requestPermission();
                                 if (perm !== 'granted') return "PERMISO_DENEGADO";
                                 const publicKey = '{VAPID_PUBLIC}';
@@ -380,10 +432,7 @@ def user_navbar() -> rx.Component:
                                     userVisibleOnly: true,
                                     applicationServerKey: toUint8(publicKey)
                                 }});
-                                return JSON.stringify({{
-                                    subscription: sub,
-                                    alias: alias
-                                }});
+                                return JSON.stringify({{ subscription: sub, alias: alias }});
                             }} catch (err) {{
                                 if (err.name === "NotAllowedError") return "PERMISO_BLOQUEADO";
                                 return "ERROR_" + err.message;
@@ -396,7 +445,7 @@ def user_navbar() -> rx.Component:
                     size="3",
                     _hover={"transform": "scale(1.1)", "cursor": "pointer"},
                 ),
-                # Menú de usuario
+                # Menú de usuario (desplegable)
                 rx.menu.root(
                     rx.menu.trigger(
                         rx.button(
@@ -430,13 +479,11 @@ def user_navbar() -> rx.Component:
                     ),
                     rx.menu.content(
                         rx.menu.item("Perfil", rx.icon("settings"),
-                                     style={"_hover" : { "background " : "#23282b"}},
                                      on_click=rx.redirect("/profile")),
                         rx.menu.separator(),
                         rx.menu.item("Cerrar sesión", rx.icon("log-out"),
                                      on_click=UserState.logout,
-                                     color="#EF4444",
-                                     style={"_hover" : { "background " : "#23282b"}}),
+                                     color="#EF4444"),
                         width="200px",
                     ),
                     modal=False

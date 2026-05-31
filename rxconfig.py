@@ -14,4 +14,5 @@ config = rx.Config(
     },
     show_built_with_reflex=False,
     show_reflex_badge=False,
+    telemetry_enabled=False,
 )

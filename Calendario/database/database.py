@@ -24,28 +24,45 @@ class SupabaseAPI:
     #Conectamos con supabase 
     supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
     
-    #Función que se encarga del registro de usuario
     def register_user(self, username: str, password: str, email: str, birthday: str) -> bool:
         try:
-            #Recibe todos los datos del formulario de registro
-            #Aplica hash a la contraseña 
+            print("🔵 [DB] register_user iniciado")
             hashed_password = bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
-            user_data = { #Generamos los datos para el usuario
-                "username": username,
+            user_data = {
+                "username": username.lower(),
                 "pasw": hashed_password,
                 "email": email,
                 "birthday": birthday
             }
-            #Insertamos el usuario en la base de datos
             response = self.supabase.table("user").insert(user_data).execute()
-            #Devolvemos True + la info de usuario si se registra correctamente
-            return bool(response.data)
-        #Si ocurre un error, devolvemos el mensaje + False
+            print(f"🔵 [DB] Respuesta insert user: {response.data}")
+
+            if response.data:
+                new_user_id = response.data[0]["id"]
+                print(f"✅ [DB] Usuario creado con ID: {new_user_id}")
+
+                # 🔥 Crear la lista de la compra para este usuario
+                list_data = {
+                    "user_ids": [new_user_id],
+                    "items": {}
+                }
+                list_response = self.supabase.table("shopping_lists").insert(list_data).execute()
+                print(f"🔵 [DB] Respuesta insert shopping_list: {list_response.data}")
+
+                if list_response.data:
+                    print("✅ [DB] Lista de compra creada exitosamente")
+                else:
+                    print("⚠️ [DB] La lista NO se creó (list_response.data vacío)")
+                return True
+            else:
+                print("❌ [DB] No se pudo insertar el usuario")
+                return False
         except Exception as e:
-            print(f"Error registrando usuario: {str(e)}")
+            print(f"💥 [DB] Error en register_user: {str(e)}")
             return False
+        
     
-    #Función que se encarga de loggear al usuario
+        #Función que se encarga de loggear al usuario
     def authenticate_user(self, username: str, password: str) -> Union[dict, None]:
         try:
             #Buscamos coincidencias de usuario con la base de datos
@@ -62,7 +79,6 @@ class SupabaseAPI:
         except Exception as e:
             print(f"Error autenticando al usuario: {e}")
         return None
-    
     #Función que se encarga del cambio de contraseña
     def change_pasw(self, username: str, password: str):
 
@@ -764,3 +780,244 @@ class SupabaseAPI:
         except Exception as e:
             print(f"Error eliminando comida (id={meal_id}): {e}")
             return False
+
+
+    # ---------------------- MÉTODOS PARA LISTA DE LA COMPRA ----------------------
+
+    def get_shopping_lists(self, user_id: int) -> list:
+        """Devuelve todas las listas donde aparece el user_id."""
+        try:
+            response = self.supabase.table("shopping_lists")\
+                .select("*")\
+                .filter("user_ids", "cs", f"{{{user_id}}}")\
+                .execute()
+            return response.data or []
+        except Exception as e:
+            print(f"Error get_shopping_lists: {e}")
+            return []
+
+    def add_or_update_item(self, list_id: int, item_name: str, quantity: int, supermarket: str = "") -> bool:
+        """Añade o actualiza un producto dentro del JSON 'items'."""
+        try:
+            # 1. Obtener los items actuales
+            res = self.supabase.table("shopping_lists").select("items").eq("id", list_id).execute()
+            if not res.data:
+                return False
+            items = res.data[0]["items"]
+            # 2. Modificar el diccionario
+            items[item_name] = {
+                "quantity": quantity,
+                "supermarket": supermarket,
+                "bought": False
+            }
+            # 3. Guardar
+            update_res = self.supabase.table("shopping_lists").update({"items": items}).eq("id", list_id).execute()
+            return len(update_res.data) > 0
+        except Exception as e:
+            print(f"Error add_or_update_item: {e}")
+            return False
+
+# database.py - Dentro de la clase SupabaseAPI
+
+    def toggle_item_bought(self, list_id: int, item_name: str) -> bool:
+        try:
+            res = self.supabase.table("shopping_lists").select("items").eq("id", list_id).execute()
+            if not res.data:
+                print("Lista no encontrada")
+                return False
+            items = res.data[0]["items"]
+            if item_name not in items:
+                print("Item no existe")
+                return False
+            # Invertir
+            items[item_name]["bought"] = not items[item_name].get("bought", False)
+            # Actualizar
+            update_res = self.supabase.table("shopping_lists").update({"items": items}).eq("id", list_id).execute()
+            if update_res.data:
+                print(f"✅ {item_name} ahora está {items[item_name]['bought']}")
+                return True
+            return False
+        except Exception as e:
+            print(e)
+            return False
+        
+    def delete_item(self, list_id: int, item_name: str) -> bool:
+        """Elimina un producto del JSON."""
+        try:
+            res = self.supabase.table("shopping_lists").select("items").eq("id", list_id).execute()
+            items = res.data[0]["items"]
+            if item_name in items:
+                del items[item_name]
+                self.supabase.table("shopping_lists").update({"items": items}).eq("id", list_id).execute()
+                return True
+            return False
+        except Exception:
+            return False
+
+    def get_user_by_username(self, username: str):
+        """Busca un usuario por su nombre (para compartir)."""
+        try:
+            res = self.supabase.table("user").select("*").ilike("username", username).execute()
+            return res.data[0] if res.data else None
+        except Exception as e:
+            print(f"Error get_user_by_username: {e}")
+            return None
+
+    def share_shopping_list(self, list_id: int, friend_username: str) -> tuple[bool, str]:
+        try:
+            friend = self.get_user_by_username(friend_username)
+            if not friend:
+                return False, "Usuario no encontrado"
+
+            res = self.supabase.table("shopping_lists").select("user_ids").eq("id", list_id).execute()
+            if not res.data:
+                return False, "Lista no encontrada"
+            current_ids = res.data[0]["user_ids"]
+            if friend["id"] in current_ids:
+                return False, f"{friend_username} ya tiene acceso a esta lista"
+
+            current_ids.append(friend["id"])
+            self.supabase.table("shopping_lists").update({"user_ids": current_ids}).eq("id", list_id).execute()
+            return True, f"Lista compartida con {friend_username}"
+        except Exception as e:
+            return False, str(e)
+        
+
+
+    def create_shopping_list(self, user_ids: list[int]) -> Optional[dict]:
+        data = {"user_ids": user_ids, "items": {}}
+        response = self.supabase.table("shopping_lists").insert(data).execute()
+        return response.data[0] if response.data else None
+    
+
+    def get_users_in_shopping_list(self, list_id: int) -> List[User]:
+        """Devuelve lista de objetos User que tienen acceso a la lista."""
+        try:
+            # Obtener la lista
+            res = self.supabase.table("shopping_lists").select("user_ids").eq("id", list_id).execute()
+            if not res.data:
+                return []
+            user_ids = res.data[0]["user_ids"]
+            users = []
+            for uid in user_ids:
+                # Usar get_user_by_id existente (devuelve User o None)
+                user = self.get_user_by_id(uid)
+                if user:
+                    users.append(user)
+            return users
+        except Exception as e:
+            print(f"Error get_users_in_shopping_list: {e}")
+            return []
+
+    def add_user_to_shopping_list(self, list_id: int, user_id: int) -> bool:
+        """Añade un user_id al array user_ids de la lista."""
+        try:
+            res = self.supabase.table("shopping_lists").select("user_ids").eq("id", list_id).execute()
+            if not res.data:
+                return False
+            current = res.data[0]["user_ids"]
+            if user_id in current:
+                return False  # ya existe
+            current.append(user_id)
+            self.supabase.table("shopping_lists").update({"user_ids": current}).eq("id", list_id).execute()
+            return True
+        except Exception as e:
+            print(f"Error add_user_to_shopping_list: {e}")
+            return False
+
+    def remove_user_from_shopping_list(self, list_id: int, user_id: int) -> bool:
+        """Elimina user_id del array y crea una nueva lista para ese usuario con los mismos items."""
+        try:
+            # Obtener datos de la lista original
+            res = self.supabase.table("shopping_lists").select("*").eq("id", list_id).execute()
+            if not res.data:
+                return False
+            orig = res.data[0]
+            user_ids = orig["user_ids"]
+            items = orig["items"]
+            if user_id not in user_ids:
+                return False
+            # 1. Crear nueva lista para el usuario eliminado (con sus mismos items)
+            new_list_data = {
+                "user_ids": [user_id],
+                "items": items
+            }
+            self.supabase.table("shopping_lists").insert(new_list_data).execute()
+            # 2. Eliminar user_id de la lista original
+            new_user_ids = [uid for uid in user_ids if uid != user_id]
+            self.supabase.table("shopping_lists").update({"user_ids": new_user_ids}).eq("id", list_id).execute()
+            return True
+        except Exception as e:
+            print(f"Error remove_user_from_shopping_list: {e}")
+            return False
+        
+
+    # database.py - dentro de la clase SupabaseAPI
+
+    def merge_and_share_shopping_list(self, user_id: int, friend_username: str) -> tuple[bool, str]:
+        """
+        1. Obtener la lista del usuario actual (user_id)
+        2. Obtener la lista del amigo por nombre
+        3. Fusionar los items (los del amigo se añaden a la lista actual)
+        4. Añadir el ID del amigo al array user_ids de la lista actual
+        5. Eliminar la lista antigua del amigo (para que solo tenga la compartida)
+        6. Devolver éxito/mensaje
+        """
+        try:
+            # 1. Buscar al amigo por nombre
+            friend = self.get_user_by_username(friend_username)
+            if not friend:
+                return False, "Usuario no encontrado"
+            friend_id = friend["id"]
+
+            # 2. Obtener la lista actual del usuario (asumimos que tiene al menos una)
+            current_lists = self.get_shopping_lists(user_id)
+            if not current_lists:
+                return False, "No tienes una lista activa"
+            current_list = current_lists[0]  # primera lista
+            current_list_id = current_list["id"]
+            current_items = current_list["items"]
+
+            # 3. Obtener la lista del amigo (si existe)
+            friend_lists = self.get_shopping_lists(friend_id)
+            if friend_lists:
+                friend_list = friend_lists[0]
+                friend_items = friend_list["items"]
+
+                # 4. Fusionar items: los del amigo se añaden a current_items
+                #    Si un item ya existe, se suma la cantidad (o se puede mantener el del dueño)
+                for name, data in friend_items.items():
+                    if name in current_items:
+                        # Sumar cantidades (por ejemplo)
+                        current_items[name]["quantity"] = current_items[name].get("quantity", 1) + data.get("quantity", 1)
+                        # El supermercado se mantiene del dueño (opcional)
+                        # El estado 'bought' se mantiene como False si alguno está sin comprar
+                        current_items[name]["bought"] = current_items[name].get("bought", False) and data.get("bought", False)
+                    else:
+                        # Añadir nuevo item
+                        current_items[name] = {
+                            "quantity": data.get("quantity", 1),
+                            "supermarket": data.get("supermarket", ""),
+                            "bought": data.get("bought", False)
+                        }
+
+                # 5. Actualizar la lista actual con los items fusionados
+                self.supabase.table("shopping_lists").update({"items": current_items}).eq("id", current_list_id).execute()
+
+                # 6. Eliminar la lista antigua del amigo
+                self.supabase.table("shopping_lists").delete().eq("id", friend_list["id"]).execute()
+            else:
+                # El amigo no tiene lista propia (caso raro), solo le añadimos a la actual
+                pass
+
+            # 7. Añadir el ID del amigo al array user_ids de la lista actual
+            res = self.supabase.table("shopping_lists").select("user_ids").eq("id", current_list_id).execute()
+            user_ids = res.data[0]["user_ids"]
+            if friend_id not in user_ids:
+                user_ids.append(friend_id)
+                self.supabase.table("shopping_lists").update({"user_ids": user_ids}).eq("id", current_list_id).execute()
+
+            return True, f"Lista fusionada y compartida con {friend_username}"
+        except Exception as e:
+            print(f"Error en merge_and_share: {e}")
+            return False, str(e)

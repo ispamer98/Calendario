@@ -52,3 +52,18 @@ class Comment(rx.Base):
     owner_id: int 
     created_at: datetime
     user: User
+
+
+class ShoppingList(rx.Base):
+    """Modelo para la lista de la compra"""
+    id: int
+    user_ids: list[int] = []
+    items: dict = {}   # El JSON con los productos
+    created_at: Optional[datetime] = None
+
+class ShoppingItem(rx.Base):
+    """Modelo para un producto dentro de la lista (opcional, para tipado)"""
+    name: str
+    quantity: int
+    supermarket: str = ""
+    bought: bool = False

@@ -299,3 +299,9 @@ class UserState(rx.State):
     def go_meal_list(self):
         self.current_page="meal_list"
         return rx.redirect("/meal_list")
+    
+
+    @rx.event
+    def go_shopping_list(self):
+        self.current_page = "shopping_list"
+        return rx.redirect("/shopping_list")

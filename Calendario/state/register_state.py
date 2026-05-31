@@ -1,6 +1,12 @@
 # register_state.py
 
-
+from Calendario.utils.api import (
+    check_existing_user,
+    register_user,
+    check_existing_username,
+    get_user_id_by_username,
+    create_shopping_list_for_user
+)
 from typing import Optional
 from Calendario.utils.api import check_existing_user, register_user, check_existing_username
 from Calendario.utils.send_email import send_welcome_email
@@ -122,7 +128,7 @@ class RegisterState(rx.State):
                                   position="top-center")
 
 
-        #Si no hay errores, registramos al usuario
+        # Si no hay errores, registramos al usuario
         if not has_errors:
             try:
                 new_user = await register_user(
@@ -132,17 +138,28 @@ class RegisterState(rx.State):
                     self.birthday,
                 )
                 
-                if new_user == True:
-                #Enviamos correo de bienvenida
+                if new_user:
+                    # 🔥 Crear la lista de la compra para el usuario
+                    user_id = await get_user_id_by_username(self.username)
+                    if user_id:
+                        await create_shopping_list_for_user(user_id)
+                        print(f"✅ Lista de compra creada para {self.username}")
+                    else:
+                        print(f"⚠️ No se encontró ID para {self.username}")
+
+                    # Enviar correo de bienvenida
                     send_welcome_email(self.email, self.username)
-            
-                    return [rx.toast.success(
-                        "¡Registro exitoso! Revisa tu correo electrónico",
-                        position="top-center"
-                    ),rx.redirect("/login")]
+                    
+                    return [
+                        rx.toast.success(
+                            "¡Registro exitoso! Revisa tu correo electrónico",
+                            position="top-center"
+                        ),
+                        rx.redirect("/login")
+                    ]
                 else:
-                    self.password=""
-                    self.confirm_password=""
+                    self.password = ""
+                    self.confirm_password = ""
                     return rx.toast.error(
                         "No se ha podido registrar el usuario",
                         position="top-center",
@@ -152,7 +169,6 @@ class RegisterState(rx.State):
                     f"Error en el registro: {str(e)}",
                     position="top-center"
                 )
-
     #Validamos el correo
     def validate_email(self, email: str) -> bool:
         import re

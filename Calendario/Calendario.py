@@ -7,6 +7,7 @@ from Calendario.pages.reset_pasword import reset_password
 from Calendario.pages.profile import profile
 from Calendario.pages.security import security
 from Calendario.pages.meal_list import meal_list
+from Calendario.pages.shopping_list import shopping_list
 import reflex as rx
 
 # --- Reflex App ---
