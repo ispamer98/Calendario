@@ -4,6 +4,7 @@ import reflex as rx
 from Calendario.state.user_state import UserState
 from Calendario.state.login_state import Login_state
 from Calendario.components.show_pasw_switch import show_pasw_switch_login
+from Calendario import theme
 
 def login_form() -> rx.Component:
     #Formulario de inicio de sesión
@@ -39,17 +40,25 @@ def login_form() -> rx.Component:
                 ),
                 z_index="1000"
             ),
+            rx.box(
             rx.vstack( #Estilo del formulario de login
-                rx.center(
+                rx.vstack(
+                    rx.image(src="/favicon.ico", width="64px", height="auto"),
                     rx.heading(
-                        "Accede a tu usuario",
+                        "Bienvenido de vuelta",
                         size="6",
                         as_="h2",
                         text_align="center",
                         width="100%",
                     ),
-                    direction="column",
-                    spacing="5",
+                    rx.text(
+                        "Entra para ver tu calendario y tu lista de la compra",
+                        size="2",
+                        color=theme.MUTED,
+                        text_align="center",
+                    ),
+                    spacing="2",
+                    align="center",
                     width="100%",
                 ),
                 rx.vstack(
@@ -138,10 +147,18 @@ def login_form() -> rx.Component:
                 spacing="6",
                 width="100%",
             ),
+            background=theme.BG_CARD,
+            border=f"1px solid {theme.BORDER}",
+            border_radius=theme.RADIUS_LG,
+            padding=["1.6em", "2em", "2.5em"],
+            backdrop_filter="blur(16px)",
+            box_shadow=theme.SHADOW_LG,
+            width="100%",
+            ),
             max_width="28em",
-            padding="2em",  
+            padding="2em",
         ),
-        width="100%",  
+        width="100%",
         padding_top="4em",
 
     )

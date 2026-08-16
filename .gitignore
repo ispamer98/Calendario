@@ -6,3 +6,18 @@ assets/external/
 *.py[cod]
 .env
 calendario.txt
+
+# Entornos virtuales y dependencias (nunca deben versionarse)
+.venv/
+venv/
+node_modules/
+
+# Datos de suscripción a notificaciones (migrado a Supabase, ver Calendario/utils/notifications)
+suscriptores.json
+
+# Artefactos de build / IDE
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+backups/

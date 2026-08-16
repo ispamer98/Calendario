@@ -11,7 +11,11 @@ from typing import Optional
 from Calendario.utils.api import check_existing_user, register_user, check_existing_username
 from Calendario.utils.send_email import send_welcome_email
 from datetime import datetime
+import logging
 import reflex as rx 
+
+logger = logging.getLogger(__name__)
+
 
 #Clase para manejar el estado del registro
 class RegisterState(rx.State):
@@ -71,10 +75,8 @@ class RegisterState(rx.State):
                 self.errors["username"] = "El usuario debe tener entre 4 y 16 caracteres"
                 has_errors = True
 
-            #Verificamos que contenga al menos un número
-            elif not any(char.isdigit() for char in self.username):
-                self.errors["username"] = "El usuario debe contener al menos un número"
-                has_errors = True
+            #Ya no se exige que lleve un número: un nombre de usuario es un
+            #nombre, no una contraseña, y obligaba a inventarse un "1" al final
 
             #Verificamos que no contenga caracteres especiales
             elif not self.username.isalnum():
@@ -143,9 +145,9 @@ class RegisterState(rx.State):
                     user_id = await get_user_id_by_username(self.username)
                     if user_id:
                         await create_shopping_list_for_user(user_id)
-                        print(f"✅ Lista de compra creada para {self.username}")
+                        logger.info(f"✅ Lista de compra creada para {self.username}")
                     else:
-                        print(f"⚠️ No se encontró ID para {self.username}")
+                        logger.warning(f"⚠️ No se encontró ID para {self.username}")
 
                     # Enviar correo de bienvenida
                     send_welcome_email(self.email, self.username)
@@ -209,10 +211,7 @@ class RegisterState(rx.State):
                     self.username_valid = False
 
 
-                #Verificamos que contenga al menos un número
-                elif not any(char.isdigit() for char in self.username):
-                    self.errors["username"] = "El usuario debe contener al menos un número"
-                    self.username_valid = False
+                #Sin exigir número: el usuario puede ser solo letras si quieres
 
                 #Verificamos que no contenga caracteres especiales (solo letras y números)
                 elif not self.username.isalnum():
@@ -224,7 +223,7 @@ class RegisterState(rx.State):
                     self.errors["username"] = ""
 
         except Exception as e:
-            print(f"Error al verificar el nombre de usuario: {str(e)}")
+            logger.error(f"Error al verificar el nombre de usuario: {str(e)}")
             self.username_valid = None
 
 
@@ -247,6 +246,10 @@ class RegisterState(rx.State):
     @rx.event
     def set_confirm_email(self, confirm_email: str):
         self.confirm_email = confirm_email
+
+    @rx.event
+    def set_birthday(self, birthday: str):
+        self.birthday = birthday
 
     @rx.event
     def swith_on(self, value: bool = True):

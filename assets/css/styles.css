@@ -1,11 +1,173 @@
 /* assets/css/styles.css */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+/* ---------- Base tipográfica y de fondo, coherente en toda la app ---------- */
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: radial-gradient(circle at 15% 0%, rgba(79, 70, 229, 0.10), transparent 55%),
+                radial-gradient(circle at 85% 100%, rgba(59, 130, 246, 0.08), transparent 55%),
+                #111113;
+    background-attachment: fixed;
+}
+
+::selection {
+    background: rgba(79, 70, 229, 0.35);
+    color: #ffffff;
+}
+
+/* ---------- Scrollbar coherente con la paleta oscura de la app ---------- */
+::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 999px;
+    border: 2px solid transparent;
+    background-clip: content-box;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(79, 70, 229, 0.55);
+    background-clip: content-box;
+}
+* {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
+}
+
+/* ---------- Transiciones suaves por defecto para elementos interactivos ---------- */
+button, a, input, .rt-BaseCard {
+    transition: transform 0.15s ease, background-color 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+}
+
+/* ---------- Texto con degradado de marca (logo / titulares) ---------- */
+.brand-gradient-text {
+    background: linear-gradient(45deg, #3b4c6b, #5a6e8d, #7a8f9e, #9baeb0, #b9c8d1, #d0d9e2);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+}
+
 @media (max-width: 768px) {
     .register-container {
         padding: 1em !important;
     }
-    
-    .register-input {
-        font-size: 16px; /* Mejor para inputs móviles */
+
+    /* ---------- Evitar el zoom automático de Safari al enfocar un campo ----------
+       iOS hace zoom en cuanto un input tiene una tipografía menor de 16px, y
+       luego se queda toda la app ampliada hasta que la reduces a mano. Con
+       16px justos no hay zoom, y el tamaño visual se recupera con un scale
+       que NO afecta al cálculo del zoom (el navegador mira el font-size
+       declarado, no el renderizado). */
+    input,
+    select,
+    textarea,
+    .rt-TextFieldInput,
+    .rt-TextAreaInput,
+    .rt-SelectTrigger {
+        font-size: 16px !important;
+    }
+
+    /* Los campos "pequeños" de Radix seguirían viéndose enormes con 16px:
+       se compensa escalando, que no dispara el zoom de Safari. */
+    .rt-r-size-1 input,
+    .rt-r-size-1 textarea {
+        font-size: 16px !important;
+        transform-origin: left center;
     }
 }
 
+/* El zoom por doble toque también deja la app ampliada: se desactiva sin
+   impedir el pellizco para ampliar, que sí es accesible. */
+button, a, [role="button"], .rt-SelectTrigger, .rt-TextFieldInput {
+    touch-action: manipulation;
+}
+
+/* ---------- Sin zoom al escribir en móvil (refuerzo) ----------
+   La regla por ancho no basta si el navegador reporta otro viewport: se
+   ataca también por tipo de puntero, que es lo que de verdad distingue un
+   móvil. Safari hace zoom con cualquier campo por debajo de 16px. */
+@media (hover: none) and (pointer: coarse) {
+    input,
+    textarea,
+    select,
+    button,
+    .rt-TextFieldInput,
+    .rt-TextAreaInput,
+    .rt-SelectTrigger,
+    .rt-BaseButton,
+    [contenteditable] {
+        font-size: 16px !important;
+    }
+}
+
+html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+}
+
+/* Nada debe desbordar a lo ancho: era lo que "ampliaba" la pantalla entera */
+html, body {
+    max-width: 100%;
+    overflow-x: hidden;
+}
+
+/* ---------- Desplegables con forma fija ----------
+   Una palabra larga dentro de un select ensanchaba el control y rompía la
+   maquetación de la fila entera. Se recorta con puntos suspensivos. */
+.rt-SelectTrigger {
+    max-width: 100%;
+    overflow: hidden;
+}
+.rt-SelectTriggerInner,
+.rt-SelectTrigger > span {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
+}
+.rt-SelectItem {
+    max-width: 320px;
+}
+
+/* ---------- Desplegables con buscador dentro de diálogos ----------
+   Radix saca el contenido del desplegable a un envoltorio con `position:
+   fixed`, y eso crea su propio contexto de apilado: por eso el `z-index` que
+   se le ponga DENTRO no sirve de nada. Hay que ponérselo al envoltorio.
+
+   Sin esto, el desplegable se abría por debajo del diálogo: se veían las
+   opciones, pero al pinchar una se pinchaba el diálogo que había encima.
+
+   Y el segundo problema, el gordo: el diálogo modal de Radix bloquea el ratón
+   en todo el `body` (`pointer-events: none`) y solo lo reactiva dentro de sí
+   mismo. Como el desplegable cuelga del `body`, heredaba el bloqueo: se veía,
+   estaba encima, pero los clics lo atravesaban y aterrizaban en el diálogo,
+   que entonces cerraba el desplegable sin haber elegido nada. */
+[data-radix-popper-content-wrapper] {
+    z-index: 9999 !important;
+    pointer-events: auto !important;
+}
+
+/* ---------- Campo de los desplegables con buscador ----------
+   El valor elegido se enseña como marcador de posición, así que tiene que
+   verse como texto normal y no como una sugerencia apagada. */
+.picker-field::placeholder {
+    color: #e2e8f0;
+    opacity: 1;
+}
+.picker-field:hover {
+    border-color: rgba(255, 255, 255, 0.16);
+}
+.picker-field:focus {
+    border-color: #38bdf8;
+}

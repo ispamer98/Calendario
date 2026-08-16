@@ -1,5 +1,6 @@
 import smtplib
 import os
+import logging
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.mime.image import MIMEImage
@@ -7,6 +8,8 @@ import dotenv
 from importlib.resources import files
 import reflex as rx
 from Calendario import static
+
+logger = logging.getLogger(__name__)
 
 #Especificamos el archivo de variables de entorno
 dotenv.load_dotenv(dotenv_path=".env", override=True)
@@ -102,7 +105,7 @@ def send_welcome_email(email, username):
             img.add_header("Content-Disposition", "inline", filename="logo.png")  #Marcamos como imagen embebida
             message.attach(img)  #Adjuntamos la imagen al mensaje
     except Exception as e:
-        print("Error cargando logo:", e)  #Mostramos error si falla la carga del logo
+        logger.error(f"Error cargando logo: {e}")  #Mostramos error si falla la carga del logo
 
     #Envío del mensaje
     try:
@@ -112,11 +115,11 @@ def send_welcome_email(email, username):
             server.starttls()  #Iniciamos conexión usando TLS
             server.login(SMTP_USER, SMTP_PASSWORD)  #Nos loggeamos en el servidor
             server.sendmail(SMTP_USER, email, message.as_string())  #Enviamos el mensaje
-        print(f"Correo de bienvenida enviado a {email}")
+        logger.info(f"Correo de bienvenida enviado a {email}")
         return rx.redirect("/login")  #Redirigimos al login tras el envío
     #Si algo falla, mostramos el fallo
     except Exception as e:
-        print(f"Error enviando correo de bienvenida: {e}")
+        logger.error(f"Error enviando correo de bienvenida: {e}")
         return rx.toast.error(f"Error al enviar correo: {str(e)}")
 
 #Mensaje para resetear la contraseña
@@ -195,7 +198,7 @@ def send_password_reset_email(email: str, reset_link: str):
             msg.attach(img) #Adjuntamos la imagen al mensaje
             
     except Exception as e:
-        print("Error cargando logo:", e) #Mostramos error si falla la carga del logo
+        logger.error(f"Error cargando logo: {e}") #Mostramos error si falla la carga del logo
 
     #Envío del mensaje
     try:
@@ -205,9 +208,9 @@ def send_password_reset_email(email: str, reset_link: str):
             server.starttls() #Iniciamos conexión usando TLS
             server.login(SMTP_USER, SMTP_PASSWORD) #Nos loggeamos en el servidor
             server.sendmail(SMTP_USER, email, msg.as_string()) #Enviamos el mensaje
-        print(f"Correo de restablecimiento enviado a {email}")
+        logger.info(f"Correo de restablecimiento enviado a {email}")
         return rx.redirect("/login") #Redirigimos al login tras el envío
     #Si algo falla, mostramos el fallo
     except Exception as e:
-        print(f"Error enviando correo de bienvenida: {e}")
+        logger.error(f"Error enviando correo de bienvenida: {e}")
         return rx.toast.error(f"Error al enviar correo: {str(e)}")

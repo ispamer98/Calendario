@@ -4,6 +4,7 @@ import datetime
 import reflex as rx
 from Calendario.state.register_state import RegisterState
 from Calendario.components.show_pasw_switch import show_pasw_switch_register
+from Calendario import theme
 
 
 def register_form() -> rx.Component: #Creamos el formulario de registro de usuario
@@ -42,24 +43,24 @@ def register_form() -> rx.Component: #Creamos el formulario de registro de usuar
             on_change=RegisterState.set_username, #Cambia el usuario en el estado
 border=rx.cond(
     RegisterState.errors["username"] != "",
-    "1px solid #EF4444",  # Rojo si hay error
+    f"1px solid {theme.DANGER}",  # Rojo si hay error
     rx.cond(
         RegisterState.username_valid == None,
-        "#666666",  # Gris por defecto
+        theme.MUTED,  # Gris por defecto
         rx.cond(
             RegisterState.username_valid == True,
-            "1px solid #16A34A",  # Verde si es válido
-            "1px solid #EF4444"   # Rojo si no es válido
+            f"1px solid {theme.SUCCESS}",  # Verde si es válido
+            f"1px solid {theme.DANGER}"   # Rojo si no es válido
         )
     )
 ),
-            _focus={"border_color": "#3182CE"}, #Borde azul en focus
+            _focus={"border_color": theme.ACCENT}, #Borde azul en focus
             required=True
         ),
         rx.cond( #Muestra los errores para usuario si se generan
             RegisterState.errors["username"] != "",
             rx.text(RegisterState.errors["username"],
-            color="#EF4444", size="2",
+            color=theme.DANGER, size="2",
             white_space="pre-line",  # Permite saltos de línea
             max_width=["85vw", "100%"],  # Limita el ancho en móviles
             word_break="break-word",     # Rompe palabras largas si es necesario
@@ -83,10 +84,10 @@ border=rx.cond(
             on_change=RegisterState.set_password,
             border=rx.cond(
                 RegisterState.errors["password"] != "",
-                "1px solid #EF4444",  
-                "#666666"   
+                f"1px solid {theme.DANGER}",  
+                theme.MUTED   
             ),
-            _focus={"border_color": "#3182CE"},
+            _focus={"border_color": theme.ACCENT},
             required=True
         ),
         rx.cond(  #Muestra los errores para contreaseña si se generan
@@ -94,7 +95,7 @@ border=rx.cond(
             rx.text(
                 RegisterState.errors["password"],
                 size="2",
-                color="#EF4444",
+                color=theme.DANGER,
                 white_space="pre-line",  # Permite saltos de línea
                 max_width=["75vw", "100%"],  # Limita el ancho en móviles
                 word_break="break-word",     # Rompe palabras largas si es necesario
@@ -111,10 +112,10 @@ border=rx.cond(
             on_change=RegisterState.set_confirm_password,
             border=rx.cond(
                 RegisterState.errors["confirm_password"] != "",
-                "1px solid #EF4444",
-                "#666666"   
+                f"1px solid {theme.DANGER}",
+                theme.MUTED   
             ),
-            _focus={"border_color": "#3182CE"},
+            _focus={"border_color": theme.ACCENT},
             required=True
         ),
         rx.cond(  #Muestra los errores para confirmar contreaseña si se generan
@@ -122,7 +123,7 @@ border=rx.cond(
             rx.text(
                 RegisterState.errors["confirm_password"],
                 size="2",
-                color="#EF4444",
+                color=theme.DANGER,
                 max_width=["85vw", "100%"], 
             )
         ),
@@ -142,10 +143,10 @@ border=rx.cond(
             on_change=RegisterState.set_email,
             border=rx.cond(
                 RegisterState.errors["email"] != "",
-                "1px solid #EF4444",
-                "#666666"   
+                f"1px solid {theme.DANGER}",
+                theme.MUTED   
             ),
-            _focus={"border_color": "#3182CE"},
+            _focus={"border_color": theme.ACCENT},
             required=True
         ),
         rx.cond(  #Muestra los errores para email si se generan
@@ -153,7 +154,7 @@ border=rx.cond(
             rx.text(
                 RegisterState.errors["email"],
                 size="2",
-                color="#EF4444",
+                color=theme.DANGER,
                 white_space="pre-line",  # Permite saltos de línea
                 max_width=["85vw", "100%"],  # Limita el ancho en móviles
                 word_break="break-word",     # Rompe palabras largas si es necesario
@@ -169,10 +170,10 @@ border=rx.cond(
             on_change=RegisterState.set_confirm_email,
             border=rx.cond(
                 RegisterState.errors["confirm_email"] != "",
-                "1px solid #EF4444",
-                "#666666"   
+                f"1px solid {theme.DANGER}",
+                theme.MUTED   
             ),
-            _focus={"border_color": "#3182CE"},
+            _focus={"border_color": theme.ACCENT},
             required=True
         ),
         rx.cond(  #Muestra los errores para confirmar email si se generan
@@ -180,7 +181,7 @@ border=rx.cond(
             rx.text(
                 RegisterState.errors["confirm_email"],
                 size="2",
-                color="#EF4444",
+                color=theme.DANGER,
                 white_space="pre-line",  # Permite saltos de línea
                 max_width=["85vw", "100%"],  # Limita el ancho en móviles
                 word_break="break-word",     # Rompe palabras largas si es necesario
@@ -205,8 +206,8 @@ border=rx.cond(
                     on_change=RegisterState.set_birthday,
                     border=rx.cond(
                         RegisterState.errors["birthday"] != "",
-                        "1px solid #EF4444", "#666666"),
-                    _focus={"border": "1px solid #3182CE"},
+                        f"1px solid {theme.DANGER}", theme.MUTED),
+                    _focus={"border": f"1px solid {theme.ACCENT}"},
                     required=True,
                     #Establecemos los parámetros mínimos para el calendario
                     min="1950-01-01",
@@ -227,7 +228,7 @@ border=rx.cond(
                 rx.text(
                     RegisterState.errors["birthday"],
                     size="2",
-                    color="#EF4444",
+                    color=theme.DANGER,
                     white_space="pre-line",  # Permite saltos de línea
                     max_width=["85vw", "100%"],  # Limita el ancho en móviles
                     word_break="break-word",     # Rompe palabras largas si es necesario
@@ -340,5 +341,12 @@ border=rx.cond(
         padding="2em",
         class_name="register-container",
         height="100%",
+        background=theme.BG_CARD,
+        border=f"1px solid {theme.BORDER}",
+        border_radius="20px",
+        backdrop_filter="blur(16px)",
+        max_width="70em",
+        margin="2em auto",
+        box_shadow="0 24px 60px -12px rgba(0, 0, 0, 0.5)",
 
-      )      
+      )

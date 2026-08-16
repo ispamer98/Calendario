@@ -5,7 +5,7 @@ import reflex as rx
 import re
 from typing import Optional
 from Calendario.model.model import User
-from Calendario.utils.api import authenticate_user,get_today_info,change_pasw
+from Calendario.utils.api import authenticate_user,get_today_info,change_pasw,toggle_day_item_completed
 from datetime import datetime
 import json
 from typing import TypedDict
@@ -15,12 +15,25 @@ class Comment(TypedDict):
     username: str
     content: str
 
+#Clase para incluir los datos relacionados a un elemento de agenda (tarea/evento/nota)
+class AgendaTask(TypedDict):
+    id: int
+    title: str
+    item_type: str
+    completed: bool
+    time: str
+    time_label: str   # "09:00 – 09:30" ya formateado
+    type_icon: str    # icono del tipo, del catálogo task_types
+    type_color: str
+    completable: bool
+
 #Clase para incluir los datos relacionados a la información del día actual del calendario
 class CalendarInfo(TypedDict):
     calendar_name: str
     meal: str
     dinner: str
     comments: list[Comment]
+    tasks: list[AgendaTask]
 
 #Clase para manejar el estado del usuario
 class UserState(rx.State):
@@ -123,7 +136,65 @@ class UserState(rx.State):
         async with self:
             if self.current_user:
                 self.today_data = await get_today_info(self.current_user.id)
-    
+
+    #Requisitos de la nueva contraseña, para marcarlos en vivo en /security
+    @rx.var
+    def pasw_has_length(self) -> bool:
+        return len(self.new_password) >= 8
+
+    @rx.var
+    def pasw_has_upper(self) -> bool:
+        return any(c.isupper() for c in self.new_password)
+
+    @rx.var
+    def pasw_has_digit(self) -> bool:
+        return any(c.isdigit() for c in self.new_password)
+
+    @rx.var
+    def pasw_has_special(self) -> bool:
+        return any(not c.isalnum() for c in self.new_password)
+
+    @rx.var
+    def pasw_matches(self) -> bool:
+        return bool(self.new_password) and self.new_password == self.confirm_password
+
+    #Correo enmascarado para el perfil: dos primeras letras + dominio
+    @rx.var
+    def masked_email(self) -> str:
+        email = (self.current_user.email or "") if self.current_user else ""
+        if "@" not in email:
+            return "—"
+        local, domain = email.split("@", 1)
+        return f"{local[:2]}***@{domain}"
+
+    #True si hoy hay algo que enseñar (comida, cena, comentarios o agenda)
+    @rx.var
+    def has_today_content(self) -> bool:
+        for cal in self.today_data:
+            if cal.get("meal") or cal.get("dinner") or cal.get("comments") or cal.get("tasks"):
+                return True
+        return False
+
+    #Tareas de hoy sin completar, para el resumen de la cabecera
+    @rx.var
+    def today_pending_tasks(self) -> int:
+        return len([
+            task
+            for cal in self.today_data
+            for task in (cal.get("tasks") or [])
+            if task.get("item_type") == "task" and not task.get("completed")
+        ])
+
+    #Alterna el estado de una tarea de hoy directamente desde el panel principal
+    @rx.event
+    async def toggle_today_task(self, item_id: int):
+        if not self.current_user:
+            return
+        success = await toggle_day_item_completed(item_id, self.current_user.id)
+        if success:
+            self.today_data = await get_today_info(self.current_user.id)
+
+
     #Si presionamos la tecla "Enter", se intenta el login
     @rx.event
     def press_enter(self, key: str):

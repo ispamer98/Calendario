@@ -16,6 +16,18 @@ class PasswordResetState(rx.State):
     password_error: str = "" #Error de contraseña
     confirm_password_error: str = "" #Error de validación
 
+    @rx.event
+    def set_email(self, email: str):
+        self.email = email
+
+    @rx.event
+    def set_new_password(self, password: str):
+        self.new_password = password
+
+    @rx.event
+    def set_confirm_password(self, password: str):
+        self.confirm_password = password
+
     def on_load_forgot_password(self):
         self.email = ""
         #Resetea el email al cargar la página
@@ -25,7 +37,7 @@ class PasswordResetState(rx.State):
         self.new_password = "" 
         self.confirm_password = ""
         #Obtiene el token de la url
-        self.token = self.router.page.params.get("token", "")
+        self.token = self.router.url.query_parameters.get("token", "")
 
         #Si no encuentra token, redirige al indice
         if not self.token:

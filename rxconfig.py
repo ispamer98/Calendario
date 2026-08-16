@@ -15,4 +15,9 @@ config = rx.Config(
     show_built_with_reflex=False,
     show_reflex_badge=False,
     telemetry_enabled=False,
+    # Desactivado a propósito: los setters automáticos exponen un evento
+    # "set_<var>" para CADA var pública del estado (incluyendo cosas como
+    # UserState.current_user), invocable por cualquier cliente conectado.
+    # Con esto desactivado, solo existen los setters definidos explícitamente.
+    state_auto_setters=False,
 )
