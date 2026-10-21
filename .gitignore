@@ -21,3 +21,6 @@ suscriptores.json
 .mypy_cache/
 .ruff_cache/
 backups/
+
+# Config local de Claude Code
+.claude/
