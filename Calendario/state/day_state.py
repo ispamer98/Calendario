@@ -658,59 +658,6 @@ class DayState(rx.State):
                 calendar_state = await self.get_state(CalendarState)
                 await calendar_state.update_day_in_state(updated_day)
 
-                # --- NOTIFICACIONES ACTUALIZADAS ---
-                calendar = calendar_state.current_calendar
-                if calendar:
-                    shared_users = await get_shared_users(calendar.id)
-                    author = user_state.current_user.username
-
-                    # 1. Determinar qué cambió para el mensaje principal
-                    cambio_comida = meal != self.current_day.meal
-                    cambio_cena = dinner != self.current_day.dinner
-
-                    if cambio_comida and cambio_cena:
-                        detalle_cambio = "el menú completo"
-                    elif cambio_comida:
-                        detalle_cambio = f"la comida ({meal})" # Aquí incluimos el plato
-                    elif cambio_cena:
-                        detalle_cambio = f"la cena ({dinner})" # Aquí incluimos el plato
-                    else:
-                        detalle_cambio = "el día"
-
-                    # 2. Formatear la fecha
-                    meses_es = [
-                        "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
-                        "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
-                    ]
-                    dia = self.current_day.date.day
-                    mes = meses_es[self.current_day.date.month - 1]
-                    fecha_formateada = f"{dia} de {mes}"
-
-                    # 3. Construir el mensaje con el salto de línea y la flecha
-                    # \n es el salto de línea para que el autor aparezca debajo
-                    mensaje_notif = (
-                        f"Se ha modificado {detalle_cambio} en '{calendar.name}' "
-                        f"para el día {fecha_formateada}\n"
-                        f"↳ {author}"
-                    )
-
-                    #El aviso lleva al día, y si lo que ha cambiado es un plato
-                    #concreto, directamente a restar sus ingredientes de la
-                    #despensa: es lo que vas a querer hacer al cocinarlo
-                    slot_cambiado = "meal" if cambio_comida else "dinner"
-                    destino_url = f"/despensa?dia={self.current_day.id}&slot={slot_cambiado}"
-
-                    for user in shared_users:
-                        if user.username != author:
-                            NotificationState.enviar_notificacion(
-                                titulo="🍽️ Menú actualizado",
-                                mensaje=mensaje_notif,
-                                destino=user.username,
-                                url=destino_url,
-                                tag=f"menu-{self.current_day.id}",
-                            )
-                # ----------------------
-
                 toast_message = "Día actualizado correctamente"
                 self.show_editor = False
                 return await calendar_state.refresh_page()

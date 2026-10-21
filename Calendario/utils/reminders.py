@@ -1,30 +1,35 @@
 # Calendario/utils/reminders.py
 """
-El aviso de "toca comer": recordar descontar de la despensa.
+Avisos de la app que dependen del reloj, no de una acción de alguien.
 
-Sin esto, la despensa se vacía solo si te acuerdas de entrar a vaciarla, que es
-como decir que no se vacía. El servidor mira el reloj una vez por minuto y, a la
-hora que cada uno haya puesto (15:00 la comida y 23:00 la cena, por defecto),
-manda el aviso con lo que toca ese día.
+Dos cosas distintas viven aquí, con el mismo mecanismo debajo (un bucle que
+mira la hora una vez por minuto, registrado como tarea de ciclo de vida de la
+app en `Calendario.py`, así que vive mientras viva el servidor y no depende de
+que nadie tenga la web abierta):
 
-Tres reglas que evitan que esto se vuelva ruido:
+- **"Toca comer"**: recordar descontar de la despensa. Sin esto, la despensa se
+  vacía solo si te acuerdas de entrar a vaciarla, que es como decir que no se
+  vacía. A la hora que cada uno haya puesto (15:00 la comida y 23:00 la cena,
+  por defecto), manda el aviso con lo que toca ese día. Tres reglas que evitan
+  que esto se vuelva ruido:
 
-- **Solo si hay algo puesto.** Si ese día no tiene comida planificada, no se
-  manda nada: un aviso vacío enseña a ignorar los avisos.
-- **Solo si no está ya descontado.** Quien lo restó por la mañana desde el
-  calendario no tiene por qué recibir el recordatorio a las tres.
-- **Una sola vez.** El envío se reserva antes en `meal_reminders` (índice único
-  por usuario, día y comida), así que aunque el servidor corra con varios
-  procesos o se reinicie a esa hora, el aviso sale una vez y no tres.
+  - **Solo si hay algo puesto.** Si ese día no tiene comida planificada, no se
+    manda nada: un aviso vacío enseña a ignorar los avisos.
+  - **Solo si no está ya descontado.** Quien lo restó por la mañana desde el
+    calendario no tiene por qué recibir el recordatorio a las tres.
+  - **Una sola vez.** El envío se reserva antes en `meal_reminders` (índice
+    único por usuario, día y comida), así que aunque el servidor corra con
+    varios procesos o se reinicie a esa hora, el aviso sale una vez y no tres.
 
-El bucle se registra como tarea de ciclo de vida de la app (`Calendario.py`), así
-que vive mientras viva el servidor y no depende de que nadie tenga la web
-abierta.
+- **"Falta una hora"**: avisa a quien creó una tarea o evento de la agenda del
+  día, en el momento en que le queda una hora exacta para empezar. Se dispara
+  solo, sin ajuste de preferencia: quien pone una hora en la agenda ya está
+  diciendo que quiere que se la recuerden.
 """
 
 import asyncio
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import pytz
 
@@ -101,7 +106,7 @@ def _enviar_recordatorios(ahora: datetime) -> int:
                     pass
 
                 titulo, cuerpo = _mensaje(slot, comida, calendario)
-                NotificationState.enviar_aviso_despensa(
+                entregados = NotificationState.enviar_aviso_despensa(
                     titulo=titulo,
                     mensaje=cuerpo,
                     destino=usuario["username"],
@@ -109,13 +114,62 @@ def _enviar_recordatorios(ahora: datetime) -> int:
                     url=f"/despensa?dia={dia['day_id']}&slot={slot}",
                     tag=f"comida-{dia['day_id']}-{slot}",
                 )
-                enviados += 1
+                if entregados:
+                    #Se cuenta lo que de verdad llegó, no lo que se intentó: el
+                    #hueco (reclamado pero sin entregar) ya queda en el log de
+                    #arriba con su propio ❌, así que aquí no hace falta repetirlo
+                    enviados += entregados
+                else:
+                    #No llegó a nadie (sin suscripción viva, red caída...): se
+                    #deshace la reserva para que el aviso de hoy no se pierda
+                    #sin más. Si luego se arregla la suscripción o se cambia la
+                    #hora, este mismo día y comida puede volver a intentarlo.
+                    SUPABASE_API.unclaim_meal_reminder(usuario["id"], dia["day_id"], slot)
     return enviados
+
+
+def _enviar_avisos_de_agenda(ahora: datetime) -> int:
+    """Avisa de lo que empieza dentro de una hora exacta. Devuelve cuántos salieron.
+
+    Sin tabla de reservas (a diferencia de las comidas): la condición ya es de
+    una sola vez por sí misma —una hora exacta antes solo cae en un minuto del
+    día— así que añadir aquí el mismo seguro habría sido repetir la protección
+    sin necesidad. Lo único que no cubre es un reinicio del servidor justo en
+    ese minuto, un caso raro que como mucho repite un aviso.
+    """
+    from Calendario.state.notification_state import NotificationState
+    from Calendario.utils.api import SUPABASE_API
+
+    objetivo = (ahora + timedelta(hours=1)).strftime("%H:%M")
+    items = SUPABASE_API.get_upcoming_day_items(objetivo, ahora)
+    if not items:
+        return 0
+
+    entregados = 0
+    tipos = {t["key"]: t["label"] for t in SUPABASE_API.get_task_types()}
+
+    for item in items:
+        owner = SUPABASE_API.get_user_by_id(item["owner_id"])
+        if not owner:
+            continue
+        etiqueta = tipos.get(item["item_type"], "elemento")
+        entregados += NotificationState.enviar_notificacion(
+            titulo=f"⏰ {etiqueta.capitalize()} en una hora",
+            mensaje=f"\"{item['title']}\" empieza a las {item['time']}",
+            destino=owner.username,
+            #No hay ajuste que lo apague: ponerle hora a algo ya es pedir que
+            #se recuerde, así que no depende de la preferencia de cambios de
+            #calendario (que además es otra cosa y algunos la tienen apagada)
+            respetar_preferencia=False,
+            url="/calendar",
+            tag=f"agenda-{item['id']}",
+        )
+    return entregados
 
 
 async def meal_reminder_loop():
     """Bucle de avisos. Se registra como tarea de ciclo de vida de la app."""
-    logger.info("⏰ Recordatorios de despensa en marcha (comida y cena)")
+    logger.info("⏰ Recordatorios en marcha (comidas y agenda)")
     ultimo_minuto = ""
     while True:
         try:
@@ -128,6 +182,9 @@ async def meal_reminder_loop():
                 enviados = await asyncio.to_thread(_enviar_recordatorios, ahora)
                 if enviados:
                     logger.info(f"⏰ {enviados} recordatorios de despensa enviados a las {minuto}")
+                avisos_agenda = await asyncio.to_thread(_enviar_avisos_de_agenda, ahora)
+                if avisos_agenda:
+                    logger.info(f"⏰ {avisos_agenda} avisos de agenda (1h antes) enviados a las {minuto}")
         except asyncio.CancelledError:
             raise
         except Exception as e:

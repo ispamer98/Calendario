@@ -290,7 +290,6 @@ def _toolbar() -> rx.Component:
         CalendarState.auto_select_calendar,
         CalendarState.load_shared_users,
         MenuState.load_week,
-        MenuState.notifier_loop,
         UnitsState.load_units,
         CalendarState.load_categories,
     ],

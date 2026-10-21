@@ -12,7 +12,6 @@ calendario del mes, así que una semana a caballo entre dos meses solo se puede
 planificar si existen los dos calendarios (se avisa en la interfaz).
 """
 
-import asyncio
 import logging
 import random
 from datetime import datetime, timedelta
@@ -23,10 +22,8 @@ import reflex as rx
 from Calendario import theme
 from Calendario.model.model import Day, GeneratedItem, Meal, WeekDay
 from Calendario.state.calendar_state import CalendarState
-from Calendario.state.notification_state import NotificationState
 from Calendario.state.user_state import UserState
 from Calendario.utils.api import (
-    get_shared_users,
     apply_generated_shopping_items,
     get_days_in_range,
     get_user_shopping_lists,
@@ -39,9 +36,6 @@ logger = logging.getLogger(__name__)
 
 #Cantidades del recetario pensadas para 2 comensales
 BASE_SERVINGS = 2
-
-#Segundos sin tocar nada antes de mandar el resumen de cambios
-NOTIFY_IDLE_SECONDS = 12
 
 
 class MenuState(rx.State):
@@ -188,89 +182,6 @@ class MenuState(rx.State):
         return ", ".join(self.missing_dates)
 
     # ------------------------------------------------------------------
-    # Notificaciones: una sola por tanda de cambios
-    # ------------------------------------------------------------------
-    #Cambios pendientes de avisar y momento del último, para agrupar
-    _pending_changes: List[str] = []
-    _last_change: float = 0.0
-    _notifier_running: bool = False
-
-    def _note_change(self, texto: str):
-        """Apunta un cambio. El aviso sale luego, agrupado."""
-        import time
-        self._pending_changes = self._pending_changes + [texto]
-        self._last_change = time.time()
-
-    @rx.event(background=True)
-    async def notifier_loop(self):
-        """Espera a que dejes de tocar la semana y manda UN aviso con el resumen.
-
-        Rellenar la semana son 14 cambios: mandar una notificación por cada uno
-        dejaría el móvil de tu pareja inservible. Se acumulan y, tras unos
-        segundos sin tocar nada, sale un único mensaje con el resumen.
-        """
-        import time
-
-        async with self:
-            if self._notifier_running:
-                return
-            self._notifier_running = True
-        try:
-            while True:
-                await asyncio.sleep(4)
-                async with self:
-                    if self.router.url.path != "/menu_semanal":
-                        #Antes de irnos, no dejamos cambios sin avisar
-                        await self._flush_changes()
-                        self._notifier_running = False
-                        return
-                    if self._pending_changes and (time.time() - self._last_change) >= NOTIFY_IDLE_SECONDS:
-                        await self._flush_changes()
-        finally:
-            async with self:
-                self._notifier_running = False
-
-    async def _flush_changes(self):
-        """Manda el resumen acumulado a quien comparta el calendario."""
-        cambios = list(self._pending_changes)
-        self._pending_changes = []
-        if not cambios:
-            return
-
-        user_state = await self.get_state(UserState)
-        calendar_state = await self.get_state(CalendarState)
-        calendar = calendar_state.current_calendar
-        if not user_state.current_user or not calendar:
-            return
-
-        autor = user_state.current_user.username
-        #Como mucho cuatro líneas: el resto se resume en un "y N más"
-        detalle = "\n".join(f"· {c}" for c in cambios[:4])
-        if len(cambios) > 4:
-            detalle += f"\n· y {len(cambios) - 4} cambios más"
-
-        titulo = (
-            "🗓️ Menú semanal actualizado"
-            if len(cambios) > 1
-            else "🍽️ Cambio en el menú"
-        )
-        mensaje = f"{autor} en '{calendar.name}' ({self.week_label}):\n{detalle}"
-
-        try:
-            for user in await get_shared_users(calendar.id):
-                if user.username != autor:
-                    NotificationState.enviar_notificacion(
-                        titulo=titulo, mensaje=mensaje, destino=user.username
-                    )
-        except Exception as e:
-            logger.warning(f"No se pudo avisar de los cambios del menú: {e}")
-
-    @rx.event
-    async def flush_now(self):
-        """Fuerza el envío del resumen (al generar la compra, por ejemplo)."""
-        await self._flush_changes()
-
-    # ------------------------------------------------------------------
     # Edición de la semana
     # ------------------------------------------------------------------
     def _day_ids(self) -> set:
@@ -310,13 +221,6 @@ class MenuState(rx.State):
         category = next(
             (m.category or "otros" for m in calendar_state.meals if m.name == value), "otros"
         )
-        etiqueta = "comida" if slot == "meal" else "cena"
-        dia = next((d for d in self.week_days if d.day_id == day_id), None)
-        nombre_dia = dia.day_name if dia else ""
-        self._note_change(
-            f"{nombre_dia}: {etiqueta} → {value}" if value else f"{nombre_dia}: {etiqueta} borrada"
-        )
-
         self.week_days = [
             day.copy(update={slot: value, f"{slot}_category": category})
             if day.day_id == day_id
@@ -340,7 +244,6 @@ class MenuState(rx.State):
                 await update_day_meal(day.day_id, None, user_id)
             if day.dinner:
                 await update_day_dinner(day.day_id, None, user_id)
-        self._note_change("semana vaciada entera")
         await self._refresh_after_edit()
         return rx.toast.success("Semana vaciada", position="top-center")
 
@@ -381,8 +284,6 @@ class MenuState(rx.State):
                     await update_day_meal(day.day_id, choice, user_id)
                 filled += 1
 
-        if filled:
-            self._note_change(f"{filled} huecos rellenados al azar")
         await self._refresh_after_edit()
         if filled == 0:
             return rx.toast.info("La semana ya estaba completa", position="top-center")
@@ -418,8 +319,6 @@ class MenuState(rx.State):
                 await update_day_dinner(day.day_id, source.dinner, user_id)
             copied += 1
 
-        if copied:
-            self._note_change(f"copiados {copied} días de la semana anterior")
         await self._refresh_after_edit()
         if copied == 0:
             return rx.toast.info("La semana anterior estaba vacía", position="top-center")
@@ -677,7 +576,6 @@ class MenuState(rx.State):
                 return rx.toast.error("No se pudo actualizar la lista", position="top-center")
 
             self.show_generator = False
-            await self._flush_changes()
             return [
                 rx.toast.success(
                     f"{count} productos en la lista de la compra para {self.people_int} personas",

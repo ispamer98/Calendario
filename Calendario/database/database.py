@@ -3889,6 +3889,22 @@ class SupabaseAPI:
             logger.warning(f"No se pudo registrar el recordatorio ({e}); ¿falta la 019?")
             return False
 
+    def unclaim_meal_reminder(self, user_id: int, day_id: int, slot: str) -> None:
+        """Deshace la reserva de un recordatorio que no llegó a entregarse a nadie.
+
+        Sin esto, un envío fallido (suscripción caducada, red caída) se queda
+        marcado como "ya avisado" para el resto del día: aunque luego se
+        arregle la suscripción o se cambie la hora, el aviso de ese día no
+        volvería a salir nunca. Es aparte de `claim_meal_reminder` porque solo
+        se llama cuando la entrega ha fallado del todo, no cuando ha ido bien.
+        """
+        try:
+            self.supabase.table("meal_reminders").delete().eq("user_id", user_id).eq(
+                "day_id", day_id
+            ).eq("slot", slot).execute()
+        except Exception as e:
+            logger.warning(f"No se pudo deshacer la reserva del recordatorio: {e}")
+
     def get_todays_meals_for_user(self, user_id: int, today: datetime) -> List[dict]:
         """Las comidas de hoy del usuario, con lo que hace falta para avisar.
 
@@ -4037,6 +4053,24 @@ class SupabaseAPI:
             logger.error(f"Error eliminando suscripción push: {e}")
             return False
 
+    def delete_dead_push_subscription(self, subscription_id: int) -> bool:
+        """Borra una suscripción que el propio proveedor push ha confirmado muerta
+        (404/410 al enviarle). No comprueba dueño: no la pide un usuario, la pide
+        el propio envío al comprobar que ya no hay nadie al otro lado; seguir
+        reteniéndola solo haría fallar en silencio cada aviso futuro.
+        """
+        try:
+            delete_resp = (
+                self.supabase.table("push_subscriptions")
+                .delete()
+                .eq("id", subscription_id)
+                .execute()
+            )
+            return bool(delete_resp.data)
+        except Exception as e:
+            logger.error(f"Error eliminando suscripción push muerta {subscription_id}: {e}")
+            return False
+
     # ---------------------- Agenda diaria (tareas / eventos / notas) ----------------------
 
     def get_day_items(self, day_id: int, user_id: int) -> List[DayItem]:
@@ -4062,6 +4096,39 @@ class SupabaseAPI:
             return items
         except Exception as e:
             logger.error(f"Error obteniendo agenda del día: {e}")
+            return []
+
+    def get_upcoming_day_items(self, objetivo_hhmm: str, ahora: datetime) -> List[dict]:
+        """Elementos de agenda de hoy que empiezan a `objetivo_hhmm` en punto.
+
+        Se llama con la hora dentro de una hora exacta (`ahora + 1h`, sin
+        segundos): así el aviso de "en una hora" sale una sola vez, en el
+        mismo minuto en que se cumple, igual que el de las comidas.
+        """
+        try:
+            inicio = ahora.replace(hour=0, minute=0, second=0, microsecond=0)
+            fin = inicio + timedelta(days=1)
+            dias = (
+                self.supabase.from_("days")
+                .select("id")
+                .gte("date", inicio.isoformat())
+                .lt("date", fin.isoformat())
+                .execute()
+            )
+            day_ids = [d["id"] for d in (dias.data or [])]
+            if not day_ids:
+                return []
+            res = (
+                self.supabase.from_("day_items")
+                .select("id, day_id, owner_id, item_type, title, time")
+                .in_("day_id", day_ids)
+                .eq("time", objetivo_hhmm)
+                .eq("completed", False)
+                .execute()
+            )
+            return res.data or []
+        except Exception as e:
+            logger.warning(f"No se pudo leer la agenda de hoy para los avisos: {e}")
             return []
 
     def add_day_item(

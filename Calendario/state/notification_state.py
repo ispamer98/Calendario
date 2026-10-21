@@ -170,21 +170,24 @@ class NotificationState(rx.State):
     @staticmethod
     def enviar_aviso_despensa(
         titulo: str, mensaje: str, destino: str, url: str = "/despensa", tag: str = "",
-    ):
+    ) -> int:
         """Avisos de comidas y despensa: los gobierna su propio ajuste del perfil.
 
         Van aparte de los avisos de calendario a propósito: son otra cosa (te
         recuerdan descontar lo que cocinas) y hay quien querrá unos sí y otros
         no. Si el destinatario los tiene apagados, aquí no se manda nada.
+
+        Devuelve cuántas suscripciones recibieron el aviso de verdad (no
+        cuántas se intentaron), para que quien llama sepa si de verdad llegó.
         """
         try:
             user = SUPABASE_API.get_user_by_username(destino)
             if not user:
-                return
+                return 0
             ajustes = SUPABASE_API.get_meal_notify_settings(user["id"])
             if not ajustes.get("notify_meal_stock", True):
-                return
-            NotificationState.enviar_notificacion(
+                return 0
+            return NotificationState.enviar_notificacion(
                 titulo=titulo,
                 mensaje=mensaje,
                 destino=destino,
@@ -196,12 +199,13 @@ class NotificationState(rx.State):
             )
         except Exception as e:
             logger.warning(f"No se pudo enviar el aviso de despensa a {destino}: {e}")
+            return 0
 
     @staticmethod
     def enviar_notificacion(
         titulo: str, mensaje: str, destino: str = "todos", respetar_preferencia: bool = True,
         url: str = "/", tag: str = "",
-    ):
+    ) -> int:
         """Envía un aviso push.
 
         `respetar_preferencia=False` para los mensajes que un amigo escribe a
@@ -212,7 +216,12 @@ class NotificationState(rx.State):
         un mensaje de chat abre la conversación, no la portada. `tag` agrupa:
         dos avisos con la misma etiqueta se sustituyen en la bandeja del móvil
         en vez de apilarse, que es lo que se quiere con un mismo remitente.
+
+        Devuelve cuántas suscripciones lo recibieron de verdad: reclamar el
+        envío en la base de datos no es lo mismo que el aviso llegando al
+        navegador, y quien llama necesita distinguirlo.
         """
+        entregados = 0
         try:
             if destino == "todos":
                 subs = SUPABASE_API.get_all_push_subscriptions()
@@ -221,7 +230,7 @@ class NotificationState(rx.State):
 
             if not subs:
                 logger.warning("No hay suscriptores registrados para este destino")
-                return
+                return 0
 
             payload = json.dumps({
                 "title": titulo,
@@ -246,10 +255,22 @@ class NotificationState(rx.State):
                         timeout=10
                     )
                     logger.info(f"✅ Notificación enviada (alias: {sub.get('alias')})")
+                    entregados += 1
                 except WebPushException as ex:
                     logger.error(f"❌ Error enviando a suscripción {sub.get('id')}: {ex}")
+                    #410/404: el proveedor confirma que ya no hay nadie al otro
+                    #lado (caducó o se desuscribió). Retenerla solo consigue que
+                    #vuelva a fallar, en silencio, en cada aviso futuro.
+                    status = getattr(ex.response, "status_code", None)
+                    if status in (404, 410) and sub.get("id"):
+                        if SUPABASE_API.delete_dead_push_subscription(sub["id"]):
+                            logger.info(
+                                f"🗑️ Suscripción {sub['id']} (alias: {sub.get('alias')}) "
+                                f"eliminada por estar caducada ({status})"
+                            )
                 except Exception as e:
                     logger.warning(f"⚠️ Error inesperado: {e}")
 
         except Exception as e:
             logger.error(f"Error general en el sistema de envío: {e}")
+        return entregados
