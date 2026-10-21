@@ -81,6 +81,10 @@ def _slot(day: rx.Var[WeekDay], slot: str) -> rx.Component:
             lambda v: MenuState.set_slot(day.day_id, slot, v),
             "Elegir...",
             on_add=MealFormState.open_new,
+            #`_day_card` (y por tanto `_slot`) se construye una sola vez como
+            #plantilla del `rx.foreach`: sin un id que dependa del propio día,
+            #los siete compartirían el mismo y se abrirían todos a la vez.
+            picker_id="wk-" + slot + "-" + day.day_id.to_string(),
         ),
         #Punto de color con la categoría del plato elegido
         rx.cond(

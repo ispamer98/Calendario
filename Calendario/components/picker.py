@@ -280,18 +280,28 @@ def picker(
     size: str = "2",
     on_add=None,
     add_title: str = "Añadir a la lista",
+    picker_id=None,
 ) -> rx.Component:
     """Desplegable con buscador (y con «+» al lado si su lista se puede ampliar).
 
     `options` es lo que se pinta dentro: un `rx.foreach` de `option(...)`, o una
     lista de `option(...)` si las opciones son fijas.
+
+    `picker_id` se puede forzar desde fuera cuando el propio `picker()` se
+    construye dentro de un `rx.foreach` (el menú semanal, por ejemplo): la
+    función que arma cada fila se llama **una sola vez** para montar la
+    plantilla, así que el contador de abajo asignaría el mismo id a las siete
+    filas y abrir una desplegaría las siete a la vez, superpuestas. Pasando un
+    id que dependa de un dato de la propia fila (el `day_id`, por ejemplo) cada
+    fila queda con el suyo de verdad.
     """
     if isinstance(options, (list, tuple)):
         options = list(options)
     else:
         options = [options]
 
-    picker_id = f"pk{next(_SECUENCIA)}"
+    if picker_id is None:
+        picker_id = f"pk{next(_SECUENCIA)}"
     campo = _popover(display, options, placeholder, footer, width, picker_id)
     if on_add is None:
         return campo

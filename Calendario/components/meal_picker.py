@@ -16,9 +16,16 @@ from Calendario.components.picker import clear_option, manage_button, option, pi
 from Calendario.state.calendar_state import CalendarState
 
 
-def meal_picker(value, on_select, placeholder: str = "Elegir plato...", on_add=None) -> rx.Component:
+def meal_picker(
+    value, on_select, placeholder: str = "Elegir plato...", on_add=None, picker_id=None,
+) -> rx.Component:
     """Desplegable de plato. Con `on_add`, lleva al lado el engranaje de siempre
-    para dar de alta una comida nueva sin salir de aquí."""
+    para dar de alta una comida nueva sin salir de aquí.
+
+    `picker_id`: ver la nota en `picker()`. Hace falta pasarlo cuando este
+    desplegable se repite dentro de un `rx.foreach` (el menú semanal), para que
+    cada fila tenga el suyo y no se abran todas a la vez.
+    """
     return picker(
         display=value,
         options=[
@@ -40,4 +47,5 @@ def meal_picker(value, on_select, placeholder: str = "Elegir plato...", on_add=N
         width="300px",
         on_add=on_add,
         add_title="Añadir una comida al recetario",
+        picker_id=picker_id,
     )
