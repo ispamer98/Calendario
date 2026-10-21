@@ -60,6 +60,8 @@ class CalendarState(rx.State):
     toast_info: Optional[str] = None #Mensaje de información
     new_calendar_name : str = "" #Nombre para nuevo calendario
     new_calendar_month: str = datetime.today().strftime("%Y-%m") #Mes/año del nuevo calendario
+    new_calendar_min_month: str = datetime.today().strftime("%Y-%m") #Mes mínimo del selector (se recalcula al abrirlo)
+    new_calendar_max_month: str = datetime(datetime.today().year + 1, 12, 1).strftime("%Y-%m") #Mes máximo del selector
     loading : bool = False #Manejador de carga
     show_calendar_creator: bool = False #Manejador para mostrar el creador de calendario
     error_message : Optional[str] = None #Mensaje de error para inputs
@@ -722,6 +724,12 @@ class CalendarState(rx.State):
     #Controla la apertura del creador de calendario
     @rx.event
     def open_calendar_creator(self):
+        #Estos valores NO pueden quedarse fijados al arrancar el servidor: si
+        #llevaba días encendido, el selector abría en el mes anterior
+        today = datetime.today()
+        self.new_calendar_month = today.strftime("%Y-%m")
+        self.new_calendar_min_month = today.strftime("%Y-%m")
+        self.new_calendar_max_month = datetime(today.year + 1, 12, 1).strftime("%Y-%m")
         self.show_calendar_creator = True
     
     #Controla el cierre del creador de calendario
